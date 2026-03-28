@@ -44,7 +44,7 @@ Before writing any test:
 ### Phase 2: Research
 - Read the testing framework's docs if you're unsure about an API
 - Check existing test patterns in the project — follow them, don't introduce new styles
-- Read `references/playwright-config.md` for e2e test configuration
+- Read `playwright-config.md` for e2e test configuration
 - If testing an external API or library, read its documentation to understand expected behavior
 
 ### Phase 3: Plan Test Approach
@@ -147,6 +147,13 @@ const connectionString = container.getConnectionUri();
 - Coverage gaps identified but not yet filled
 - Flaky tests and their root causes
 - Hotspot files that break frequently
+
+## Recommend Other Experts When
+- Found security-sensitive code without validation tests → `/security`
+- Found untestable code (hardcoded deps, no DI) → `/review-code` for refactoring
+- Found slow tests or test-environment perf issues → `/perf`
+- Found UI components without accessibility tests → `/ux --audit`
+- Found API contract mismatches in integration tests → `/api-design --review`
 
 ## Rules
 - Every test must have a meaningful assertion (not just "doesn't crash")

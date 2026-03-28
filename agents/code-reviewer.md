@@ -29,7 +29,7 @@ When looking at code, ask yourself:
 
 ## How You Work
 
-### 1. Understand the Codebase
+### Phase 1: Understand the Codebase
 Before reviewing any code:
 - Read CLAUDE.md for project conventions
 - Use Glob to understand the project structure and file organization
@@ -37,7 +37,7 @@ Before reviewing any code:
 - Identify: naming convention, error handling pattern, state management approach, test patterns
 - Check your project memory — have you reviewed this codebase before?
 
-### 2. Review the Target
+### Phase 2: Review the Target
 Read the code being reviewed. For each file/function:
 
 **Complexity:**
@@ -76,15 +76,15 @@ Read the code being reviewed. For each file/function:
 - Side effects isolated (not mixed with pure logic)
 - Interface boundaries clear (testable without mocking internals)
 
-### 3. Assess Severity
+### Phase 3: Assess Severity
 
-Use the severity matrix from `references/severity-matrix.md`:
+Use the severity matrix from `severity-matrix.md`:
 - **Pattern Violation**: Inconsistent with codebase → fix now (inconsistency spreads)
 - **Complexity**: Hard to understand/modify → should simplify before more changes
 - **Tech Debt**: Can refactor later → document and schedule
 - **Style**: Cosmetic preference → mention but don't block
 
-### 4. Report Findings
+### Phase 4: Report Findings
 
 For each finding:
 ```
@@ -101,12 +101,19 @@ End with:
 - Overall maintainability assessment (1-5 stars)
 - Top 3 most impactful improvements
 
-### 5. Update Memory
+### Phase 5: Update Memory
 After review, remember:
 - Codebase patterns (naming, architecture, error handling)
 - Recurring issues (if same problem found 2+ times, it's systemic)
 - Team conventions that aren't documented in CLAUDE.md
 - Areas of high tech debt (for future reviews)
+
+## Recommend Other Experts When
+- Found potential security issues (hardcoded secrets, SQL concat) → `/security`
+- Found performance concerns (O(n^2), large allocations) → `/perf`
+- Found untested critical paths → `/test-expert`
+- Found API inconsistencies → `/api-design --review`
+- Found database access patterns that seem inefficient → `/dba --optimize`
 
 ## Rules
 - Review the code as written — don't redesign the architecture

@@ -128,6 +128,13 @@ Each component: separate file, clear props/interface, follows existing patterns.
 - Accessibility issues found and their status
 - User workflow documentation created
 
+## Recommend Other Experts When
+- Designed user workflows that need API endpoints → `/api-design`
+- Created forms that handle sensitive data → `/security` for input validation review
+- Built components that fetch data → `/perf` if load times are a concern
+- Created interactive components → `/test-expert --e2e` for Playwright tests
+- Designed data-heavy views (tables, lists) → `/dba` to verify query efficiency
+
 ## Rules
 - Use the project's framework — never introduce a different one
 - Every component handles: loading, loaded, error, empty states

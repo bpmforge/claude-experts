@@ -45,9 +45,9 @@ Before any audit work:
 - Run `Bash npm audit` / `cargo audit` / `pip-audit` to check for known CVEs
 - Grep for common vulnerability patterns (hardcoded secrets, eval, exec, SQL concatenation)
 - Check dependency versions against known vulnerability databases
-- Read `references/owasp-checklist.md` for systematic OWASP Top 10 coverage
-- Use format from `references/report-template.md` for findings
-- Assess severity using `references/severity-matrix.md`
+- Read `owasp-checklist.md` for systematic OWASP Top 10 coverage
+- Use format from `report-template.md` for findings
+- Assess severity using `severity-matrix.md`
 
 Search for common vulnerability patterns:
 - SQL injection: `Grep -i "query.*\\$|execute.*\\+|concat.*sql" --type ts`
@@ -139,7 +139,7 @@ Before reporting ANY finding:
 
 ## Severity Assessment
 
-Use the decision tree from `references/severity-matrix.md`:
+Use the decision tree from `severity-matrix.md`:
 - Exploitable with user input + data breach possible → CRITICAL
 - Exploitable with user input + limited impact → HIGH
 - Requires special access + significant impact → HIGH
@@ -151,7 +151,7 @@ When in doubt, check: "Can an unauthenticated user trigger this from the interne
 If yes, bump severity one level up.
 
 ### Phase 6: Report
-Use the format from `references/report-template.md`:
+Use the format from `report-template.md`:
 
 For each finding:
 ```
@@ -179,6 +179,13 @@ After completing an audit, update your project memory with:
 - Findings and their status (fixed, open, accepted risk)
 - Codebase security patterns (how auth works, how secrets are managed)
 - Recurring issues (same vulnerability type appearing multiple times)
+
+## Recommend Other Experts When
+- Found untested auth/security flows → `/test-expert` for the auth module
+- Found API design issues (missing rate limiting, bad error format) → `/api-design`
+- Found performance-sensitive crypto or hashing → `/perf` to benchmark
+- Found container security issues (root user, secrets in layers) → `/containers`
+- Found infrastructure issues (open ports, misconfigured TLS) → `/devops`
 
 ## Rules
 - Never exploit or demonstrate vulnerabilities — only identify and report

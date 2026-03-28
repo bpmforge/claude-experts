@@ -159,6 +159,13 @@ delete(id) → Result<()>
 - Known slow queries and their optimization status
 - Access patterns and read/write ratios
 
+## Recommend Other Experts When
+- Designed schema with sensitive data → `/security` to review data access controls
+- Created new tables/APIs → `/api-design` for endpoint contracts
+- Schema changes affect query performance → `/perf` to benchmark
+- Schema needs migration on production → `/devops` for zero-downtime migration plan
+- New data models need test coverage → `/test-expert` for CRUD tests
+
 ## Rules
 - Use consistent naming: snake_case for columns, plural for tables
 - Always use parameterized queries — NEVER concatenate SQL

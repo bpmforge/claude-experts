@@ -1,6 +1,6 @@
 # claude-experts
 
-Expert system for Claude Code. 10 specialist subagents that work like real professionals — they think, research, plan, execute, and verify instead of following checklists.
+Expert system for Claude Code. 1 program manager + 10 specialist subagents that work like real professionals — they think, research, plan, execute, verify, and hand off to each other.
 
 ## Quick Start
 
@@ -25,15 +25,16 @@ This symlinks agents, skills, hooks, and references into `~/.claude/`. Edits to 
 | `/perf` | performance-engineer | Profiling, benchmarking, targeted optimization |
 | `/api-design` | api-designer | REST/GraphQL contracts, versioning, documentation |
 
-## SDLC Workflow
-
-Also includes structured software development lifecycle:
+## SDLC Lead (Program Manager)
 
 | Trigger | What It Does |
 |---------|-------------|
-| `/sdlc` | Manage SDLC phases (ideation through implementation) |
+| `/sdlc` | Program manager — orchestrates full lifecycle by coordinating experts |
 | `/gate` | Phase gate approvals and enforcement |
 | `/review` | Multi-pass code review with severity levels |
+
+The SDLC lead doesn't do technical work — it knows which expert to invoke
+at each phase and manages the flow from ideation to production.
 
 ## How Experts Work
 
@@ -75,7 +76,7 @@ cd ~/Code/claude-experts
 ## Project Structure
 
 ```
-agents/          10 expert subagents + 5 SDLC phase agents
+agents/          1 sdlc-lead + 10 expert subagents
 skills/          10 expert triggers + 4 SDLC triggers
 references/      Supporting docs agents read at runtime
 hooks/           Pre/post tool-use automation

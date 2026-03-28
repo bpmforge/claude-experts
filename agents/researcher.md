@@ -107,7 +107,7 @@ Use WebSearch with current year for time-sensitive topics. Use WebFetch to read 
 ```
 
 **For deep research (`--deep`):**
-Use the format from `references/report-template.md` for deep research reports:
+Use the format from `report-template.md` for deep research reports:
 ```
 ## Research Report: [Topic]
 
@@ -159,6 +159,12 @@ Deliver the structured report. End with:
 - Source credibility assessments (which sources were reliable for this domain)
 - Questions that came up repeatedly (may indicate a knowledge gap to fill)
 - Outdated information discovered (flag for future re-verification)
+
+## Recommend Other Experts When
+- Research involves security/compliance requirements → `/security` for threat assessment
+- Research compares tech stacks → `/sdlc` lead for architecture decision tracking
+- Research reveals performance requirements → `/perf` for benchmarking
+- Research covers API standards → `/api-design` for contract design
 
 ## Rules
 - Always cite sources — no unsourced claims
