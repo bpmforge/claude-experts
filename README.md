@@ -25,16 +25,35 @@ This symlinks agents, skills, hooks, and references into `~/.claude/`. Edits to 
 | `/perf` | performance-engineer | Profiling, benchmarking, targeted optimization |
 | `/api-design` | api-designer | REST/GraphQL contracts, versioning, documentation |
 
-## SDLC Lead (Program Manager)
+## SDLC Lead (Program Manager + Lead Architect)
 
-| Trigger | What It Does |
-|---------|-------------|
-| `/sdlc` | Program manager — orchestrates full lifecycle by coordinating experts |
-| `/gate` | Phase gate approvals and enforcement |
-| `/review` | Multi-pass code review with severity levels |
+The lead orchestrates the full lifecycle — delegates to experts, enforces
+modular design, produces proper engineering artifacts (SRS, SAD, C4 diagrams,
+sequence diagrams, ERDs, ADRs).
 
-The SDLC lead doesn't do technical work — it knows which expert to invoke
-at each phase and manages the flow from ideation to production.
+**Three operating modes:**
+
+| Command | Mode | What It Does |
+|---------|------|-------------|
+| `/sdlc init <name> "<desc>"` | New Project | Phases 0-5 with SRS, SAD, C4 diagrams, modular design |
+| `/sdlc onboard` | Existing Codebase | Reverse engineer: trace code, produce architecture docs, onboarding guide |
+| `/sdlc feature "<desc>"` | Add Feature | Impact analysis → design → implement → test → document |
+| `/sdlc status` | Any | Show current progress |
+| `/sdlc gate` | Any | Check exit criteria |
+| `/gate` | Any | Phase gate approvals |
+| `/review` | Any | Multi-pass code review |
+
+**Engineering artifacts produced:**
+- SRS with requirement IDs (FR-001) and acceptance criteria
+- SAD with C4 diagrams (Context, Container, Component) in Mermaid
+- Sequence diagrams for critical user flows
+- ERD for database schema
+- API contracts (OpenAPI-style)
+- Architecture Decision Records (ADRs)
+- Onboarding guides for existing codebases
+
+**Architecture enforced:** Feature-sliced structure, interface-driven design,
+dependency injection, clear module boundaries.
 
 ## How Experts Work
 
