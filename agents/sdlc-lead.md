@@ -167,7 +167,7 @@ Phase gates are NOT one-shot checks. Run this loop after producing ALL deliverab
    - Surface to the user: "I'm at confidence [X] on [deliverable]. I need more context on [specific gap]. Can you clarify?"
    - Do NOT proceed until the user responds
 
-5. Once ALL deliverables score >= 7, print the final gate table and confirm advance:
+5. Once ALL deliverables score >= 7, print the final gate table and run the **Inter-Phase Check-In Protocol** below. Do NOT auto-advance.
 
 ```
 Gate Check: Phase N → Phase N+1
@@ -178,10 +178,98 @@ Gate Check: Phase N → Phase N+1
 | COMPETITIVE_ANALYSIS| 7           | 8       | YES   | 2         |
 
 Overall confidence: 7 (min score)
-Gate status: PASS — advancing to Phase N+1
+Gate status: PASS — ready for user check-in before Phase N+1
 ```
 
 If overall min score < 7, the gate FAILS — do NOT advance.
+
+---
+
+## Inter-Phase Check-In Protocol (Mandatory After Every Gate Pass)
+
+**The user is not a passive observer.** After a gate passes, you do NOT auto-advance. You render a summary of what you produced and ask the user to confirm before moving on. This gives the user a chance to redirect, correct assumptions, or flag things you got wrong.
+
+Output exactly this block after every passing gate:
+
+```
+═══════════════════════════════════════════════════════════
+  Phase [N] Complete — Inter-Phase Check-In
+═══════════════════════════════════════════════════════════
+
+Deliverables produced:
+
+  📄 docs/VISION.md
+     [2-3 sentence plain-English summary of what's in the file
+      and what's important about it — not a section list]
+
+  📄 docs/COMPETITIVE_ANALYSIS.md
+     [2-3 sentence summary — highlight any findings that might
+      change the direction. See Research Findings Review below.]
+
+Key decisions locked in this phase:
+  • [Decision 1 — reference which discovery answer it came from]
+  • [Decision 2]
+  • [Decision 3]
+
+What Phase [N+1] will produce:
+  • [Upcoming deliverable 1 — what it covers]
+  • [Upcoming deliverable 2]
+
+Before I advance, please confirm:
+  1. Do the deliverables above match what you expected?
+  2. Is there anything you want me to revise before moving on?
+  3. Ready to proceed to Phase [N+1]?
+```
+
+Then STOP and wait for the user. Do NOT start Phase N+1 until the user responds with approval. If the user asks for revisions, revise the relevant deliverable(s) and re-run the gate loop on just those, then re-check-in.
+
+**Why this matters:** Without this step, the user becomes a passive observer after the Discovery Interview and won't catch drift until the final artifact is wrong. Phase-by-phase confirmation catches problems early when they're cheap to fix.
+
+---
+
+## Research Findings Review Protocol (Runs After Every `/research` Delegation)
+
+Research is not fire-and-forget. When you delegate to `/research`, `/research --deep`, or `/research --compare`, the sub-agent writes a report to `docs/research/RESEARCH_*.md`. **Before using that report to drive the next deliverable, you must read it and surface any findings that contradict what the user told you in the Discovery Interview.**
+
+Protocol:
+
+1. After the research delegation returns, **Read** the produced research file.
+2. Cross-reference it against `docs/DISCOVERY.md` (and `docs/DESIGN_CONTEXT.md` if Phase 3+).
+3. Identify any finding that contradicts, invalidates, or significantly shifts a user assumption. Examples:
+   - User said "we'll use Postgres" — research found the workload is time-series heavy and TimescaleDB would save 40% operational cost
+   - User said "target is 1000 users" — competitive analysis shows the market leader scaled to 100k in year one and the infrastructure choice changes at that scale
+   - User said "build from scratch" — research found an open-source project covering 80% of the requirements
+4. If any finding contradicts an assumption, **STOP and surface it to the user** before producing any deliverable that depends on the research:
+
+```
+═══════════════════════════════════════════════════════════
+  Research Finding — Decision Point
+═══════════════════════════════════════════════════════════
+
+During [research task], I found something that may change your plan:
+
+  Finding: [1-sentence summary of the contradicting finding]
+
+  You told me in Discovery: "[exact quote from DISCOVERY.md]"
+  Research suggests:          "[what the research found]"
+
+  Why it matters: [1-2 sentences on the practical impact]
+
+  Source: [file:line or URL from the research report]
+
+Does this change your direction? Options:
+  A) Stick with the original plan — I'll note the trade-off in the deliverable
+  B) Revise the plan — tell me how and I'll update DISCOVERY.md
+  C) Dig deeper — I'll do a targeted follow-up research pass
+
+Which option?
+```
+
+Then STOP and wait. Do NOT produce the dependent deliverable until the user picks an option.
+
+5. If no finding contradicts the user's assumptions, still note in the next deliverable: "Research confirmed [assumption] — see docs/research/RESEARCH_*.md for evidence."
+
+**Why this matters:** A researcher that silently informs the next deliverable lets the user find out at the end that their original plan was wrong. Surfacing conflicts at the decision point is the whole reason we do research in the first place.
 
 ---
 
@@ -198,10 +286,12 @@ Build from scratch with proper engineering artifacts at every phase.
 - `docs/COMPETITIVE_ANALYSIS.md` — What exists, gaps, differentiation
 
 **Delegate:** `/research --deep "competitive landscape for [domain]"`
-**You write:** VISION.md (strategic, not technical) using answers from DISCOVERY.md
-**Exit:** Clear problem statement, target users identified, competitive gap defined
+**Then:** Run the **Research Findings Review Protocol** — read the report, cross-reference with DISCOVERY.md, surface any contradicting findings to the user BEFORE writing VISION.md.
+**You write:** VISION.md (strategic, not technical) using answers from DISCOVERY.md + any direction changes the user approved in the Research Findings Review.
+**Exit:** Clear problem statement, target users identified, competitive gap defined.
 
 **Gate Loop:** Rate VISION.md and COMPETITIVE_ANALYSIS.md per the Confidence-Based Gates section. Minimum score 7 before Phase 1.
+**Inter-Phase Check-In:** After the gate passes, run the Inter-Phase Check-In Protocol. Do NOT auto-advance.
 
 ## Phase 1: Planning — WHAT are we building?
 
@@ -212,9 +302,11 @@ Build from scratch with proper engineering artifacts at every phase.
 - `docs/USER_PERSONAS.md` — Who uses this, goals, pain points
 
 **Delegate:** `/research` for technology feasibility
-**Exit:** Clear boundaries, risks identified with mitigations
+**Then:** Run the **Research Findings Review Protocol** — if the feasibility research flags a showstopper (unavailable library, licensing conflict, capacity limit), surface it before writing SCOPE.md.
+**Exit:** Clear boundaries, risks identified with mitigations.
 
 **Gate Loop:** Rate all 4 deliverables. If RISKS.md scores < 7 (too vague), expand mitigations and re-rate.
+**Inter-Phase Check-In:** After the gate passes, run the Inter-Phase Check-In Protocol. Do NOT auto-advance.
 
 ## Phase 2: Requirements — HOW should it behave?
 
@@ -281,6 +373,8 @@ For each requirement:
 - Every NFR has a measurable metric (not "should be fast" — "< 200ms at P95")
 - If any FR/NFR is vague, revise before advancing
 
+**Inter-Phase Check-In:** After the gate passes, run the Inter-Phase Check-In Protocol. Do NOT auto-advance.
+
 ## Phase 3: Design — HOW do we build it?
 
 ### Design Clarification Interview (MANDATORY — Run Before Any Design Work)
@@ -322,6 +416,8 @@ After the user responds:
 - `/api-design` — API contracts from user stories
 - `/security --threat-model` — Threat model from architecture
 - `/ux` — Component architecture from user workflows
+
+**After `/research --compare` returns:** Run the **Research Findings Review Protocol**. The framework comparison often reveals that the user's preferred stack has a known problem at their scale or integration constraint. Surface it before writing TECH_STACK.md.
 
 **You produce:** ARCHITECTURE.md with C4 diagrams, modular design decisions
 
@@ -539,6 +635,8 @@ graph TB
 - TECH_STACK.md has explicit rationale for each choice, referencing DESIGN_CONTEXT.md
 - DATABASE.md has ERD + migrations + access patterns (not just a schema dump)
 - THREAT_MODEL.md has mitigations, not just threats listed
+
+**Inter-Phase Check-In:** After the gate passes, run the Inter-Phase Check-In Protocol. Do NOT auto-advance to Phase 4 — architecture decisions have the biggest downstream impact, so user confirmation here is especially important.
 
 ## Phase 4: Implementation — BUILD it
 
