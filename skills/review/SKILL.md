@@ -1,7 +1,7 @@
 ---
 name: Review
 trigger: /review
-description: Multi-pass code review with severity levels
+description: Multi-pass code review with per-pass confidence scoring. Runs 4 parallel passes (security, performance, correctness, style), rates each 1-10, and only delivers a verdict when all 4 score ≥ 7.
 arguments:
   - name: target
     description: File, directory, or git diff to review
@@ -14,6 +14,8 @@ arguments:
 # Review Skill
 
 Perform a structured, multi-pass code review on the specified target. If no target is given, review staged changes (`git diff --cached`). If nothing is staged, review the most recent commit.
+
+**Each pass is independently confidence-scored.** The final verdict is only delivered when every pass scores ≥ 7 on its coverage. See "Pass Confidence Loop" below.
 
 ## Commands
 
@@ -86,6 +88,32 @@ Look for:
 
 ---
 
+## Pass Confidence Loop (Asymmetric — Easy to Fail, Harder to Pass)
+
+After each of the 4 passes above, rate that pass's confidence on **coverage** (how thoroughly it inspected the target) and **signal** (how actionable its findings are).
+
+**Thresholds:**
+- **Score < 5** on any pass = **automatic fail** — surface to user immediately with the specific gap. Do NOT deliver the review.
+- **Score 5-6** = revise that pass (up to 3 iterations: re-scan with different patterns, read more files, check edge cases)
+- **Score ≥ 7** = pass accepted
+
+**Loop per pass:**
+
+1. Run the pass against the target
+2. Rate Coverage (1-10): "Did I examine every file/function that this pass cares about?"
+3. Rate Signal (1-10): "Are my findings specific and actionable, or vague?"
+4. If Coverage or Signal < 5: STOP. Surface to user: "Pass [N: name] is at [X] confidence on [Coverage|Signal] because [specific gap]. I need [specific info or more scope]."
+5. If Coverage or Signal is 5-6: identify the gap, revise the pass (re-scan, re-read, add targeted patterns), re-rate. Max 3 revisions.
+6. If all 4 passes score ≥ 7, proceed to the Output Format section.
+
+**Running the 4 passes in parallel (Claude Code / OpenCode):**
+- Claude Code: delegate each pass to a subagent via the Agent tool (security-auditor, performance-engineer, code-reviewer for correctness+style). Spawn all in one message.
+- OpenCode: use the `task` tool — one call per pass with `agent=security-auditor`, `agent=performance-engineer`, `agent=code-reviewer`. Wait for all to return, then aggregate.
+
+**Verifier isolation:** Each pass evaluates ONLY the code — do not let findings from one pass bias another. When aggregating, treat each pass's output as independent evidence.
+
+---
+
 ## Output Format
 
 For each finding, report:
@@ -103,7 +131,7 @@ For each finding, report:
 
 ### Summary
 
-After all passes, output a severity count summary:
+After all passes, output a severity count summary with per-pass confidence:
 
 ```
 Review Summary
@@ -113,14 +141,21 @@ Review Summary
   LOW:       3
   Total:    18
 
+Pass Confidence Scores (must all be ≥ 7):
+  Security:     Coverage 8 / Signal 9  ✓
+  Performance:  Coverage 7 / Signal 8  ✓
+  Correctness:  Coverage 9 / Signal 7  ✓
+  Style:        Coverage 8 / Signal 8  ✓
+
 Verdict: CHANGES REQUESTED (2 critical issues must be resolved)
 ```
 
 **Verdict rules:**
+- If any pass scored < 7 on Coverage or Signal: `REVIEW INCOMPLETE — [pass name] confidence gap` (do not deliver verdict; surface the gap instead)
 - If CRITICAL > 0: `CHANGES REQUESTED`
 - If HIGH > 3: `CHANGES REQUESTED`
 - If only MEDIUM/LOW: `APPROVED with suggestions`
-- If no findings: `APPROVED`
+- If no findings and all passes ≥ 7: `APPROVED`
 
 ---
 

@@ -197,14 +197,23 @@ Before starting work, break it into numbered subtasks:
 
 ## Reasoning Loop
 
-After completing all phases, assess your work:
+After completing all phases, assess your work using **asymmetric thresholds** — easy to fail, harder to pass:
+- **Score < 5** on any subtask = **automatic fail** — surface to user immediately, do NOT iterate
+- **Score 5-6** = revise (up to 3 iterations)
+- **Score >= 7** = pass
+
+Steps:
 1. Rate your confidence 1-10 for each subtask completed
-2. If any subtask scores below 7:
+2. For any subtask scoring **< 5**:
+   - STOP — do not iterate. Surface to user: "I'm at confidence [X] on [subtask] because [specific gap]. I need [specific info] before I can proceed."
+   - Wait for user response before continuing
+3. For any subtask scoring **5-6**:
    - Identify what's missing, incorrect, or incomplete
    - Go back and redo that specific subtask
    - Re-assess confidence after the fix
-3. Repeat until all subtasks score 7+ or you've done 3 revision passes
-4. Document confidence scores in your final output
+4. Repeat step 3 until all subtasks score 7+ or you've done 3 revision passes
+5. If after 3 passes a subtask is still < 7, surface to user with the specific gap
+6. Document final confidence scores in your output
 
 ## Mandatory Output
 

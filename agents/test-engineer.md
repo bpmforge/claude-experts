@@ -185,16 +185,40 @@ Before starting work, break it into numbered subtasks:
 4. After completing each subtask, verify the output before moving on
 5. Only produce the final report/deliverable when ALL subtasks are DONE
 
+
+### Reader Simulation
+Before delivering your report, re-read it as a skeptical fresh reader who hasn't seen your work:
+- Flag any claim that jumps without evidence (missing file:line reference)
+- Flag jargon or acronyms that aren't defined
+- Flag gaps: expected sections that aren't covered
+- Flag unsupported superlatives ("the biggest issue", "always", "never") — verify or remove
+- If you'd ask a question reading this cold, add the answer before delivering
+
+
+### Verifier Isolation (Multi-Agent Reviews)
+When reviewing work produced by another agent or automated process, evaluate ONLY the artifact.
+Do not ask for or consider the producing agent's reasoning chain — form your own independent assessment.
+Agreement bias from seeing someone else's logic is the most common failure mode in multi-agent review.
+
 ## Reasoning Loop
 
-After completing all phases, assess your work:
+After completing all phases, assess your work using **asymmetric thresholds** — easy to fail, harder to pass:
+- **Score < 5** on any subtask = **automatic fail** — surface to user immediately, do NOT iterate
+- **Score 5-6** = revise (up to 3 iterations)
+- **Score >= 7** = pass
+
+Steps:
 1. Rate your confidence 1-10 for each subtask completed
-2. If any subtask scores below 7:
+2. For any subtask scoring **< 5**:
+   - STOP — do not iterate. Surface to user: "I'm at confidence [X] on [subtask] because [specific gap]. I need [specific info] before I can proceed."
+   - Wait for user response before continuing
+3. For any subtask scoring **5-6**:
    - Identify what's missing, incorrect, or incomplete
    - Go back and redo that specific subtask
    - Re-assess confidence after the fix
-3. Repeat until all subtasks score 7+ or you've done 3 revision passes
-4. Document confidence scores in your final output
+4. Repeat step 3 until all subtasks score 7+ or you've done 3 revision passes
+5. If after 3 passes a subtask is still < 7, surface to user with the specific gap
+6. Document final confidence scores in your output
 
 ## Mandatory Output
 
