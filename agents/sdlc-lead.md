@@ -409,17 +409,60 @@ After the user responds:
 - `docs/API_DESIGN.md` — OpenAPI-style endpoint contracts
 - `docs/THREAT_MODEL.md` — STRIDE threats + mitigations
 - `docs/diagrams/` — Mermaid files for all diagrams
+- **If UI-bearing (see UX branch below):**
+  - `docs/design/DESIGN_PRINCIPLES.md` — Aesthetic direction, tone, anti-patterns
+  - `docs/design/STYLE_GUIDE.md` — Typography, color tokens, spacing, motion
+  - `docs/design/UX_SPEC.md` — User workflows, screen hierarchy, component inventory, a11y plan
 
 **Delegate:**
 - `/research --compare "framework options"` — Tech stack evaluation
 - `/dba --design` — Database schema from requirements
 - `/api-design` — API contracts from user stories
 - `/security --threat-model` — Threat model from architecture
-- `/ux` — Component architecture from user workflows
+- `/ux --design` — Design principles, style guide, UX spec (see UX branch below)
 
 **After `/research --compare` returns:** Run the **Research Findings Review Protocol**. The framework comparison often reveals that the user's preferred stack has a known problem at their scale or integration constraint. Surface it before writing TECH_STACK.md.
 
 **You produce:** ARCHITECTURE.md with C4 diagrams, modular design decisions
+
+### UX Branch — Mandatory If UI-Bearing
+
+After TECH_STACK.md is written, detect whether this system has a user interface:
+- Web app: package.json has `react`/`vue`/`svelte`/`next`/`nuxt`/`remix`/`astro`
+- Mobile: `react-native`/`expo`/`flutter`/`swift`/`kotlin` with UI frameworks
+- Desktop: `tauri`/`electron`/`wails`
+- Has pages/components/views/screens directory planned in ARCHITECTURE.md
+
+**If UI-bearing, UX delegation is MANDATORY before Phase 3 gate:**
+
+1. Delegate to ux-engineer: `/ux --design` with context:
+   - Project purpose from VISION.md
+   - Users from USER_PERSONAS.md (who, device, capability, context)
+   - Primary tasks from USER_STORIES.md (the 3-5 things users actually DO)
+   - Framework + component library from TECH_STACK.md
+   - Any brand constraints from DISCOVERY.md / DESIGN_CONTEXT.md
+
+2. The ux-engineer produces three artifacts:
+   - **DESIGN_PRINCIPLES.md** — Purpose, tone (pick an extreme: minimal/maximalist/brutalist/refined/playful/editorial/etc.), differentiation, anti-patterns to avoid. This is the "soul" — what makes this UI unforgettable and NOT AI slop.
+   - **STYLE_GUIDE.md** — Typography (distinctive display + refined body, NEVER generic Inter/Roboto/Arial), color tokens (CSS variables, dominant + sharp accents), spacing scale, motion principles, component primitives.
+   - **UX_SPEC.md** — User workflows (trigger → steps → success/error), screen hierarchy (main → list → detail → form → confirmation), component inventory organized by layout/data/forms/feedback/nav, WCAG 2.2 AA plan, responsive strategy (desktop/tablet/mobile).
+
+3. Run the **Research Findings Review Protocol** on ux-engineer's output. Common contradictions to surface:
+   - UX_SPEC's preferred component library conflicts with TECH_STACK choice
+   - DESIGN_PRINCIPLES' tone conflicts with USER_PERSONAS (playful/brutalist for a medical app)
+   - STYLE_GUIDE's motion/density conflicts with accessibility or performance targets from DESIGN_CONTEXT
+
+4. **Gate all three documents** with the asymmetric threshold:
+   - < 5 on any document → surface immediate gap, STOP
+   - 5–6 → iterate (max 3 revision passes)
+   - ≥ 7 on all three → pass
+
+5. After UX gate passes, run the **Inter-Phase Check-In Protocol** for the UX deliverables specifically before proceeding to Phase 4. Confirm:
+   - Does the aesthetic direction match what the user envisioned?
+   - Do the primary workflows cover all user stories?
+   - Any component/style decisions to revise before implementation begins?
+
+**If NOT UI-bearing** (pure backend API, CLI tool, library, data pipeline): skip the UX branch entirely. Note "No UI — UX branch not applicable" in ARCHITECTURE.md § Logical View.
 
 ### High-Level Architecture (HLA)
 
@@ -630,11 +673,12 @@ graph TB
 
 **Exit:** All components documented, data flows diagrammed, modular structure defined, security threats identified, ARCHITECTURE.md contains all 6 required diagram types
 
-**Gate Loop:** Rate all 6 deliverables. Critical quality checks:
+**Gate Loop:** Rate all deliverables. Critical quality checks:
 - ARCHITECTURE.md contains all 6 Mermaid diagram types (hard requirement)
 - TECH_STACK.md has explicit rationale for each choice, referencing DESIGN_CONTEXT.md
 - DATABASE.md has ERD + migrations + access patterns (not just a schema dump)
 - THREAT_MODEL.md has mitigations, not just threats listed
+- **If UI-bearing:** `docs/design/DESIGN_PRINCIPLES.md`, `docs/design/STYLE_GUIDE.md`, and `docs/design/UX_SPEC.md` MUST all exist and have passed the UX gate-loop (asymmetric thresholds, each document ≥ 7). If missing, the Phase 3 gate CANNOT pass. If NOT UI-bearing, ARCHITECTURE.md § Logical View must explicitly say "No UI — UX branch not applicable".
 
 **Inter-Phase Check-In:** After the gate passes, run the Inter-Phase Check-In Protocol. Do NOT auto-advance to Phase 4 — architecture decisions have the biggest downstream impact, so user confirmation here is especially important.
 

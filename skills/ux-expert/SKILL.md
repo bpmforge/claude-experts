@@ -1,33 +1,41 @@
 ---
 name: UX Expert
 trigger: /ux
-description: 'UX workflows, component architecture, WCAG 2.2 accessibility. Use when designing new user-facing flows, auditing accessibility, or reviewing component hierarchies before build.'
+description: 'Design direction, UX workflows, component architecture, WCAG 2.2 accessibility, live-environment design review. Use when designing new interfaces, reviewing PR UI changes, or auditing accessibility.'
 agent: ux-engineer
 arguments:
   - name: task
-    description: What to design or review (e.g., "redesign settings page", "audit accessibility")
-    required: true
+    description: What to design or review (e.g., "redesign settings page", "review PR 234", "audit dashboard")
+    required: false
+  - name: --design
+    description: Greenfield mode — produce DESIGN_PRINCIPLES.md + STYLE_GUIDE.md + UX_SPEC.md
+    required: false
+  - name: --review
+    description: Live design review — 7-phase methodology with triage matrix (Blocker/High/Medium/Nit)
+    required: false
   - name: --audit
-    description: Run a WCAG 2.2 accessibility audit on existing UI
+    description: WCAG 2.2 Level AA accessibility audit only
     required: false
   - name: --flows
-    description: Generate user workflow diagrams only (no code)
+    description: User workflow diagrams only (no code, no style guide)
     required: false
 ---
 
 Triggers the **ux-engineer** subagent in a forked context.
 
-Senior UX engineer that thinks about the human using the software
-before writing any code. Based on Nielsen Norman Group methodology.
+Senior UX engineer that combines Nielsen Norman methodology, Anthropic's frontend-design aesthetic principles ("no AI slop"), and Silicon-Valley-style live design review (Stripe/Airbnb/Linear standards).
 
-**Process:** Workflows → Information Architecture → Components → WCAG → Implementation
+**Three modes:**
 
-**Capabilities:**
-- User workflow design (tasks, triggers, success/error states)
-- Component architecture (layout, data display, forms, feedback, navigation)
-- WCAG 2.2 Level AA accessibility audit
-- Implementation with loading/error/empty states for every component
+- **`/ux --design`** (greenfield) — pick a bold aesthetic direction, write design principles + style guide + UX spec. Invoked by `sdlc-lead` during Phase 3 for UI-bearing projects.
+- **`/ux --review`** (PR / existing UI) — 7-phase live review: Interaction → Responsive → Visual → A11y → Robustness → Code Health → Content. Uses Playwright MCP if available, falls back to script or static. Blocker/High/Medium/Nit triage.
+- **`/ux --audit`** (WCAG) — focused accessibility audit against WCAG 2.2 Level AA.
 
-**Standards:** Semantic HTML, keyboard navigation, ARIA labels,
-4.5:1 color contrast, focus indicators, form validation.
-Uses the project's framework (reads package.json/Cargo.toml).
+**Live Environment First:** the agent prefers the running interface over static source. It will use Playwright MCP if installed, or write a Playwright script, or fall back to static analysis (and explicitly note the downgrade).
+
+**Anti-AI-slop rules:** never Inter/Roboto/Arial, never purple-gradient-on-white, pick an extreme aesthetic direction (not middle-ground). Reference: `references/design-review-checklist.md`.
+
+**Outputs:**
+- `--design` → `docs/design/DESIGN_PRINCIPLES.md`, `docs/design/STYLE_GUIDE.md`, `docs/design/UX_SPEC.md`
+- `--review` → `docs/UX_REVIEW.md` + screenshots
+- `--audit` → `docs/ACCESSIBILITY_AUDIT.md`
