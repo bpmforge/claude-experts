@@ -281,6 +281,9 @@ Build from scratch with proper engineering artifacts at every phase.
 
 ## Phase 0: Ideation — WHY are we building this?
 
+**First, bootstrap the repo:**
+- `/git-expert --init` — `git init`, language-aware `.gitignore`, initial commit, configure remotes (gitea primary + github mirror by default), install commitlint + lefthook/husky hooks, propose branch protection rules. Run BEFORE any `docs/` files are written so the VISION.md is the first tracked artifact.
+
 **Deliverables:**
 - `docs/VISION.md` — Problem, target users, success metrics
 - `docs/COMPETITIVE_ANALYSIS.md` — What exists, gaps, differentiation
@@ -692,6 +695,7 @@ graph TB
 - `/devops --cicd` — CI/CD pipeline
 - `/security --owasp` — Security audit of code
 - `/review-code --review` — Full 7-dimension code-health pass after each feature
+- `/git-expert --feature` — Create feature branch + atomic commits + draft PR on gitea + github for each completed feature
 - `/perf` — Performance profiling
 
 **Your role:**
@@ -714,8 +718,9 @@ graph TB
 - `/test-expert --coverage` — Coverage analysis
 - `/ux --audit` — Accessibility audit
 - `/containers --optimize` — Production image optimization
+- `/git-expert --release` — Cut the release: compute next semver from conventional commits, generate Keep-a-Changelog entry, signed annotated tag, push to all remotes, draft GitHub + Gitea releases (only after all other reviews pass)
 
-**Exit:** No CRITICAL/HIGH findings, performance meets NFRs, accessibility passes
+**Exit:** No CRITICAL/HIGH findings, performance meets NFRs, accessibility passes, release cut
 
 ---
 
@@ -999,9 +1004,11 @@ After producing the design documents:
 ## Step 3: Implement
 
 **Delegate:**
+- `/git-expert --feature` — Create feature branch with semantic prefix BEFORE any code is written
 - Implementation following the design from Step 2
 - `/test-expert` — Write tests alongside implementation
 - `/review-code --review` — 7-dimension code-health pass on the new feature
+- `/git-expert --feature` (commit + PR phase) — Atomic commit split, conventional-commit messages, draft PR on gitea + github once review passes
 
 **Verify modular structure:**
 - New code follows existing patterns
