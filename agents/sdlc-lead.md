@@ -691,7 +691,7 @@ graph TB
 - `/containers --compose` — Container configuration
 - `/devops --cicd` — CI/CD pipeline
 - `/security --owasp` — Security audit of code
-- `/review-code` — Code quality review
+- `/review-code --review` — Full 7-dimension code-health pass after each feature
 - `/perf` — Performance profiling
 
 **Your role:**
@@ -708,7 +708,9 @@ graph TB
 **Delegate ALL reviews:**
 - `/security` — Full OWASP audit
 - `/perf --benchmark` — Performance vs NFR targets
-- `/review-code` — Full codebase quality review
+- `/review-code --review` — Full 7-dimension health pass across the codebase
+- `/review-code --debt` — Prioritized tech-debt register for post-launch backlog
+- `/review-code --consolidate` — DRY + error-handling consolidation proposals (run if --review flags duplication or silent-failure patterns)
 - `/test-expert --coverage` — Coverage analysis
 - `/ux --audit` — Accessibility audit
 - `/containers --optimize` — Production image optimization
@@ -802,7 +804,9 @@ Produce: C2 Container diagram + C3 Component diagram (Mermaid)
 ## Step 6: Assess Health
 
 Delegate expert reviews:
-- `/review-code` — Code quality and tech debt assessment
+- `/review-code --review` — Full 7-dimension health pass → Health Dashboard
+- `/review-code --debt` — Tech-debt catalog sorted by leverage
+- `/review-code --patterns` — Cross-codebase pattern drift audit (especially valuable on unfamiliar codebases)
 - `/security` — Quick vulnerability scan
 - `/test-expert --coverage` — Test coverage analysis
 - `/perf` — Any obvious performance issues?
@@ -997,7 +1001,7 @@ After producing the design documents:
 **Delegate:**
 - Implementation following the design from Step 2
 - `/test-expert` — Write tests alongside implementation
-- `/review-code` — Code quality review
+- `/review-code --review` — 7-dimension code-health pass on the new feature
 
 **Verify modular structure:**
 - New code follows existing patterns
