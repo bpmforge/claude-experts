@@ -468,34 +468,147 @@ Read `severity-matrix.md` and apply consistently:
 When in doubt, check: "Can an unauthenticated user trigger this from the internet?"
 If yes, bump severity one level up.
 
-### Phase 6: Write Report
+### Phase 6: Write Report (Skeleton-First Workflow)
 
-You MUST write the security audit report to a file. Do NOT just output findings as text.
+Read `report-template.md` for the full report format, enforcement rules, and worked examples. This phase is NOT freeform report writing — the template is the contract, and the skeleton generator handles the mechanical parts.
 
-1. Create the directory if it doesn't exist: `Bash mkdir -p docs/security`
-2. Write the report file using the Write tool:
-   - Path: `docs/security/SECURITY_AUDIT_<YYYY-MM-DD>.md`
-   - Use the format from `report-template.md`
-   - Include ALL findings with severity, file:line, evidence, remediation
-   - Include a summary table at the top with columns: #, Severity, Finding, Location, OWASP Category, Source (Semgrep/Manual/Grep), Status
-   - Include Semgrep scan summary: total findings, by severity, by OWASP category
-   - Include dependency audit results (npm audit / cargo audit / pip-audit)
-   - Include confidence scores per OWASP category (from the Reasoning Loop below)
-   - Include the Cross-Module Pattern Analysis section with architectural recommendations
-   - Include the STRIDE threat model summary
-   - Reference the raw Semgrep JSON at `docs/security/semgrep-results.json` for full details
-3. Print the file path after writing so the user knows where to find it.
+**Step 1: Generate the skeleton from scan JSON**
 
-For each finding in the report:
 ```
-### [SEVERITY] Finding Title
-**Location:** file:line
-**Category:** OWASP A0X / CWE-XXX
-**Description:** What the vulnerability is
-**Evidence:** Actual code snippet showing the issue
-**Impact:** What an attacker could do
-**Recommendation:** Specific steps to fix it
+Bash scripts/semgrep-to-report-skeleton.py --project "$(basename $PWD)"
 ```
+
+This produces `docs/security/SECURITY_AUDIT_<today>.md` with:
+- Executive summary scaffolding (severity table, delta from last audit, placeholder for manual analysis)
+- Finding summary table (auto-populated from all scan sources)
+- One section per finding with mechanical fields pre-filled from the JSON:
+  - File, line range, OWASP, CWE, Source (Semgrep rule ID / gitleaks / osv-scanner)
+  - Verbatim code snippet from Semgrep's `extra.lines`
+  - Rule message
+  - Auto-bumped severity for known-critical patterns (SQL injection, RCE, auth bypass, secrets)
+  - References from rule metadata
+- Cross-Module Pattern Analysis scaffold
+- Action Plan scaffold (with severity buckets: immediate / this sprint / 30 days / backlog)
+- Confidence Scores table skeleton
+- Scan Artifacts table
+
+Every field that requires human judgment is marked `⚠️ FILL IN` or `⚠️ AGENT TO FILL IN`.
+
+**Step 2: Read the vulnerable code in context**
+
+The skeleton's "Vulnerable code" block has the verbatim lines Semgrep flagged, but these are often just the 1-3 lines around the issue. For each finding, use the Read tool to get ~10 lines of context before and after the flagged lines. You need this context to:
+- Identify the tainted variable and where it came from (trace back to the source)
+- Understand what function this is, what it's called by, what it returns
+- Identify the sink (where the tainted data actually causes harm)
+
+Do not edit the "Vulnerable code" block unless you need to extend the line range for clarity. If you extend it, update the file:line header to match.
+
+**Step 3: Fill in the `⚠️ FILL IN` fields for each finding**
+
+For every finding in the skeleton, replace each `⚠️ FILL IN` marker with concrete content:
+
+1. **Why this is exploitable** — MUST name:
+   - The specific tainted variable (e.g., `req.body.email` on line 40)
+   - The path from source to sink (e.g., line 40 → line 42 → passed into `db.execute()` on line 44)
+   - A concrete exploit payload (e.g., `' OR '1'='1' --`)
+   - The specific impact of that payload (e.g., "query becomes `WHERE email = '' OR '1'='1' --'`, returns the first user, bypasses auth")
+   - NEVER write "user input is not sanitized" — that's not specific enough
+
+2. **Exploit prerequisites** — answer: unauthenticated? internet-facing? requires valid session or role? rate-limited? WAF in front? Prerequisites determine severity.
+
+3. **Impact** — two parts:
+   - Technical: what the attacker gains (read access, write access, code execution, persistence)
+   - Business (CRITICAL/HIGH only): translate to business risk — PII exposure, GDPR/HIPAA/PCI violation, payment bypass, customer trust damage
+
+4. **Remediation (unified diff)** — MUST be a unified diff fixing THIS specific code, not a generic pattern:
+   ```diff
+   --- a/path/to/file.ts
+   +++ b/path/to/file.ts
+   @@ -42,5 +42,6 @@
+      [context line]
+   -  [bad line]
+   +  [fixed line]
+      [context line]
+   ```
+   If the fix requires more than a single-file change (e.g., add middleware + apply to routes), show the diff for each file.
+
+5. **Verification steps** — specific command the developer runs to confirm the fix works:
+   - A unit test case (with the test input)
+   - A curl/http command with the exploit payload (should no longer succeed)
+   - A log-line to check in the DB query log
+   - NEVER write "add a test" — give the specific test
+
+6. **Similar locations to check** — run a targeted grep and list results:
+   ```
+   Bash Grep "db.execute.*\\${" --type ts --output-mode content -n
+   ```
+   For each match found, classify as: VERIFIED vulnerable (file another finding), VERIFIED safe (explain why), or NEEDS MANUAL REVIEW. This catches systemic issues.
+
+7. **Fix effort** — S (< 1 hour) / M (half day) / L (> 1 day). Used by the Action Plan.
+
+**Step 4: Fill in the Executive Summary**
+
+Replace each `⚠️ AGENT TO FILL IN` marker:
+
+- **Most critical immediate action** — name the #1 finding and the fastest path to mitigation (e.g., "Fix the SQL injection in src/auth/login.ts:42 — parameterize the query, ~1 hour work").
+- **Time to exploit** — for the most critical finding, estimate "time from attacker's first request to successful exploit". Must name the attacker profile: "< 1 hour for #1, unauthenticated internet attacker with curl".
+- **Attacker profile needed** — what access does the worst-case attacker need? Unauth? Insider? Physical?
+- **Business impact if unfixed** — one paragraph translating the tech findings to business risk.
+- **Overall risk posture** — one sentence: "Safe to deploy? Safe to scale? Safe to open to public traffic?" Be direct.
+
+**Step 5: Fill in the Cross-Module Pattern Analysis**
+
+Group findings by root cause. If the same pattern appears in 3+ places, that's architectural, not individual. Recommend a shared fix (middleware, validation layer, helper) with a specific effort estimate vs. fixing each instance individually.
+
+**Step 6: Fill in the Action Plan**
+
+Ordered checklist with effort estimates. Prioritize by severity AND dependency (if fix #3 creates the middleware that fix #1 uses, do #3 first). Buckets:
+- Immediate (next 24h) — CRITICAL findings + anything blocking deploy
+- This Sprint (7-14 days) — HIGH findings
+- Within 30 days — MEDIUM findings
+- Backlog — LOW findings
+
+Each item: `- [ ] **#N: Finding title** — description (effort)`
+
+**Step 7: Fill in the Confidence Scores table** (matches the Reasoning Loop output — see below)
+
+**Step 8: Reader Simulation**
+
+Re-read the report as a skeptical fresh reader who has never seen your work:
+- Is every finding concrete enough that a developer could start fixing it immediately?
+- Does every exploit explanation name a specific variable and payload?
+- Does every remediation show a unified diff of the actual code?
+- Does every finding have verification steps?
+- Does the executive summary answer "what do I do first"?
+- Would a non-dev stakeholder understand the business impact section?
+- Are there any `⚠️ FILL IN` markers left in the file? (if yes, you're not done)
+
+**Step 9: Update `docs/security/LAST_AUDIT.json`**
+
+```
+Bash git rev-parse HEAD > /tmp/_commit && jq -n --arg commit "$(cat /tmp/_commit)" --arg ts "$(date -u +%Y-%m-%dT%H:%M:%SZ)" --argjson total $(jq '.results | length' docs/security/semgrep-results.json) '{commit: $commit, timestamp: $ts, findings_total: $total}' > docs/security/LAST_AUDIT.json
+```
+
+This becomes the baseline for the next audit — only new findings since this commit will surface.
+
+**Step 10: Print the report path and finding summary**
+
+Print to the user:
+- Where the report was written
+- Counts by severity
+- The #1 most critical action
+- Any findings that are UNVERIFIED and need manual review
+
+### Enforcement rules (the agent MUST follow)
+
+- **Verbatim code blocks** — use Read tool to get exact lines, never paraphrase
+- **Specific exploit language** — tainted variable + path + payload + impact, no generic descriptions
+- **Unified diff remediation** — fix THIS code, not a generic pattern
+- **Verification is mandatory** — specific command the developer runs to confirm the fix
+- **Similar locations check** — at least one grep per finding, results classified
+- **Business impact for CRITICAL/HIGH** — translate to non-dev language
+- **Source traceability** — every finding cites its source
+- **UNVERIFIED marker** — if you can't fill in a field concretely, mark the finding UNVERIFIED and exclude it from the Action Plan. Never ship a vague finding.
 
 
 ### Reader Simulation
