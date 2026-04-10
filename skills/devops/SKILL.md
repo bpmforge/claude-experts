@@ -1,7 +1,7 @@
 ---
 name: DevOps / SRE
 trigger: /devops
-description: SRE expert — runbooks, CI/CD pipelines, monitoring, incident response, deployment strategies
+description: 'CI/CD pipelines, runbooks, monitoring, incident response, deployment strategies. Proactive: before production deploys. NOT for building or debugging container images — use /containers for that.'
 agent: sre-engineer
 arguments:
   - name: task

@@ -1,7 +1,7 @@
 ---
 name: Performance Engineer
 trigger: /perf
-description: Performance profiling, benchmarking, and optimization
+description: 'Profile and optimize bottlenecks — benchmarks, O(n²) detection, memory hotspots. Proactive: when slowness is observed or before scaling. RULE: always measure before optimizing — never guess.'
 agent: performance-engineer
 arguments:
   - name: target

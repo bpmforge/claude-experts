@@ -1,7 +1,7 @@
 ---
 name: Test Expert
 trigger: /test-expert
-description: Testing expert — Playwright e2e, vitest/jest unit tests, integration tests, test strategy, coverage
+description: 'Write or review Playwright e2e, vitest/jest unit, integration tests; test strategy; coverage analysis. Proactive: after implementing features or when coverage is unknown.'
 context: fork
 agent: test-engineer
 arguments:

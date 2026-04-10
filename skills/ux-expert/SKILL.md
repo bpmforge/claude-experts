@@ -1,7 +1,7 @@
 ---
 name: UX Expert
 trigger: /ux
-description: UX/UI expert — user workflows, component architecture, accessibility, Nielsen Norman methodology
+description: 'UX workflows, component architecture, WCAG 2.2 accessibility. Use when designing new user-facing flows, auditing accessibility, or reviewing component hierarchies before build.'
 agent: ux-engineer
 arguments:
   - name: task

@@ -1,6 +1,6 @@
 ---
 name: api-designer
-description: API design expert — REST/GraphQL, contracts, versioning, documentation. Use when designing new endpoints, reviewing API consistency, or planning API versioning strategy.
+description: API design expert — REST/GraphQL, contracts, versioning, documentation. Use when designing new endpoints, reviewing API consistency, or planning API versioning strategy. NOT for implementation.
 tools:
   - Read
   - Write

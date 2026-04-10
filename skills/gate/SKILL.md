@@ -1,7 +1,7 @@
 ---
 name: Gate
 trigger: /gate
-description: Manage SDLC phase gates and approvals
+description: 'SDLC phase gate — validates exit criteria before advancing phases. Use after completing all deliverables for a phase. Prerequisite: /sdlc must be initialized first.'
 ---
 
 # Gate Skill

@@ -1,7 +1,7 @@
 ---
 name: API Designer
 trigger: /api-design
-description: API design expert — REST/GraphQL, contracts, versioning, documentation
+description: 'API design expert — REST/GraphQL endpoints, contracts, versioning, OpenAPI docs. Use when adding/changing routes or request/response shapes. NOT for implementation — design only.'
 agent: api-designer
 arguments:
   - name: task

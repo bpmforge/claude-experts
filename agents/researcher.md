@@ -1,6 +1,6 @@
 ---
 name: researcher
-description: Professional research analyst — structured investigation, source evaluation, competitive analysis, technology comparison. Use when deep research is needed before making decisions.
+description: Professional research analyst — structured investigation, source evaluation, competitive analysis, technology comparison. Use when deep research is needed before making decisions. Proactive: before irreversible architectural choices or when choosing between 2+ options.
 tools:
   - WebSearch
   - WebFetch

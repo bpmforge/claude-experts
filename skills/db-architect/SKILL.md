@@ -1,7 +1,7 @@
 ---
 name: Database Architect
 trigger: /dba
-description: Database expert — schema design, migrations, query optimization, indexing, ORM models
+description: 'Schema design, migrations, query optimization, indexes, ORM models. Proactive: before adding tables, writing complex joins, or planning migrations. NOT for app-layer business logic.'
 agent: db-architect
 arguments:
   - name: task

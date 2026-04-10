@@ -1,7 +1,7 @@
 ---
 name: Research Analyst
 trigger: /research
-description: Research expert — structured investigation, source evaluation, competitive analysis, technology comparison
+description: 'Deep research before decisions — tech comparisons, competitive landscape, feasibility studies. Proactive: when choosing between 2+ options or before irreversible architectural choices.'
 context: fork
 agent: researcher
 arguments:
