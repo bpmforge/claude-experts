@@ -22,13 +22,30 @@ Phase 5: Re-Audit & Iterate   → Run experts again, fix what they find, repeat
 
 **Goal:** Understand the system before judging it.
 
-**What we did:**
-1. Read CLAUDE.md, README.md, package.json — tech stack, commands, conventions
-2. Traced entry points (server bootstrap → route registration → handlers)
-3. Mapped the directory structure (features/, api/, services/, prisma/)
-4. Identified architectural patterns (feature-sliced, Zustand stores, Prisma repositories)
-5. Read 3-5 representative files in each layer to understand conventions
-6. Produced `docs/ONBOARDING.md` with C4 diagrams (Mermaid), ERD, and "How to Add a Feature" guide
+**Detailed subprocess:**
+
+1. **Read project metadata** (5 min)
+   - CLAUDE.md (conventions, what rules the project enforces)
+   - README.md (what the system does, how to run it)
+   - package.json/Cargo.toml (entry point, dependencies, scripts)
+
+2. **Scan structure** (5 min)
+   - `Glob **/*.{ts,rs,py}` — count files, understand size
+   - Identify entry points: `Grep "listen\|createServer\|main\(\)" src/`
+   - Find tests: `Glob **/test*` or `Glob **/*.test.*`
+
+3. **Trace ONE entry point completely** (15 min per entry point)
+   - Read the file top-to-bottom
+   - Follow every import 2-3 levels deep
+   - Draw a Mermaid sequence diagram for the flow
+   - Stop when you hit a dependency (database, external API)
+
+4. **Map patterns** (10 min)
+   - Read 3-5 files in each major directory
+   - Note: import style, error handling, state management, naming
+
+5. **Produce docs** (10 min)
+   - `docs/ONBOARDING.md` with C4 diagrams, ERD, "How to Add a Feature"
 
 **Key insight:** Don't skip this. The review needs to compare against THIS codebase's patterns, not ideal patterns. Understanding what the project INTENDED (documented in CLAUDE.md) vs what it ACTUALLY does is where findings come from.
 
@@ -223,6 +240,20 @@ Each expert got:
 1. The list of previous findings
 2. Instruction to verify each: "FIXED" or "STILL OPEN" with evidence
 3. Instruction to check for NEW issues introduced by the changes
+4. **For each FIXED finding:** The commit/files that changed, so the expert knows WHERE to look
+5. **Focus areas:** "These 5 files were modified — check for regressions"
+
+### Re-Audit Preparation
+
+For each finding that was FIXED, provide the expert:
+```
+Previous: CRITICAL — AI API keys stored plaintext (setup.ts:285)
+Fix: Created AIProvider table with encryption (commit abc123)
+Files changed: src/api/setup.ts, src/models/AIProvider.ts, migrations/add-encryption.sql
+Re-audit: Verify encryption works, grep for plaintext keys elsewhere, check key rotation
+```
+
+This tells the expert EXACTLY what changed, so they can verify the fix AND check for new issues in those specific files.
 
 ### What the re-audit found:
 
@@ -249,6 +280,14 @@ Review → Plan → Fix → Re-Review → Fix remaining → Re-Review → Confid
 ---
 
 ## Results
+
+### Grade Calculation
+
+Overall Grade = weighted average:
+- **Security (40%)**: 0 CRITICAL = A, 1 CRITICAL = C, 2+ = F. Each unresolved HIGH = -1 sublevel
+- **Code Quality (30%)**: 0 files >300 lines & 0 `any` = A. Each 5 violations = -1 sublevel
+- **Architecture (20%)**: Modular + consistent = A, mixed = C, monolithic = D
+- **Test Coverage (10%)**: >80% = A, >60% = B, >40% = C, <40% = D
 
 ### Flow Threat Model Metrics
 
