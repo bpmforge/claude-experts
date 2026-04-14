@@ -2,22 +2,274 @@
 
 All notable changes to this project are documented here. Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and versioning follows [Semantic Versioning](https://semver.org/).
 
-## [0.10.0] — 2026-04-13
+## [0.11.1] — 2026-04-14
 
-Major security scanning expansion: 186 custom Semgrep rules across 11 languages, attack chain analysis Phase 5b in security-auditor, OpenAPI spec as required SDLC Phase 3 deliverable, personal store paths documented, and offline scanning support.
+### Fixed
+
+- **Researcher timeout — moved from Tier 1 (task) to Tier 2 (HANDOFF)** — researcher runs multi-phase web research (5–15 min, 300–360 s timeouts) and was incorrectly delegated via `task()` alongside git-expert. This caused silent hangs and timeouts in SDLC flows. Researcher is now a Tier 2 HANDOFF agent, consistent with all other specialists. All 4 delegation sites updated: Phase 0 (competitive landscape), Phase 1 (technical feasibility), Phase 3 Step 1 (framework comparison), Mode 4 Step 2.5 (vision research). Each site now saves `sdlc-state.md` before the HANDOFF and specifies a clean completion phrase. The Research Findings Review Protocol updated to reference the HANDOFF pattern. `AGENT_PROCESS_FLOW.md` and `USERGUIDE.md` updated to reflect the change.
+
+- **Tier 1 clarified** — Tier 1 (`task()`) is now git-expert only. Tier 2 (HANDOFF) is researcher + all 10 other specialists + coding-agent.
+
+---
+
+## [0.11.0] — 2026-04-14
+
+New `coding-agent` specialist for doc-driven implementation, delegation tracking across all handoffs, and TECH_STACK.md enforcement throughout the SDLC.
 
 ### Added
-- **186 custom Semgrep gap-filler rules** across 11 languages (JS/TS, Python, Go, Java, Ruby, C#, Kotlin, Rust, PHP, Swift, C++) installed to `~/.claude/.semgrep/`
-- **`scripts/cache-registry-packs.sh`** — Manages offline Semgrep registry pack cache for air-gapped scans
-- **Phase 5b: Attack Chain Analysis** in `security-auditor` — After finding individual vulnerabilities, agent inventories pre/post conditions and hunts for 9 chain patterns (XSS→session hijack, SSRF→pivot, path traversal→cred theft, auth bypass→privilege escalation, etc.)
-- **`docs/api/openapi.yaml`** required as SDLC Phase 3 deliverable in `sdlc-lead` — full OpenAPI 3.0 spec with swagger-cli validation gate
-- **Personal store paths** documented in `security-auditor` preflight: `~/.claude/.semgrep/custom-rules/` (global) and `.claude/.semgrep/custom-rules/` (project)
+
+- **`coding-agent` — new specialist agent** (`agents/coding-agent.md`) — Doc-driven implementation engineer invoked via HANDOFF from `sdlc-lead` for all code implementation work. Enforces Four Laws before writing any code: (1) read SDLC design docs first, (2) verify every library API via Context7 MCP (`resolve-library-id` + `get-library-docs`) — never writes from training-data assumptions, (3) match existing patterns in the target directory, (4) follow `docs/TECH_STACK.md` — flags any unlisted library rather than silently adopting it. Anti-slop rules enforced on every file: no try-catch outside system boundaries, no abstractions with <2 implementations, no single-use helpers, no what-comments, no unused imports, no scope creep. Self-audit checklist run before reporting done. Produces a Completion Manifest including files produced, API verifications, tech stack compliance, anti-slop audit result, test result, and deferred items.
+
+- **`/code` skill** (`skills/code/SKILL.md`) — Thin trigger that invokes `coding-agent`. Usage: `/code` (will ask for design docs) or `/code <description>`. Requires design docs to exist — directs user to `/sdlc feature` if none found.
+
+- **DELEGATION_LOG** — persistent append-only tracking file (`docs/work/DELEGATION_LOG.md`) written by `sdlc-lead` on every HANDOFF issued and returned. Columns: timestamp, agent, task summary, status (PENDING / DONE / REDO / FAILED), confidence score, notes. Provides a complete audit trail of what was delegated, to whom, and whether it passed the confidence gate.
+
+- **Structured HANDOFF confidence loop** — "Resuming after a HANDOFF" section rewritten with a 6-step protocol: confirm state from `sdlc-state.md` → verify output files → score 1–10 → apply asymmetric threshold (≥7 pass, 5–6 revise up to 3×, <5 auto-fail) → update DELEGATION_LOG → continue or escalate. "Revise" means ask user to re-run the agent, not rewrite output yourself.
+
+- **TECH_STACK.md enforcement in implementation** — coding-agent HANDOFF template in Mode 4 now includes `docs/TECH_STACK.md` in the CONTEXT block with explicit constraint: "Do not introduce any library, framework, or runtime not listed in TECH_STACK.md — flag deviations in the completion manifest instead of silently adopting them." Same constraint added to the Mode 1 Phase 4 IMPLEMENTATION CHECKPOINT.
 
 ### Changed
-- `install.sh` now installs `.semgrep/` to `~/.claude/.semgrep/` and `scripts/` to `~/.claude/scripts/`
-- `security-auditor` preflight checks for custom-rules personal store as 4th check
-- `semgrep-full-audit.sh` case statement extended to load custom rules for JS/TS, Python, Go, Java, Ruby languages
-- Rule count updated: 160 → 186 rules, 10 → 11 languages
+
+- `sdlc-lead`: Skill → Agent mapping table updated — `coding-agent` added as the agent for all general code implementation. `sre-engineer` annotated as CI/CD/ops only (NOT application code). CRITICAL warning block added to prevent inventing agent names.
+- `sdlc-lead` Mode 4: Size M HANDOFF template updated to pass `docs/TECH_STACK.md` as a required context file and require tech stack compliance in the completion manifest.
+- `sdlc-lead` IMPLEMENTATION CHECKPOINT: `docs/TECH_STACK.md` listed first among spec documents with "MANDATORY constraint" label.
+- All docs updated: `README.md` (14 agents, 20 skills), `docs/FEATURES.md`, `docs/EXPERT_GUIDE.md`, `docs/USERGUIDE.md`, `docs/SDLC_GUIDE.md`, `docs/AGENT_PROCESS_FLOW.md`.
+
+---
+
+## [0.10.0] — 2026-04-13
+
+Three targeted enhancements: attack chain analysis in the security auditor, OpenAPI 3.0 spec as an SDLC Phase 3 gate requirement, and semgrep custom rules correctly documented to the user's personal OpenCode store.
+
+### Added
+
+- **Attack chain analysis — `security-auditor` Phase 5b** — New phase runs after all individual findings are verified, before the report is written. Builds a pre-condition/post-condition inventory for every real finding, then tests every pair and triple for multi-step exploitability. Discovers vulnerabilities that exist only when findings are chained — e.g., MEDIUM info disclosure + MEDIUM IDOR = CRITICAL account takeover that neither finding describes alone. Nine classic chain patterns tested explicitly (XSS→session hijack, SSRF→pivot, path traversal→credential theft, auth bypass→privilege escalation, recon→targeted attack, weak crypto→forgery, race condition+business logic, CVE+reachability, misconfiguration→enumeration). Each chain documented as a `C-N` finding with step-by-step attack narrative, combined severity (auto-bumped above highest individual link when applicable), and a "break the chain" remediation priority. Chains written to `docs/security/attack-chains.md` and included as first-class findings in the final report. Reader simulation checklist updated to require chain section presence.
+
+- **OpenAPI 3.0 spec — `sdlc-lead` Phase 3 deliverable** — `docs/api/openapi.yaml` is now a required Phase 3 artifact alongside `docs/API_DESIGN.md`. The api-designer HANDOFF prompt now mandates both files: `API_DESIGN.md` for human-readable narrative and `openapi.yaml` as a valid OpenAPI 3.0 spec with `components/schemas`, `components/securitySchemes`, reusable `$ref` error responses, and no inline schemas for reused types. Phase 3 gate blocks until the spec passes `swagger-cli validate` with 0 errors and every endpoint in `API_DESIGN.md` has a corresponding path entry. Git checkpoint and PR body updated to include the spec.
+
+- **Custom Semgrep rules personal store documentation** — `security-auditor` preflight check (Phase 2, Step 1) now includes a check for `~/.config/opencode/.semgrep/custom-rules` (global install) or `.opencode/.semgrep/custom-rules` (project install). When missing, agent provides recovery instruction (re-run `install.sh`). Phase 2 Step 3 description and OWASP tracker template updated with accurate personal store paths.
+
+### Changed
+
+- `security-auditor` orchestrator plan updated from 4 phases to 5 (adds `attack-chain` between `verify-findings` and `write-report`).
+- `sdlc-lead` Phase 3 deliverables list updated: `docs/API_DESIGN.md` now described as "human-readable contracts" and `docs/api/openapi.yaml` added as "machine-readable OpenAPI 3.0 spec (Swagger-compatible)".
+- `docs/FEATURES.md` and `docs/USERGUIDE.md` updated for all three changes above.
+
+## [0.9.0] — 2026-04-13
+
+Semgrep security scanning deep upgrade: 98 custom gap-filler rules across 6 languages, offline/air-gapped scanning with registry pack caching, polyglot language detection, and auto-loading custom rulesets per detected language.
+
+### Added
+
+- **Custom gap-filler rulesets** (`.semgrep/custom-rules/`) — 98 hand-written Semgrep rules across 6 languages that fill OWASP Top 10 coverage gaps in registry packs with thin coverage:
+  - `csharp-security.yml` (20 rules) — command injection (`Process.Start`), XSS (`Html.Raw`), LDAP injection, path traversal, SSRF (`HttpClient` + `WebRequest`), hardcoded secrets, CORS wildcard, weak hashing, sensitive logging, insecure cookies
+  - `kotlin-security.yml` (16 rules) — SQL injection (JDBC + Android `rawQuery`), command injection, hardcoded secrets, deserialization, SSRF, WebView misconfig, path traversal, cleartext traffic, sensitive logging
+  - `swift-security.yml` (17 rules) — weak hashes (MD5/SHA1), hardcoded keys, ECB mode, SQLite injection, WebView XSS, insecure HTTP, SSL bypass, keychain accessibility, path traversal, SSRF
+  - `rust-security.yml` (15 rules) — SQL injection (`format!` macro), command injection, hardcoded secrets, `unwrap`/`expect`/`panic`/`todo` abuse, path traversal, SSRF, sensitive logging
+  - `php-security.yml` (15 rules) — `unserialize` RCE, `include`/`require` LFI, file upload, type juggling, hash timing, session fixation, `preg /e` injection, `eval`, XXE, SSRF
+  - `cpp-security.yml` (15 rules) — buffer overflow, format string, memory safety, command injection, crypto weakness, deprecated functions (targets `[c, cpp]`)
+
+- **Offline / air-gapped scanning** — New `scripts/cache-registry-packs.sh` downloads all registry packs as local YAML files for fully offline scanning. Modes: `download`, `refresh`, `status`, `prune`.
+
+- **`--offline` flag for `semgrep-full-audit.sh`** — Forces the audit to use only cached registry packs and local rules. No network calls. Requires prior `cache-registry-packs.sh` setup.
+
+- **Auto-loading custom rules per language** — `semgrep-full-audit.sh` now detects which languages are present and automatically loads matching gap-filler rulesets from `.semgrep/custom-rules/`. Banner reports how many custom rulesets were loaded.
+
+- **`--cache-packs` subcommand for `update-semgrep-rules.sh`** — Delegates to `cache-registry-packs.sh` for one-command registry pack caching.
+
+- **`resolve_registry_pack()` function** — New function in `semgrep-full-audit.sh` that prefers local cache over live registry, handles 4 cases: cache hit, cache miss with network, cache miss offline (skip), and cache disabled (direct URL).
+
+### Changed
+
+- **Polyglot language detection** — `semgrep-full-audit.sh` language detection rewritten from single-language `elif` chain to `LANGS=()` array. Projects with multiple languages (e.g., TypeScript + Go + Python) now get ALL relevant packs, not just the first match.
+- **Language detection expanded** — Added detection for C#/.NET, C/C++, Swift/iOS, Kotlin/Android, Scala alongside existing JS/TS, Python, Go, Rust, Java, Ruby, PHP.
+- **`install.sh` now installs `.semgrep/` custom rules** — Custom rulesets are copied to `$DEST/.semgrep/` alongside scripts. Status summary reports custom rule count. Uninstall cleans up `.semgrep/` directory.
+- **`uninstall.sh` updated** — Now removes `scripts/` and `.semgrep/` directories, notes about registry-cache cleanup.
+- **Documentation updated across all references** — `semgrep-guide.md`, `semgrep-community-rules.md`, and `security-auditor.md` all document the custom rulesets, offline scanning, and dead registry packs.
+
+## [0.8.0] — 2026-04-13
+
+SDLC lead deep upgrade: persistent SDLC_TRACKER across all four modes, per-diagram confidence loops for ARCHITECTURE.md, strengthened SAD format template that rejects placeholders, and Phase 3 Architecture Diagram Pre-Gate that blocks advancement until every diagram row passes independently.
+
+### Added
+
+- **`SDLC_TRACKER.md` — persistent session tracker for all four SDLC modes** — Written at the start of each mode (Phase 0 for Mode 1, Step 0 for Modes 2/4, new Step 0 for Mode 3). Stored at `docs/sdlc/SDLC_TRACKER.md`. Survives context loss and session restarts. Status transitions: `⏳ PENDING` → `✅ DONE` / `🔄 RE-PASS` / `⚠️ BLOCKED`. Four mode-specific templates provided (Mode 1 phases 0-5, Mode 2 steps 0-7, Mode 3 steps 0-5, Mode 4 steps 1-6). Resume check: read tracker at start of each mode and skip `✅ DONE` rows — never re-run completed phases.
+
+- **Architecture Diagram Inventory** — New section within the Mode 1 tracker template. One row per required diagram type: C1, C2, one C3 per major service, one sequence diagram per P0 use case, deployment, data flow. Gate CANNOT pass until every inventory row is `✅ DONE` with score ≥ 7.
+
+- **Per-Diagram Confidence Loop** — New mandatory sub-loop in Phase 3. After writing EACH diagram, the agent rates completeness 1-10 against specific grounding criteria:
+  - C1: all personas from USER_PERSONAS.md present as actors? all external systems from SRS §5.2 present?
+  - C2: all services/runtimes from TECH_STACK.md present? communication styles on arrows?
+  - C3 (one per service): real module names from feature-sliced structure? dependency arrows showing direction? no circular deps?
+  - Sequence diagrams: one per P0 use case from USE_CASES.md (not a fixed minimum of 3). Each must have happy path + at least one error path. Participants named specifically — no "Service" generics.
+  - Deployment: reflects DESIGN_CONTEXT.md infra choices — no invented infrastructure.
+  - Data Flow: traces user request to persistence and back, shows where data transforms and where it's masked.
+  - Score < 5 → surface to user immediately. Score 5-6 → revise up to 3 passes. Score ≥ 7 → mark tracker row `✅ DONE`.
+
+- **Architecture Diagram Pre-Gate** — New mandatory check that runs BEFORE the standard Phase 3 gate loop. Reads `docs/sdlc/SDLC_TRACKER.md`, checks every diagram inventory row. If any row is NOT `✅ DONE`, write/revise that diagram following the per-diagram confidence loop before proceeding. Prints a `Diagram Inventory Completion Check` block showing DONE/BLOCKED status per diagram before the main gate runs.
+
+- **HLA Overview section — written LAST** — New `## 0. HLA Overview` at the top of ARCHITECTURE.md. Written AFTER all diagrams pass their confidence loops so it's grounded in real design decisions, not a copy of the discovery interview. Three paragraphs: system partition metaphor, key architectural decisions (referencing ADR table), what a new engineer should read first.
+
+- **Strengthened SAD Format template** — The `### SAD Format (4+1 Views)` template now:
+  - Has a MANDATORY notice: no placeholder text in final documents — every section must be filled with real names from the project
+  - C3 has one `#### 2.3.x [Service Name]` subsection per major service (not a single generic block)
+  - Sequence diagrams section is `### 2.6 Sequence Diagrams — one per P0 Use Case` (derived from USE_CASES.md, not "minimum 3")
+  - Each section has HTML comments listing the specific grounding criteria the diagram must meet
+  - Goals & Constraints now requires specific targets from SRS.md (e.g., "P95 < 200ms") — not "performance, security, scalability"
+  - Cross-Cutting Concerns now requires specific library names and file paths — not "use a logger"
+
+- **Tracker writes wired into Confidence-Based Gates** — After every gate table is printed, the agent immediately calls `edit()` on the tracker to update the phase row status. `✅ DONE` on pass, `⚠️ BLOCKED` on automatic fail, `🔄 RE-PASS` on 5-6 score iteration.
+
+- **Tracker init wired into Mode 2 Output Verification Protocol** — Every step verification log now includes a `Tracker:` line showing the row update applied after the step passes or fails.
+
+- **Tracker init wired into Mode 4 Output Verification Protocol** — Same as Mode 2 — every step verification log includes a `Tracker:` line.
+
+### Changed
+
+- **ARCHITECTURE.md sequence diagram count: "minimum 3" → "one per P0 use case"** — The previous minimum-3 rule was a floor that led to arbitrary diagrams. Now explicitly derived from USE_CASES.md P0 entries so coverage is traceable to requirements.
+- **Phase 3 Gate Loop: new pre-gate check added** — The standard gate deliverable rating loop now has a mandatory pre-step (Architecture Diagram Pre-Gate) that must clear before the standard loop runs.
+
+## [0.7.0] — 2026-04-13
+
+Performance engineer deep upgrade: persistent session tracker, pre-profiling static analysis pass with try/catch performance anti-patterns, coverage confidence loop, and mandatory full report template. Also fixes stale `mode: subagent` references across all docs.
+
+### Added
+
+- **`PERF_TRACKER.md` — persistent performance session tracker** (`cd5357b`) — Written at Phase 1, updated after every phase via `edit()`. Stored at `docs/performance/PERF_TRACKER.md`. Survives context loss and session restarts. Tracks: 7-row progress summary (status/confidence per phase), baseline metrics, static analysis findings, profiler results, hotspot log, before/after benchmark table (filled across phases 2, 4, 5). Status transitions: `⏳ PENDING` → `✅ DONE` / `🔄 RE-PASS` / `⚠️ BLOCKED`.
+
+- **Phase 1b — Static Analysis Pass** (`cd5357b`) — New phase between "understand problem" and "profile". Runs 5 grep scans against all source files to detect performance anti-patterns statically, before any profiler runs. Source file inventory (`find . -type f ...`) runs first so the agent knows the full scope.
+
+  Scan 1 — **O(n²) nested loops**: `.find()` / `.filter()` / `.some()` inside `for` / `forEach`.
+  
+  Scan 2 — **N+1 query patterns**: DB/fetch call inside a loop; suggests `findMany` + `Map` pre-build.
+  
+  Scan 3 — **try/catch performance anti-patterns** (four patterns, four languages):
+  - Pattern A: `try/catch` inside tight loop → V8 cannot apply JIT optimizations (inlining, hidden class caching, escape analysis) → 5-20x slowdown. Fix: move try/catch outside loop or use `Promise.allSettled`.
+  - Pattern B: Exception-driven control flow in hot paths (e.g. `try { JSON.parse } catch` called 10,000×/req) → 100-1000× slower than a guard check.
+  - Pattern C: Individual `try/catch` per `await` → each `await` blocks on completion, preventing `Promise.allSettled` parallelism. Three 200ms calls = 600ms serial vs 200ms parallel.
+  - Pattern D: Re-throw after logging → stack captured twice (on throw + on re-throw); noisy logs + perf cost.
+  - Python: EAFP misuse — `try/except KeyError` in hot loop instead of `.get(default)`.
+  - Go: `errors.New()` in hot loop → heap allocation per call; fix with sentinel error at init.
+  - Rust: `unwrap()` panic path in tight loop → `filter_map` / `.ok()` avoids panic overhead.
+  
+  Scan 4 — **Blocking I/O in async paths**: `readFileSync`, `execSync`, `bcrypt.hashSync` etc. inside request handlers. Blocks Node.js event loop for all concurrent requests.
+  
+  Scan 5 — **Hot-path allocations**: `JSON.parse` per request on static data, object spread in tight loops, string concatenation loops instead of buffers.
+
+- **Coverage confidence loop** (`eaed023`) — After all 5 scans, agent cross-checks grep coverage against the source file list with a 9-question checklist (all scans run? all hits read? all extensions covered? absence-of-findings suspicious?). Rates coverage 1-10. Re-passes with broader patterns if < 7 (max 3 attempts). Prints a mandatory `Phase 1b Coverage Verdict` block. Sets `⚠️ BLOCKED` and surfaces to user if still < 7 after 3 passes.
+
+- **Verbatim code mandate on all findings** (`eaed023`) — Every finding in every scan now requires `read(filePath=..., offset=<line-5>, limit=20)` before the finding is recorded. Each finding's block has a `Verbatim code (lines N–M):` section with exact output from `read()`. Findings from grep output alone are explicitly prohibited.
+
+- **Full mandatory report template — Phase 6** (`eaed023`) — Replaces the previous 5-bullet list. `docs/PERFORMANCE_REPORT.md` must be filled in completely (placeholder dashes = incomplete). Template sections: executive summary, baseline measurements table (P50/P95, data size, method), one `STATIC-NNN` block per finding (verbatim code + loop bound + specific impact reason + concrete fix code + profiler confirmation status), profiler results table (top hot functions with file:line and time%), fix applied (before/after verbatim code + rationale), final benchmark (P50/P95 before/after + improvement factor + regression column), regression check table, known remaining bottlenecks (S/M/L effort + P0/P1/P2 priority), data size thresholds, coverage verdict (per-scan file count + finding count + confidence), handoffs recommended (expert + finding + specific reason).
+
+- **Confidence gate reads from `PERF_TRACKER.md`** (`cd5357b`) — Gate prints a 7-row confidence table derived from the tracker file, not from context memory. Phase 5 (verify-fix) uses raised threshold of 8/10 — a fix without before/after benchmark numbers is not considered verified.
+
+- **Resume check at Phase 2** (`cd5357b`) — `read(filePath="docs/performance/PERF_TRACKER.md")` before profiling starts; skips `✅ DONE` phases, surfaces `⚠️ BLOCKED` to user before continuing.
+
+### Changed
+
+- **`performance-engineer` phase count: 6 → 7** — Phase 1b (static analysis) is a distinct new phase between understand and profile. Updated orchestrator plan announcement and tracker row count.
+- **`performance-engineer` handoff boundary clarified** — try/catch-in-loop: performance-engineer owns the runtime cost; code-reviewer owns the swallowed-error / correctness angle. Both agents can flag the same instance for different reasons without duplicating findings.
+- **`docs/FEATURES.md`** — performance-engineer entry expanded from 1 line to full capability description. All 13 agent entries updated from `mode: subagent` → `mode: primary` (reflects the v0.5.0 change that was not reflected in docs). Agent count header corrected from 12 → 13.
+- **`docs/USERGUIDE.md`** — `/perf` section expanded: full 7-phase description, Phase 1b scan list, output file paths corrected (`docs/perf/` → `docs/PERFORMANCE_REPORT.md` + `docs/performance/PERF_TRACKER.md`), try/catch and performance handoff boundary documented.
+
+
+
+Test-driven SDLC, visual design agent, smart routing, adaptive questioning, and design compliance enforcement. Based on lessons from a real 60-test QA track on ThreatForge.
+
+### Added
+
+- **`frontend-design` agent (#13)** + `/frontend` skill — Production-grade visual implementation: typography, color systems, spacing, motion. Three modes: `--implement` (turn UX specs into components), `--polish` (elevate existing generic UI), `--system` (build/refactor design tokens). Includes "AI slop" checklist to catch generic AI-generated look.
+- **`/explore` skill** — Codebase archaeology: trace a feature end-to-end before modifying it. Maps entry points, call chains, data flow, blast radius with file:line references.
+- **`/steward` skill** — Project intelligence lifecycle: audits CLAUDE.md/AGENTS.md alignment with actual code, captures session learnings, fixes doc drift. Three modes: `audit`, `capture`, full.
+- **`/design-options` skill** — Multi-approach architecture decisions: generates 3 alternatives (minimal, clean, pragmatic) with 6-dimension trade-off matrix. Integrated into Mode 3 Step 2 and Mode 4 Step 2.5.
+- **Smart Routing** — `/sdlc` without a mode keyword detects intent from natural language. "Make the frontend better" → Mode 4 with frontend scope. When ambiguous, asks ONE routing question (A/B/C/D).
+- **Adaptive Questioning** — Agents learn from research and audits, then generate follow-up questions derived from what they discovered. Questions must reference something specific, affect the next step, and couldn't have been asked at start.
+- **Design Compliance (MANDATORY)** — 8 code-writing agents now read TECH_STACK.md + ARCHITECTURE.md before writing code. Will NEVER introduce technologies the architect didn't choose. If they think a change is better, they flag it as a decision point.
+- **API Verification (MANDATORY)** — 6 code-writing agents check Context7 MCP or node_modules before using any library API. Never guesses from training data. Prevents renamed functions, changed option shapes, moved import paths.
+- **Completion Manifest protocol** — All 12 specialist agents produce structured return manifests: files produced/modified, decisions made, known issues, test results.
+- **Context Packet protocol** — SDLC lead writes focused context files before every HANDOFF, front-loading specialists instead of having them re-explore the codebase.
+- **USE_CASES.md + TEST_PLAN.md in all 4 modes** — Phase 2 (from requirements), Mode 2 Step 6c (from existing code), Mode 3 Step 2 (for new features), Mode 4 (per-fix regression tests).
+- **E2E test writing in Phase 4** — MANDATORY test-engineer handoff writes actual E2E specs for all P0 use cases BEFORE code review starts.
+- **Discovery audit** — SDLC lead walks all app pages/routes and collects errors (console, 4xx/5xx, visible error text, slow loads) before and after improvements.
+- **Pre-review gate** — All P0 tests must pass before code-reviewer or security-auditor sees the code.
+- **TDD in Mode 3** — Test-engineer writes failing acceptance test first, developer implements, test passes, then review.
+- **Mode 4 Vision Research** — When user provides a desired state ("make it feel like Linear"), researcher studies how best products achieve that vision with the current stack. `/design-options` triggered when multiple paths exist.
+- **Mode 4 Feature-scoped improvement** — `/sdlc improve "feature:payments"` traces that specific feature via `/explore`, then scopes all audits to just those files.
+- **Mode 4 granular scoping** — "frontend", "backend", "feature:X", "design", or combinations.
+- **`/sdlc status` enhanced** — Visual progress display with phase→deliverable mapping, test counts, gate blockers, handoff state.
+- **`/sdlc gate` implemented** — Full gate check with quality scoring, test gates, failure handling rules.
+- **Container-ops → SRE ordering** clarified in AGENT_PROCESS_FLOW.md.
+- **Researcher progress announcements** standardized to `▶ Phase N:` format.
+
+### Changed
+
+- All agents use `mode: "primary"` (OpenCode 1.4.0 compatibility).
+- Mode 4 discovery interview expanded: new Q3 "What should it BECOME?", granular scope options.
+- Mode 3 Step 1 now uses `/explore` pattern for impact analysis.
+- Mode 3 Step 2 uses `/design-options` for non-trivial features.
+- HANDOFF return verification strengthened: checks completion manifest, surfaces test failures.
+
+## [0.5.0] — 2026-04-10
+
+Mode 4 (`/sdlc improve`), strict git branching discipline across all modes, HANDOFF block overhaul, and Bounded Task Mode on all specialist agents.
+
+### Added
+
+- **Mode 4 (`/sdlc improve ["<focus>"]`)** — New SDLC mode for discovery-driven improvement of existing systems. Runs targeted specialist audits (UX, code quality, performance, security, DB), synthesizes findings into a prioritized improvement backlog (S/M/L sizing), and executes approved items with the right ceremony for their size (S = direct + verify, M = design step first, L = spawn Mode 3 sub-workflow). Optional focus arg narrows scope: `"ux"`, `"performance"`, `"security"`, `"code-quality"`.
+- **Git Discipline section (mandatory — all modes)** — New top-level section defining the branching model: `main` = production, no direct commits. Each mode now creates a typed branch before touching any file: `sdlc/setup` (Mode 1 phases 0–3), `docs/onboard` (Mode 2), `feat/[slug]` (Mode 3), `improve/[slug]` (Mode 4). Every mode ends with a PR — no work merges without one.
+- **`sdlc/setup` branch for Mode 1** — Phases 0–3 design docs all commit to `sdlc/setup`, not `main`. After Phase 3 gate passes, the branch is merged to `main` via PR before Phase 4 implementation begins. Feature branches cut from updated `main`.
+- **Mode 2 branch + PR** — `docs/onboard` branch created at Step 0. All onboarding docs committed there. PR opened at end — docs don't land on `main` without review.
+- **Mode 3 explicit merge step** — After all reviews pass in Step 4, `git-expert` marks the draft PR as ready and squash-merges to `main`. Branch deleted after merge.
+- **Mode 4 branch + PR** — `improve/[slug]` branch created at Step 1 before any audit work. All findings and implementation committed there. PR opened at wrap-up.
+- **Bounded Task Mode on all 11 specialist agents** — `SDLC-TASK for [agent]:` prefix triggers a scoped execution mode: skip discovery, skip orchestrator phases, read only the files listed under CONTEXT, execute exactly the task in YOUR TASK, write exactly the files in PRODUCE, print the exact completion phrase, then stop. Prevents specialists from running full multi-phase workflows when invoked via HANDOFF.
+- **SDLC-TASK HANDOFF format on all 33 delegation points** — Every specialist HANDOFF in `sdlc-lead` now uses the structured `SDLC-TASK for [agent]: CONTEXT / YOUR TASK / PRODUCE / completion phrase` format. Specialists execute bounded jobs without triggering their own orchestrator workflows.
+- **Mode 4 Improvement Discovery Interview** — Structured interview determines which audits to run based on what's driving the improvement (user complaints, perf concerns, tech debt, security, etc.). Announces audit plan and waits for user confirmation before running any specialists.
+
+### Changed
+
+- **`sdlc-lead` description** updated to include Mode 4 (`/sdlc improve`).
+- **`sdlc-lead` command table** updated from "Three Operating Modes" to "Four Operating Modes".
+- **All Phase 0–3 git commits** now explicitly target `sdlc/setup` branch (not "current branch").
+- **`sdlc-lead` Rules** — Three new rules: never commit to `main` directly, always create the mode's branch before starting, always open a PR before merging.
+- **All specialist agents** changed from `mode: "subagent"` to `mode: "primary"` — fix for OpenCode 1.4.0 which hides `subagent`-mode agents from direct invocation. All 12 agents now visible in the UI.
+
+---
+
+## [0.4.0] — 2026-04-10
+
+Multi-agent orchestration, real-time progress feedback, phase-splitting for long-running agents, full git and UX wiring throughout the SDLC, and a comprehensive test suite.
+
+### Added
+
+- **Researcher orchestrator + `--single` + `--plan` modes** — The `researcher` agent no longer runs as one silent multi-minute block. In orchestrator mode (default) it announces its plan, spawns a `--single` sub-task per question via the `task` tool, and reports each finding as it completes (`✓ Q1: ...`). `--single` researches exactly one question in 30–60 s. `--plan` returns a question list only.
+- **Orchestrator + `--phase: N` mode on all 8 long-running agents** — `db-architect`, `test-engineer`, `sre-engineer`, `container-ops`, `performance-engineer`, `api-designer`, `security-auditor`, `code-reviewer` all gained the same two-mode pattern. Orchestrator announces a phase plan, spawns one sub-task per phase (each writes to `docs/work/<agent>/<slug>/phaseN.md`), reports `✓ Phase N: [finding]` after each. `--phase: N name` runs only that phase in under 90 s.
+- **Progress announcements mandatory on all 10 agents** — Every agent now has a `## Progress Announcements` section requiring `▶ Phase N: [name]...` at start and `✓ Phase N complete: [summary]` at end of every phase. These surface in the `task` tool's UI label via `context.metadata`.
+- **Real-time metadata on every assistant message** — `task.ts` fires `context.metadata` on every JSON event from stdout, not just on the 5 s heartbeat.
+- **`scripts/test.ts`** — Comprehensive test suite replacing `validate-tools.js`. Three passes: (1) dynamically imports each `.ts` tool via Node 24 native TS, validates runtime shape; (2) parses skill frontmatter, validates name/description/agent cross-references; (3) checks agent content length and role/identity.
+- **`scripts/add-orchestrator.mjs`** — Script to insert the orchestrator + phase-mode block into new agents.
+- **`mode: "subagent"` frontmatter on all 11 specialist agents** — Correct classification for OpenCode native task tool when custom agent support ships. `sdlc-lead` gets `mode: "primary"`.
+- **`sdlc-lead` Mode 2: git history inspection (Step 0)** — `git-expert --inspect` runs before any code is read; hot files and recent activity focus landscape mapping.
+- **`sdlc-lead` Mode 2: UI detection** — Step 1 detects UI frameworks/directories, records `UI-bearing: YES/NO`.
+- **`sdlc-lead` Mode 2: UX audit** — If UI-bearing, Step 6 calls `ux-engineer --audit`.
+- **`sdlc-lead` Mode 2: docs commit** — Step 7 calls `git-expert` to commit all produced onboarding docs.
+- **`sdlc-lead` Mode 1: git checkpoints after phases 0–3** — `git-expert` commits phase docs after each gate. Nothing advances uncommitted.
+- **`sdlc-lead` Mode 3: UX review in implementation** — Step 3 calls `ux-engineer --review` after code review for UI features; CRITICAL/HIGH block the PR. Step 4 adds accessibility audit. Step 5 updates `UX_SPEC.md` and commits docs.
+- **`sdlc-lead` Phase 3/4/5: explicit `task()` calls with timeouts** — All delegations now have concrete `task(agent=..., prompt=..., timeout=...)` blocks sized for orchestrator depth (480–720 s).
+
+### Changed
+
+- **`task.ts` max timeout 600 s → 900 s** — 6 phases × 120 s = 720 s; new cap provides headroom.
+- **`task.ts` default timeout 120 s → 180 s**.
+- **`tools/grep-mcp.ts`** — Fixed `require('child_process')` in ESM module; replaced with `import { exec as execCb }`.
+- **`package.json`** — `"type": "module"`, test script uses `node --experimental-strip-types`.
+- **`sdlc-lead` researcher calls include numbered questions** — All three research delegations provide explicit questions so orchestrator mode activates without a planning round-trip.
+
+### Architecture note
+
+The `task` tool spawns `opencode run --agent X --format json` as a subprocess — the correct workaround for the current OpenCode limitation where the built-in task tool only supports `general` and `explore` (custom agents not yet supported: [anomalyco/opencode#20059](https://github.com/anomalyco/opencode/issues/20059)). When OpenCode ships full custom agent support, switching to the native task tool will give proper child-session visibility in the TUI sidebar without needing `context.metadata` hacks.
+
+---
 
 ## [0.3.0] — 2026-04-10
 
@@ -34,13 +286,15 @@ Major upgrade wave: new `git-expert` agent, three-mode `code-reviewer` rewrite, 
 - **Semgrep deep upgrade** — Community rules integration, framework auto-detect, two-tier scans in `security-auditor`.
 - **Skeleton-first security report format** — Rewritten to surface actionable intel first.
 - **Verifier isolation + reader simulation + asymmetric gates** — Applied across all 12 agents.
+- **MemPalace MCP integration** — Persistent memory for OpenCode workflows.
 - Repository cleanup: `.gitignore`, `CHANGELOG.md`, shortened `README.md`, `docs/FEATURES.md`, `docs/USERGUIDE.md`.
 
 ### Changed
-- **`sdlc-lead` Phase 0 now calls `/git-expert --init` first** — so VISION.md is the first tracked artifact.
-- **`sdlc-lead` Phase 4 calls `/git-expert --feature`** per completed feature for branch + atomic commits + draft PR.
-- **`sdlc-lead` Phase 5 calls `/git-expert --release`** once reviews pass — semver bump + signed tag + GitHub/Gitea releases.
+- **`sdlc-lead` Phase 0 now calls `git-expert --init` first** — so VISION.md is the first tracked artifact.
+- **`sdlc-lead` Phase 4 calls `git-expert --feature`** per completed feature for branch + atomic commits + draft PR.
+- **`sdlc-lead` Phase 5 calls `git-expert --release`** once reviews pass — semver bump + signed tag + GitHub/Gitea releases.
 - Agent descriptions now use trigger-aware "pushy" language so they surface proactively.
+- OpenCode-specific compatibility fixes and session-context tooling.
 
 ## [0.2.0] — 2026-04-09
 
@@ -49,26 +303,32 @@ End-of-day state after a major expert-depth push. 11 experts upgraded with real 
 ### Added
 - **Real expert behavior** across all 11 agents — per-phase iteration, instinct patterns, deeper threat modeling.
 - **Semgrep integration** in `security-auditor` — auto-install, auto-detect language, guided setup.
-- **Context7 MCP reference** — Live library documentation lookup available to all agents.
+- **Context7 MCP** — Live library documentation lookup reference available to all agents.
+- **Custom OpenCode tools** — `tools/` directory with 18 TypeScript tools (bash, grep-mcp, write, append, update, file-info, task, test-runner, playwright-test, playwright-web, semgrep-scan, semgrep-rule, simplify-file, pomodoro, run, log-parser, loop-detector, deploy).
 - **Micro-loop pattern** applied to all 11 agents (ThreatForge lessons absorbed).
 - **Detailed security + code review reports** — verbatim code quotes, concrete exploitation explanations, file:line anchors.
 - **Mode 2 (`sdlc onboard`) overhaul** — high-level architecture pass, operation sequence diagrams, confidence loop.
-- **Session-start hook** for verifier isolation + reader simulation + asymmetric gates.
+- Local LLM compatibility fixes across all 11 agents.
 
 ### Changed
 - Phase agents consolidated into a single `sdlc-lead` program manager with 3 operating modes (init, onboard, feature).
+- Install script (`install.sh`) hardened: idempotent clean-reinstall, safely merges Context7 MCP into existing `opencode.json`, checks for Semgrep.
+- Agent directory structure + frontmatter fixed for OpenCode compatibility.
 
-## [0.1.0] — 2026-03-28
+## [0.1.0] — 2026-04-06
 
-Initial release of the Claude Code Expert system.
+Initial public release of the BPM OpenCode Expert system.
 
 ### Added
 - **11 specialist agents**: `sdlc-lead`, `security-auditor`, `researcher`, `test-engineer`, `db-architect`, `ux-engineer`, `sre-engineer`, `container-ops`, `code-reviewer`, `performance-engineer`, `api-designer`.
-- **Slash-command skill triggers** for each agent: `/sdlc`, `/security`, `/research`, `/test-expert`, `/dba`, `/ux`, `/devops`, `/containers`, `/review-code`, `/perf`, `/api-design`, `/gate`, `/review`.
-- **Reference documents** covering OWASP, engineering artifacts, REST APIs, Playwright, Semgrep, severity matrices.
-- **Install scripts** that symlink agents, skills, references, and hooks into `~/.claude/`.
-- **Interoperable** with the sibling `bpm-opencode-experts` project for OpenCode.
+- **14 slash commands** triggering the agents: `/sdlc`, `/security`, `/research`, `/test-expert`, `/dba`, `/ux`, `/devops`, `/containers`, `/review-code`, `/perf`, `/api-design`, `/gate`, `/review`, `/simplify`.
+- **6 reference documents** covering OWASP, engineering artifacts, REST APIs, Playwright, Semgrep, severity matrices.
+- **Install scripts** for global (`~/.config/opencode/`) or project-level setup.
+- **Full documentation**: expert guide, SDLC guide, contributing guide.
+- **Interoperable** with the sibling `claude-experts` project for Claude Code — works with any LLM backend (Claude, OpenAI, Gemini, Ollama, LM Studio, 75+ providers).
 
-[0.3.0]: https://gitea.internal/bmatthews/claude-experts/compare/v0.2.0...v0.3.0
-[0.2.0]: https://gitea.internal/bmatthews/claude-experts/compare/v0.1.0...v0.2.0
-[0.1.0]: https://gitea.internal/bmatthews/claude-experts/releases/tag/v0.1.0
+[0.7.0]: https://github.com/bpmforge/bpm-opencode-experts/compare/v0.6.0...v0.7.0
+[0.6.0]: https://github.com/bpmforge/bpm-opencode-experts/compare/v0.5.0...v0.6.0
+[0.3.0]: https://github.com/bpmforge/bpm-opencode-experts/compare/v0.2.0...v0.3.0
+[0.2.0]: https://github.com/bpmforge/bpm-opencode-experts/compare/v0.1.0...v0.2.0
+[0.1.0]: https://github.com/bpmforge/bpm-opencode-experts/releases/tag/v0.1.0

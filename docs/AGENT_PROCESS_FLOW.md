@@ -18,8 +18,9 @@ User: /sdlc init my-app "description"
            ├── task(git-expert) → init repo, create sdlc/setup branch
            │   └── RETURN: "git init done — repo initialized"
            │
-           ├── task(researcher) → competitive landscape
-           │   └── RETURN: docs/research/RESEARCH_competitive_*.md
+           ├── HANDOFF → researcher (competitive landscape)
+           │   └── PRODUCE: docs/research/RESEARCH_competitive_*.md
+           │   └── RETURN: "researcher done — competitive analysis: [key finding]"
            │
            ├── SDLC lead reviews research (Research Findings Review Protocol)
            │   └── IF contradiction with discovery → surface to user, wait
@@ -29,8 +30,9 @@ User: /sdlc init my-app "description"
 
     Phase 1: Planning
            │
-           ├── task(researcher) → technical feasibility
-           │   └── RETURN: docs/research/RESEARCH_feasibility_*.md
+           ├── HANDOFF → researcher (technical feasibility)
+           │   └── PRODUCE: docs/research/RESEARCH_feasibility_*.md
+           │   └── RETURN: "researcher done — feasibility: [key finding or showstopper]"
            │
            ├── Research Findings Review → surface contradictions
            │
@@ -60,7 +62,9 @@ User: /sdlc init my-app "description"
 
     Phase 3: Design
            │
-           ├── task(researcher) → framework comparison
+           ├── HANDOFF → researcher (framework/stack comparison)
+           │   └── PRODUCE: docs/research/RESEARCH_framework_comparison_*.md
+           │   └── RETURN: "researcher done — framework comparison: [recommended stack]"
            ├── Research Findings Review
            ├── SDLC lead writes TECH_STACK.md
            │
@@ -93,10 +97,17 @@ User: /sdlc init my-app "description"
            │   └── PRODUCE: docs/TEST_STRATEGY.md (framework selection + approach)
            │   └── RETURN: "test-strategy done"
            │
-           ├── IMPLEMENTATION CHECKPOINT
-           │   └── User/developer builds the system
+           ├── IMPLEMENTATION CHECKPOINT (Size S items: user builds directly)
+           │   └── Constraint: use ONLY tech listed in docs/TECH_STACK.md
            │   └── "Write tests alongside each module"
            │   └── RETURN: user says "implementation done"
+           │
+           ├── HANDOFF → coding-agent (Size M items from Mode 4 backlog)
+           │   └── READ: docs/TECH_STACK.md + IMPROVEMENT_[n]_DESIGN.md
+           │   └── VERIFY: all library APIs via Context7 before writing
+           │   └── ENFORCE: anti-slop rules (no over-engineering, no hallucinated APIs)
+           │   └── PRODUCE: implementation files + docs/improve/VERIFY_ITEM_[n].md
+           │   └── RETURN: "coding-agent done — item [n]: [one sentence]"
            │
            ├── ★ NEW: HANDOFF → test-engineer (WRITE ACTUAL E2E TESTS)
            │   └── READ: docs/testing/USE_CASES.md + docs/testing/TEST_PLAN.md

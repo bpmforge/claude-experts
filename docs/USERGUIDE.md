@@ -1,6 +1,6 @@
 # User Guide
 
-How to use the Claude Experts. For *what* each expert is, see [FEATURES.md](FEATURES.md).
+How to use the BPM OpenCode Experts. For *what* each expert is, see [FEATURES.md](FEATURES.md).
 
 ## Table of contents
 
@@ -8,7 +8,8 @@ How to use the Claude Experts. For *what* each expert is, see [FEATURES.md](FEAT
 - [Core concepts](#core-concepts)
 - [Typical workflows](#typical-workflows)
 - [Per-expert usage](#per-expert-usage)
-  - [`/sdlc` — SDLC workflow](#sdlc)
+  - [`/sdlc` — SDLC workflow (4 modes)](#sdlc)
+  - [`/code` — Doc-driven implementation](#code)
   - [`/git-expert` — Git & forges](#git-expert)
   - [`/security` — Security audit](#security)
   - [`/review-code` — Code health](#review-code)
@@ -20,21 +21,31 @@ How to use the Claude Experts. For *what* each expert is, see [FEATURES.md](FEAT
   - [`/api-design` — API design](#api-design)
   - [`/containers` — Containers](#containers)
   - [`/devops` — SRE & CI/CD](#devops)
+  - [`/frontend` — Visual design & polish](#frontend)
+  - [`/explore` — Codebase archaeology](#explore)
+  - [`/design-options` — Architecture trade-offs](#design-options)
+  - [`/simplify` — Quick simplification pass](#simplify)
+  - [`/steward` — Project intelligence steward](#steward)
 
 ---
 
 ## Install
 
 ```bash
-git clone <repo-url> claude-experts
-cd claude-experts
-./install.sh                  # symlinks into ~/.claude/
+git clone https://github.com/bpmforge/bpm-opencode-experts.git
+cd bpm-opencode-experts
+./install.sh                  # copies agents, skills, tools into ~/.config/opencode/
+./install.sh --link           # symlink instead of copy (for development — edits apply immediately)
+./install.sh --semgrep        # also auto-install Semgrep + community rule repos
+./install.sh --project        # install into .opencode/ in current directory instead of global
 ```
 
 The installer:
-- Symlinks `agents/`, `skills/`, `references/`, `hooks/` into `~/.claude/`
-- Registers the session-start / pre-tool hooks
+- Copies (or symlinks) `agents/`, `skills/`, `references/`, `commands/`, `hooks/`, `scripts/` into `~/.config/opencode/`
+- Installs the custom TypeScript tools in `tools/` and runs `npm install` for dependencies
+- Safely merges Context7 MCP config into your existing `opencode.json`
 - Checks for Semgrep (and optionally installs it) for `security-auditor`
+- Prompts to clone 4 community Semgrep rule repos (~10-50 MB each)
 
 Uninstall with `./uninstall.sh`.
 
@@ -42,12 +53,37 @@ Uninstall with `./uninstall.sh`.
 
 ## Core concepts
 
-### Agents vs skills
+### Agents vs skills vs commands
 
-- **Agents** are the actual workers — they have system prompts, tools, model choice, memory scope, and maxTurns.
+- **Agents** are the actual workers — they have system prompts, tools, and behavior.
 - **Skills** are thin triggers — a `SKILL.md` with frontmatter that maps a `/name` to an agent plus default arguments.
+- **Commands** are slash-command variants used by `/sdlc` subcommands (`/sdlc init`, `/sdlc onboard`, `/sdlc feature`, `/sdlc status`).
 
-When you type `/review-code --debt` into Claude Code, the skill dispatcher looks up `skills/code-review/SKILL.md`, reads the `agent: code-reviewer` field, and invokes the `code-reviewer` agent with `--debt` as an argument.
+When you type `/review-code --debt` into OpenCode, the skill dispatcher looks up `skills/review-code/SKILL.md`, reads the `agent: code-reviewer` field, and invokes the `code-reviewer` agent with `--debt` as an argument.
+
+### Multi-agent execution model
+
+Long-running agents (all 10 specialists + `sdlc-lead`) use a two-mode execution pattern to prevent timeouts and silent hangs:
+
+**Orchestrator mode (default)** — the agent announces its phase plan upfront, then spawns one sub-task per phase using the `task` tool. Each sub-task runs in under 90 seconds, writes its findings to `docs/work/<agent>/<slug>/phaseN.md`, and returns. The orchestrator prints `✓ Phase N: [finding]` after each completes. You see work as a sequence of fast completions, never a silent 5-minute block.
+
+```
+▶ Phase 1: Understanding codebase...
+✓ Phase 1 complete: 3 services identified, PostgreSQL 15, REST API with 24 endpoints
+
+▶ Phase 2: Researching best practices...
+✓ Phase 2 complete: Found 3 relevant patterns for event sourcing
+...
+```
+
+**`--phase: N name` mode** — runs exactly one named phase, reads the previous phase's output file, writes its own, and returns a one-line summary. This is how the orchestrator parallelizes sequential work — you don't invoke this directly.
+
+**Progress in the UI** — the `task` tool updates its label in real time:
+```
+task: db-architect — 45s — ✓ Phase 2 complete: PostgreSQL best practices identified
+```
+
+If you see a task label ticking up but no output yet, the agent is working — it will announce results phase by phase.
 
 ### Modes
 
@@ -59,13 +95,14 @@ Every expert writes its output to a predictable location under `docs/`:
 
 | Expert | Output dir |
 |---|---|
+| `coding-agent` | `docs/improve/VERIFY_ITEM_[n].md` + implementation files |
 | `code-reviewer` | `docs/reviews/CODE_REVIEW_<date>.md` etc. |
 | `security-auditor` | `docs/security/` |
 | `git-expert` | `docs/git/` |
 | `researcher` | `docs/research/` |
 | `sdlc-lead` | `docs/` (VISION.md, SCOPE.md, etc. per phase) |
 | `test-engineer` | `docs/test/` |
-| `performance-engineer` | `docs/perf/` |
+| `performance-engineer` | `docs/PERFORMANCE_REPORT.md` + `docs/performance/PERF_TRACKER.md` |
 | `db-architect` | `docs/db/` |
 | `ux-engineer` | `docs/design/` |
 
@@ -88,19 +125,27 @@ When an expert says "gate failed", it's telling you the report isn't ready. Ask 
 ```
 /sdlc init my-app "Short description of what it is"
 ```
-`sdlc-lead` will run a discovery interview, bootstrap the repo via `/git-expert --init`, then walk you through Phase 0 (Vision) → Phase 5 (Review) with gates between every phase.
+`sdlc-lead` runs a discovery interview, calls `git-expert --init` (repo bootstrap + branch protection on `main`), creates a `sdlc/setup` branch, then walks through Phase 0 → Phase 3 with git checkpoints after every phase. After Phase 3 gate passes, `sdlc/setup` merges to `main` via PR. Phase 4 feature work runs on `feat/[slug]` branches. Expect 6–8 agent delegations across the full run.
 
 ### Existing codebase you don't understand
 ```
 /sdlc onboard
 ```
-`sdlc-lead` will produce a high-level architecture document, operation sequence diagrams, and an onboarding guide. It also calls `/review-code --review`, `/review-code --debt`, and `/review-code --patterns` to surface health issues.
+`sdlc-lead` creates a `docs/onboard` branch, runs `git-expert --inspect` first (hot files, commit history), detects if the project has a UI, then produces architecture docs and an onboarding guide. If UI-bearing, `ux-engineer --audit` runs automatically. All produced docs are committed via PR to `main`.
 
 ### Add a feature to an existing project
 ```
 /sdlc feature "OAuth refresh token support"
 ```
-`sdlc-lead` runs a feature discovery interview → design → `/git-expert --feature` (branch) → implement → `/test-expert` → `/review-code --review` → `/git-expert --feature` (commit + draft PR).
+`sdlc-lead` runs a discovery interview → creates `feat/[slug]` branch → impact analysis → design → implement → `test-engineer` → `code-reviewer --review` → `ux-engineer --review` (if UI) → commit + draft PR → squash merge to `main`. A CRITICAL or HIGH UX finding blocks the PR.
+
+### Audit and improve an existing system
+```
+/sdlc improve
+/sdlc improve "ux"
+/sdlc improve "performance"
+```
+`sdlc-lead` creates an `improve/[slug]` branch, runs a discovery interview to determine which audits to run, runs targeted specialist audits (UX, code quality, performance, security, DB), synthesizes findings into a ranked backlog with S/M/L sizing, and lets you pick which items to execute. Each item is verified by the same specialist that found it. All work committed via PR to `main`.
 
 ### Cut a release
 ```
@@ -125,14 +170,28 @@ Inspects the reflog, explains the plan, then executes recovery with your confirm
 ## Per-expert usage
 
 ### `/sdlc`
-Modes: `init`, `onboard`, `feature`, `status`, `validate`
+Modes: `init`, `onboard`, `feature`, `improve`, `status`, `gate`
 
 ```
 /sdlc init my-app "AI assistant for developers"
 /sdlc onboard
 /sdlc feature "Magic link login"
+/sdlc improve                   # full audit across all dimensions
+/sdlc improve "ux"              # UX audit only
+/sdlc improve "performance"     # performance audit only
+/sdlc improve "security"        # security audit only
+/sdlc improve "code-quality"    # code quality audit only
 /sdlc status                    # show current phase + gate state
-/sdlc validate                  # validate all SDLC documents
+/sdlc gate                      # check gate requirements
+```
+
+**Git branching:** Every mode creates the right branch automatically before touching any file. `main` is always production-ready — nothing lands there without a PR. The git discipline is automatic; you don't have to think about it.
+
+```
+init    → sdlc/setup  (phases 0-3) → feat/[slug] (phase 4)
+onboard → docs/onboard
+feature → feat/[slug]
+improve → improve/[slug]
 ```
 
 Gate control:
@@ -143,6 +202,52 @@ Gate control:
 ```
 
 Outputs go under `docs/` — `VISION.md`, `SCOPE.md`, `RISKS.md`, `USER_PERSONAS.md`, `SRS.md`, `USER_STORIES.md`, `TECH_STACK.md`, `ARCHITECTURE.md`, `DATABASE.md`, `THREAT_MODEL.md`, `SECURITY_CONTROLS.md`.
+
+---
+
+### `/code`
+
+Invoke the coding agent to implement from SDLC design documents.
+
+```
+/code                             # implement — will ask which design docs to use
+/code implement the auth service  # implement a specific task
+```
+
+**Requires design docs to exist first.** If none exist, run `/sdlc feature "<description>"` first to produce them.
+
+**What happens before a line of code is written:**
+1. Reads all SDLC design docs (ARCHITECTURE.md, SRS.md, TECH_STACK.md, IMPROVEMENT_*_DESIGN.md)
+2. Reads 2–3 existing files in the target directory to match patterns
+3. Verifies every library API via Context7 MCP (`resolve-library-id` + `get-library-docs`)
+
+**Tech stack constraint:** If `docs/TECH_STACK.md` exists, the agent will only use libraries listed there. Any deviation is flagged in the Completion Manifest for your approval — never silently adopted.
+
+**The anti-slop checklist (self-audited before reporting done):**
+- No try-catch outside system boundaries
+- No abstractions with <2 real implementations
+- No single-use helper functions (inlined)
+- No what-comments (only why, when non-obvious)
+- No unused imports
+- No scope beyond what the spec asked for
+- All tech choices match TECH_STACK.md
+
+**Completion Manifest** — at the end of every task the agent produces:
+```
+Files produced:       [path — N lines — what it does]
+API verifications:    [library@version — function verified]
+Tech stack compliance: PASS / [deviations flagged]
+Anti-slop audit:      PASSED / [N issues found and fixed]
+Test result:          [command] → PASS/FAIL
+Deferred:             [anything noticed but out of scope]
+```
+
+**Distinct from:**
+- `/review-code` — audits code *after* it's written
+- `/devops` — CI/CD, ops, deployment (not application code)
+- `/test-expert` — test strategy and coverage analysis
+
+---
 
 ### `/git-expert`
 Modes: `--init`, `--feature`, `--release`, `--recover`, `--inspect`, `--sync`
@@ -175,6 +280,15 @@ Modes: `--owasp`, `--semgrep`, `--threat-model`, `--deps`
 /security --deps                # dependency vulnerability audit
 ```
 
+Runs as a 5-phase orchestrator: understand → automated scan (Semgrep + deps) → OWASP manual (10 passes) → verify findings → **attack chain analysis** → write report.
+
+**Attack chain analysis (Phase 5b):** After all individual findings are verified, the agent builds a pre/post-condition inventory and tests finding pairs and triples for multi-step exploit paths. Chains get their own `C-N` finding entries with combined severity (often higher than any single link) and a "break the chain" remediation priority. Nine chain patterns are tested explicitly: recon→targeted attack, XSS→session hijack, SSRF→pivot, path traversal→credential theft, auth bypass→privilege escalation, and more.
+
+**Semgrep setup:**
+- Custom gap-filler rules (98 rules across C#, Kotlin, Swift, Rust, PHP, C++) installed to `~/.config/opencode/.semgrep/` — loaded automatically per detected language
+- Community rules: `scripts/update-semgrep-rules.sh` clones Trail of Bits, elttam, GitLab, 0xdea to `~/.semgrep/rules/`
+- Offline scanning: `scripts/cache-registry-packs.sh` then `semgrep-full-audit.sh --offline`
+
 Reports use the skeleton-first format — actionable intel first, verbatim code quotes for every finding, concrete exploitation walkthroughs. Output: `docs/security/`.
 
 ### `/review-code`
@@ -201,7 +315,21 @@ Modes: `--quick`, `--deep`, `--compare`
 /research --compare "Postgres vs MySQL for event sourcing"
 ```
 
+The researcher uses **orchestrator mode** by default — it announces a question-by-question plan, researches each question as a sub-task, and prints a one-line finding after each:
+
+```
+Research plan for [topic]:
+  Q1: Market size and top players
+  Q2: Pricing models
+  Q3: API quality
+Starting Q1...
+✓ Q1 complete: Market is $2.4B, dominated by GitHub Copilot (40%). [source]
+Starting Q2...
+```
+
 Produces a report with source evaluation (credibility + recency + bias), cross-references, and a final recommendation. Output: `docs/research/`.
+
+**When called from sdlc-lead:** researcher is a heavyweight specialist (multi-phase, 5–15 min). `sdlc-lead` delegates it via HANDOFF — the same pattern as every other specialist. Open a new conversation, paste the HANDOFF prompt, and return with "researcher done" when complete. Do NOT run it as a background task or expect it to complete inline.
 
 ### `/test-expert`
 Modes: `--strategy`, `--unit`, `--e2e`, `--coverage`
@@ -216,15 +344,41 @@ Modes: `--strategy`, `--unit`, `--e2e`, `--coverage`
 Reference: `references/playwright-config.md`. Output: `docs/test/`.
 
 ### `/perf`
-Modes: `--profile`, `--benchmark`, `--optimize`
 
 ```
+/perf                           # full 7-phase profiling run (understand → static analysis → profile → fix → verify → document)
 /perf --profile                 # profile current state, flame graph, hot paths
 /perf --benchmark               # measure vs NFR targets
-/perf --optimize src/pipeline/  # optimize a specific module (after profiling)
+/perf --optimize src/pipeline/  # optimize a specific module (profile first)
 ```
 
-Never optimizes without measuring first. Output: `docs/perf/`.
+**What it does:**
+
+1. **Phase 1 — Understand the problem** — reads CLAUDE.md, checks for prior reports, quantifies the complaint ("slow" → specific operation + P95 latency target). Initializes `docs/performance/PERF_TRACKER.md` — a persistent session tracker that survives context loss.
+
+2. **Phase 1b — Static analysis** — detects anti-patterns without running the code. Starts by enumerating all source files (`find . -type f ...`) so it knows the full scope. Then runs 5 targeted grep scans:
+   - O(n²) nested loops — `.find()` inside `for`
+   - N+1 query patterns — DB call inside a loop
+   - `try/catch` performance anti-patterns (try/catch inside loops → V8 de-opt; exceptions as control flow; individual `await try/catch` blocking parallelism; double stack capture from re-throw after log)
+   - Blocking I/O in async paths (`readFileSync` etc. on the request path)
+   - Hot-path allocations (JSON.parse, object spread, string concat in loops)
+   
+   Every finding requires a `read()` of the exact lines — no findings from grep output alone. A **coverage confidence loop** after all 5 scans cross-checks grep coverage against the source file list, re-passes if < 7/10 confidence (max 3 attempts).
+
+3. **Phases 2–5** — profile → identify hotspot → fix → verify with before/after benchmarks.
+
+4. **Phase 6 — Full report** — writes `docs/PERFORMANCE_REPORT.md` with a mandatory template: executive summary, baseline measurements table, one block per static finding (verbatim code + loop bound + specific impact + concrete fix), profiler results, fix before/after code, final benchmark (P50/P95), regression check table, deferred backlog with effort/priority, data size thresholds, coverage verdict, handoffs recommended.
+
+**Output files:**
+- `docs/performance/PERF_TRACKER.md` — live session tracker (updated after every phase)
+- `docs/PERFORMANCE_REPORT.md` — final full report
+
+**Key rules:**
+- Static findings from Phase 1b are **suspects** — always confirmed with a profiler before being fixed
+- Phase 5 (verify-fix) uses a raised confidence threshold of 8/10 — a fix without before/after numbers is not verified
+- The confidence gate reads from `PERF_TRACKER.md`, not from context memory — safe to resume interrupted sessions
+
+**try/catch and performance** — the agent explicitly checks whether error-handling constructs are costing you performance, which is distinct from whether they're *correct* (that's `code-reviewer`'s job). If the same `try/catch` also swallows errors, the report will recommend a `code-reviewer` handoff for the correctness angle.
 
 ### `/dba`
 Modes: `--design`, `--migrate`, `--tune`, `--review`
@@ -281,6 +435,50 @@ Modes: `--cicd`, `--monitor`, `--runbook`, `--incident`
 /devops --incident              # incident response playbook
 ```
 
+### `/frontend`
+Modes: `--implement`, `--polish`, `--system`
+
+```
+/frontend --implement           # implement UX_SPEC.md + STYLE_GUIDE.md into production components
+/frontend --polish              # take existing UI and elevate typography, color, spacing, motion
+/frontend --system              # create or refactor design token system (colors, fonts, spacing, shadows)
+/frontend                       # auto-detect: --polish if UI exists, --system if no tokens found
+```
+
+Used by `sdlc-lead` in Phase 3 after the UX spec is approved, and in `/sdlc improve "frontend"`. Distinct from `/ux`: UX handles workflows and accessibility; frontend handles visual implementation and polish.
+
+### `/explore`
+
+```
+/explore                        # trace a feature or concept end-to-end through the codebase
+```
+
+Codebase archaeology — finds all entry points for a feature, traces call chains, maps the data flow, and produces a file:line blast radius map. Use this before `/sdlc feature` or any time you need to understand how something works before touching it. Produces `docs/explore/EXPLORE_[slug].md`.
+
+### `/design-options`
+
+```
+/design-options                 # generate 2-3 architecture alternatives with trade-offs
+```
+
+Architecture decision tool. Before committing to an approach, generates 2-3 alternatives with explicit trade-offs (cost, complexity, reversibility, fit with team constraints). Prevents building the wrong thing well. Use during `/sdlc` Phase 3 or any time you face a "how should we build this?" decision. Output: `docs/DESIGN_OPTIONS_[topic].md`.
+
+### `/simplify`
+
+```
+/simplify                       # quick review of recent changes for reuse opportunities and over-engineering
+```
+
+Scoped to what just changed (git diff). Faster than `/review-code` — looks for: duplicated logic that could reuse an existing abstraction, over-engineered solutions where a simpler approach would do, and obvious quality gaps introduced in the last edit session.
+
+### `/steward`
+
+```
+/steward                        # audit CLAUDE.md / AGENTS.md against actual codebase, capture session learnings
+```
+
+Project intelligence lifecycle. CLAUDE.md and AGENTS.md drift from the actual codebase as code evolves and decisions are made in conversation but never written down. The steward audits them for gaps, captures learnings from the current session, and updates project docs to stay aligned with reality. Use after any major session or when docs feel stale.
+
 ---
 
 ## Tips
@@ -290,3 +488,6 @@ Modes: `--cicd`, `--monitor`, `--runbook`, `--incident`
 - **Confidence gates exist to protect you.** A failed gate means the report isn't trustworthy yet. Read the specific gap the expert surfaces and resolve it before using the report.
 - **Expert output dirs are gitignored** — they are per-project generated reports, not shared source. Commit them yourself only if you want to.
 - **For destructive git operations, read the whole confirmation prompt.** `git-expert` prints the recovery command before every destructive op — save that command before confirming.
+- **If a task looks frozen, check the label.** The `task` tool updates its title in real time — `task: db-architect — 45s — ▶ Phase 3...` means it's alive and working. True hangs show no elapsed time increase.
+- **`sdlc-lead` delegates everything.** It never writes code itself — it orchestrates. When it says "delegating to `test-engineer`", expect a `task:` label to appear and resolve in under 2 minutes per phase.
+- **Phase files accumulate in `docs/work/`.** Each `--phase: N` sub-task writes its findings to `docs/work/<agent>/<slug>/phaseN.md`. If an agent stops early, the phase files show you exactly where it got to.
