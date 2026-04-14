@@ -57,7 +57,31 @@ for ref in "$SCRIPT_DIR/references/"*.md; do
 done
 echo "  $count reference files installed"
 
-# ─── 4. Copy hooks (scripts need to be executable, not symlinks) ───
+# ─── 4. Symlink scripts ───
+echo "Installing scripts..."
+mkdir -p "$CLAUDE_HOME/scripts"
+count=0
+for script in "$SCRIPT_DIR/scripts/"*.sh; do
+  [ -f "$script" ] || continue
+  ln -sf "$script" "$CLAUDE_HOME/scripts/$(basename "$script")"
+  chmod +x "$script"
+  count=$((count + 1))
+done
+echo "  $count scripts installed"
+
+# ─── 4b. Install Semgrep custom rules ───
+echo "Installing Semgrep custom rules..."
+if [ -d "$SCRIPT_DIR/.semgrep" ]; then
+  rm -rf "$CLAUDE_HOME/.semgrep"
+  ln -sf "$SCRIPT_DIR/.semgrep" "$CLAUDE_HOME/.semgrep"
+  rule_count=$(grep -r '^\s*- id:' "$SCRIPT_DIR/.semgrep/" 2>/dev/null | wc -l | tr -d ' ')
+  file_count=$(find "$SCRIPT_DIR/.semgrep" -name '*.yml' | wc -l | tr -d ' ')
+  echo "  $rule_count rules in $file_count rulesets linked → $CLAUDE_HOME/.semgrep/"
+else
+  echo "  No .semgrep/ directory found — skipping"
+fi
+
+# ─── 5. Copy hooks (scripts need to be executable, not symlinks) ───
 echo "Installing hooks..."
 count=0
 for hook in "$SCRIPT_DIR/hooks/"*; do
@@ -127,6 +151,8 @@ echo ""
 echo "Files installed:"
 echo "  ~/.claude/agents/*.md          (agents + references)"
 echo "  ~/.claude/skills/*/SKILL.md    (skill triggers)"
+echo "  ~/.claude/scripts/*.sh         (audit + utility scripts)"
+echo "  ~/.claude/.semgrep/            (186 custom rules, 11 languages)"
 echo "  ~/.claude/hooks/*              (automation scripts)"
 echo "  ~/.claude/CLAUDE.md            (updated with expert docs)"
 echo ""
@@ -139,4 +165,6 @@ echo "  $SCRIPT_DIR/scripts/update-semgrep-rules.sh --verify     Verify cached r
 echo "  $SCRIPT_DIR/scripts/semgrep-full-audit.sh                Run full audit with all community + framework rules"
 echo "  $SCRIPT_DIR/scripts/semgrep-full-audit.sh --fast         CI-tier scan (< 60s)"
 echo "  $SCRIPT_DIR/scripts/semgrep-full-audit.sh --autofix      OPT-IN autofix (LOW/WARNING only, refuses HIGH/CRITICAL)"
+echo "  Custom gap-filler rules: ~/.claude/.semgrep/ (186 rules, 11 languages)"
+echo "  Community rules cache:   ~/.semgrep/rules/"
 echo ""

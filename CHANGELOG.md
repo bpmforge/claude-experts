@@ -2,6 +2,23 @@
 
 All notable changes to this project are documented here. Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and versioning follows [Semantic Versioning](https://semver.org/).
 
+## [0.10.0] — 2026-04-13
+
+Major security scanning expansion: 186 custom Semgrep rules across 11 languages, attack chain analysis Phase 5b in security-auditor, OpenAPI spec as required SDLC Phase 3 deliverable, personal store paths documented, and offline scanning support.
+
+### Added
+- **186 custom Semgrep gap-filler rules** across 11 languages (JS/TS, Python, Go, Java, Ruby, C#, Kotlin, Rust, PHP, Swift, C++) installed to `~/.claude/.semgrep/`
+- **`scripts/cache-registry-packs.sh`** — Manages offline Semgrep registry pack cache for air-gapped scans
+- **Phase 5b: Attack Chain Analysis** in `security-auditor` — After finding individual vulnerabilities, agent inventories pre/post conditions and hunts for 9 chain patterns (XSS→session hijack, SSRF→pivot, path traversal→cred theft, auth bypass→privilege escalation, etc.)
+- **`docs/api/openapi.yaml`** required as SDLC Phase 3 deliverable in `sdlc-lead` — full OpenAPI 3.0 spec with swagger-cli validation gate
+- **Personal store paths** documented in `security-auditor` preflight: `~/.claude/.semgrep/custom-rules/` (global) and `.claude/.semgrep/custom-rules/` (project)
+
+### Changed
+- `install.sh` now installs `.semgrep/` to `~/.claude/.semgrep/` and `scripts/` to `~/.claude/scripts/`
+- `security-auditor` preflight checks for custom-rules personal store as 4th check
+- `semgrep-full-audit.sh` case statement extended to load custom rules for JS/TS, Python, Go, Java, Ruby languages
+- Rule count updated: 160 → 186 rules, 10 → 11 languages
+
 ## [0.3.0] — 2026-04-10
 
 Major upgrade wave: new `git-expert` agent, three-mode `code-reviewer` rewrite, three-mode `ux-engineer` rewrite, deeper `security-auditor`, sdlc-lead discovery interviews, asymmetric confidence gates applied across every agent. Repository cleanup + new documentation.
