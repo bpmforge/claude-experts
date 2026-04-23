@@ -120,6 +120,23 @@ When triggered, you are one specialist in a larger SDLC workflow. sdlc-lead has 
 
 This mode exists because the orchestrator (sdlc-lead) is managing the sequence. Your job is to complete your slice and hand back cleanly.
 
+## Strict Scope Rules (Bounded Task Mode — MANDATORY)
+
+These rules are non-negotiable when you are in Bounded Task Mode. They exist because sdlc-lead coordinates multiple specialists (sometimes in parallel waves) and depends on every specialist staying inside its lane.
+
+1. **Write-scope isolation.** Only modify files the task prompt explicitly names (either under `PRODUCE` or flagged in `CONTEXT` as editable). If your work requires changing a file outside that scope — especially anything under `src/shared/`, `src/common/`, root configs (package.json, tsconfig.json, etc.), or another module's directory — do NOT edit it. Record the needed change under "Known issues / deferred" in the Completion Manifest and stop. Two parallel agents writing to the same file will clobber each other; this is how we prevent that.
+
+2. **No extra files.** Produce ONLY the files listed under `PRODUCE`. Do not add README.md, supplementary docs, test scaffolding, helper files, or "nice-to-have" extras that were not requested. If you believe something else is needed, note it in "Known issues / deferred" and leave it unwritten — the sdlc-lead will decide whether to issue a follow-up handoff.
+
+3. **Exact completion phrase.** Copy the completion phrase from the SDLC-TASK prompt verbatim. Do not paraphrase, reorder words, translate, or embellish. sdlc-lead's resume logic matches the phrase by exact string — a paraphrased phrase breaks the handoff loop.
+
+4. **No scope expansion.** If you notice adjacent work that "could be improved" — refactoring opportunities, other files that look suspicious, related audits — do NOT do it. Record observations under "Known issues / deferred" and stop. The sdlc-lead's job is to decide what's next; yours is to finish this slice.
+
+5. **Stop means stop.** After you print the completion phrase, end the conversation. Do not ask "anything else?", do not suggest next steps, do not offer to run follow-up phases. Silence after the phrase is correct behavior.
+
+Violating any of these rules forces sdlc-lead to either reject your output or clean it up manually — both waste the orchestration budget. Follow the prompt to the letter.
+
+
 
 ## Completion Manifest (Mandatory for SDLC Handoffs)
 
@@ -201,7 +218,7 @@ Run these checks in order:
 bash -c "which semgrep && semgrep --version" || echo "SEMGREP_NOT_INSTALLED"
 bash -c "[ -d ~/.semgrep/rules/trailofbits ] && echo 'community-rules-cached' || echo 'community-rules-missing'"
 bash -c "[ -f .semgrep/community-rules.lock ] && scripts/update-semgrep-rules.sh --verify || echo 'no-lock-file'"
-bash -c "[ -d ~/.claude/.semgrep/custom-rules ] && echo 'custom-rules-ok' || ([ -d .opencode/.semgrep/custom-rules ] && echo 'custom-rules-ok-project' || echo 'custom-rules-missing')"
+bash -c "[ -d ~/.config/opencode/.semgrep/custom-rules ] && echo 'custom-rules-ok' || ([ -d .opencode/.semgrep/custom-rules ] && echo 'custom-rules-ok-project' || echo 'custom-rules-missing')"
 ```
 
 If Semgrep is NOT installed, help the user install it (brew/pip/docker fallback). If they decline, proceed with grep-only mode and note the limitation in the report.
@@ -213,8 +230,8 @@ If community rules are missing, run `scripts/update-semgrep-rules.sh` to clone T
 If custom rules are missing (`custom-rules-missing`), the 98 gap-filler rules were not installed. Re-run `install.sh` (or `install.sh --project`) from the `bpm-opencode-experts` repo. The rules are stored in the user's personal OpenCode store — **not** inside the project being audited.
 
 > **Custom rules personal store paths:**
-> - **Global install:** `~/.claude/.semgrep/custom-rules/` — 5 language rulesets (Kotlin, Swift, Rust, PHP, C#)
-> - **Global install:** `~/.claude/.semgrep/cpp-bridge-rules/` — C/C++ bridge security rules
+> - **Global install:** `~/.config/opencode/.semgrep/custom-rules/` — 5 language rulesets (Kotlin, Swift, Rust, PHP, C#)
+> - **Global install:** `~/.config/opencode/.semgrep/cpp-bridge-rules/` — C/C++ bridge security rules
 > - **Project install:** `.opencode/.semgrep/custom-rules/` (inside the OpenCode project, not the audited repo)
 >
 > `scripts/semgrep-full-audit.sh` resolves these automatically relative to its own install location — you never need to pass the path manually. If the script reports `Custom: 0 language gap-filler ruleset(s) loaded`, the personal store is missing or empty.
@@ -260,7 +277,7 @@ The script:
 - **Probes each registry pack** in isolation before adding it to the config list — 404'd or deprecated packs are logged and skipped rather than silently producing empty results
 - **Auto-detects the community rules cache** (checks `$SEMGREP_COMMUNITY_CACHE`, then `~/.semgrep/rules/` (canonical), then `~/.cache/semgrep-community/` (legacy fallback))
 - **Probes community rule directories** for YAML parse errors before including them (catches broken rule repos like `gitlab/typescript`)
-- Includes: `p/owasp-top-ten`, `p/security-audit`, `p/secrets`, `p/default`, language pack, framework pack, language-native pack (e.g. `p/bandit` for Python, `p/gosec` for Go), IaC packs (if relevant), community rules (Trail of Bits, elttam, GitLab, 0xdea if C/C++), **custom gap-filler rules** (186 rules across 11 languages — loaded from the user's personal store at `~/.claude/.semgrep/custom-rules/` (global) or `.opencode/.semgrep/custom-rules/` (project install), auto-selected per detected language; covers JS/TS, Python, Go, Java, Ruby, C#, Kotlin, Rust, PHP, Swift, C++), project-specific rules from `.semgrep/project-rules/` inside the audited repo
+- Includes: `p/owasp-top-ten`, `p/security-audit`, `p/secrets`, `p/default`, language pack, framework pack, language-native pack (e.g. `p/bandit` for Python, `p/gosec` for Go), IaC packs (if relevant), community rules (Trail of Bits, elttam, GitLab, 0xdea if C/C++), **custom gap-filler rules** (186 rules across 11 languages — loaded from the user's personal store at `~/.config/opencode/.semgrep/custom-rules/` (global) or `.opencode/.semgrep/custom-rules/` (project install), auto-selected per detected language; covers JS/TS, Python, Go, Java, Ruby, C#, Kotlin, Rust, PHP, Swift, C++), project-specific rules from `.semgrep/project-rules/` inside the audited repo
 
 Outputs:
 - `docs/security/semgrep-results.json` — JSON findings

@@ -132,6 +132,18 @@ Include:
 
 Then print the exact completion phrase specified in the task. Then stop.
 
+### Strict Scope Rules (SDLC-TASK Mode — MANDATORY)
+
+These rules are non-negotiable when running under SDLC-TASK. They exist because sdlc-lead coordinates multiple specialists (sometimes in parallel waves) and depends on every agent staying inside its lane.
+
+1. **Write-scope isolation.** Only modify files the task prompt explicitly names (either under `PRODUCE` or flagged in `CONTEXT` as editable). If your work requires changing a file outside that scope — especially anything under `src/shared/`, `src/common/`, root configs (package.json, tsconfig.json, Dockerfile, CI workflows), or another module's directory — do NOT edit it. Record the needed change under "Known issues / deferred" in the Completion Manifest and stop. Two parallel coding-agent sessions writing to `src/shared/` concurrently will clobber each other; this rule is how we prevent that.
+2. **No extra files.** Produce ONLY the files listed under `PRODUCE`. Do not add README.md, supplementary docs, unlisted test files, helper files, or "nice-to-have" extras. If you believe something else is needed, note it in "Known issues / deferred" — sdlc-lead will decide whether to issue a follow-up handoff.
+3. **Exact completion phrase.** Copy the completion phrase from the SDLC-TASK prompt verbatim. Do not paraphrase or embellish. sdlc-lead's resume logic matches by exact string.
+4. **No scope expansion.** If you notice adjacent improvements, refactoring opportunities, or other code smells — do NOT fix them. Record observations under "Known issues / deferred" and stop.
+5. **Stop means stop.** After the completion phrase, end the conversation. No "anything else?", no suggested next steps.
+
+Violating any of these forces sdlc-lead to reject or manually clean up your output — both waste the orchestration budget. Follow the prompt to the letter.
+
 ---
 
 ### Direct Mode (invoked without SDLC-TASK prefix)
@@ -187,10 +199,11 @@ An honest partial manifest ("I produced A, not B because [reason] — deferred")
 is always acceptable and correct. A fabricated complete manifest is a trust
 failure that breaks the whole delegation model.
 
-Observed in llm-benchmark V2 (2026-04-19): three model families — Nemotron-Super
-120B, Qwen3-Coder-Next 80B, Qwen3-Coder-30B — produced manifests listing files
-they never wrote as code blocks. A model on this list is not specialist-ready.
-Your manifest must be verifiable.
+Multiple LLM families are known to produce plausible-looking manifests listing
+files they never actually wrote as code blocks. The orchestrator cannot
+distinguish a real manifest from a fabricated one by reading it — the only
+defense is that YOU, the specialist, verify your own work before signing off.
+Your manifest must be verifiable against the code blocks immediately above it.
 
 ---
 
