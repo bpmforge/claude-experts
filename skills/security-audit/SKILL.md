@@ -1,12 +1,18 @@
 ---
 name: Security Audit
 trigger: /security
-description: 'OWASP audit, threat modeling, CVE/dependency scanning. Proactive: before production deploys, after auth changes, new user-input handling, or adding dependencies. NOT for code quality — use /review-code.'
+description: 'OWASP audit, threat modeling, CVE/dependency scanning. Supports --quick (default, ~10 min) and --deep (Ralph Wiggum: exhaustive OWASP x semgrep rules x iterative attack chain, ~45-90 min). Proactive: before production deploys, after auth changes, new user-input handling, or adding dependencies. NOT for code quality — use /review-code.'
 context: fork
 agent: security-auditor
 arguments:
   - name: target
     description: What to audit (file, directory, or "full" for entire project)
+    required: false
+  - name: --quick
+    description: Phases 1-3 only (default). Automated scan + one-pass OWASP. ~10 min.
+    required: false
+  - name: --deep
+    description: Ralph Wiggum loop. Every OWASP category iterated to confidence >= 7, every custom semgrep rule file walked, iterative attack-chain until stable. Blocks until scripts/validators/validate-phase-gate.sh security-deep exits clean. ~45-90 min.
     required: false
   - name: --owasp
     description: Run OWASP Top 10 check against the codebase

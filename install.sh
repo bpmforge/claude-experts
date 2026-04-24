@@ -9,6 +9,29 @@
 
 set -e
 
+# Platform preflight — supported: macOS, Linux, WSL. NOT supported: native Windows.
+case "$(uname -s)" in
+  Darwin|Linux) ;;  # supported
+  MINGW*|MSYS*|CYGWIN*)
+    echo "ERROR: Native Windows (Git Bash / MSYS / Cygwin) is not supported." >&2
+    echo "" >&2
+    echo "Please install WSL2 and run the installer from inside your WSL shell:" >&2
+    echo "  https://learn.microsoft.com/en-us/windows/wsl/install" >&2
+    echo "" >&2
+    echo "Then from inside WSL:" >&2
+    echo "  git clone https://github.com/bpmforge/claude-experts.git" >&2
+    echo "  cd claude-experts && ./install.sh" >&2
+    exit 2
+    ;;
+  *)
+    echo "WARNING: unrecognized platform $(uname -s). Proceeding anyway." >&2
+    ;;
+esac
+
+if grep -qi microsoft /proc/version 2>/dev/null; then
+  echo "Detected: Windows Subsystem for Linux (WSL). Proceeding."
+fi
+
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 CLAUDE_HOME="$HOME/.claude"
 

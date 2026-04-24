@@ -8,6 +8,39 @@ description: 'SDLC phase gate — validates exit criteria before advancing phase
 
 Control phase transitions and approvals in the SDLC workflow.
 
+## Automated validators (v0.15.0+)
+
+Every `/gate check` and `/gate approve` now runs the Wave 3 validator suite via:
+
+```bash
+./scripts/validators/validate-phase-gate.sh <phase>
+```
+
+Phase arguments:
+
+| Invocation | Phase arg |
+|------------|-----------|
+| Mode 1 phase N | `phase-<N>` (0-5) |
+| Mode 2 deep | `onboard-deep` |
+| `/security --deep` | `security-deep` |
+
+Exit codes:
+- `0` = all validators clean, gate passes
+- `1` = one or more gaps (read JSON gap list on stdout)
+- `2` = validator itself errored
+
+The validator replaces subjective "read the file, rate completeness 1-10" with deterministic coverage checks (`scripts/validators/validate-architecture.sh`, `validate-owasp.sh`, `validate-api-coverage.sh`, `validate-erd-coverage.sh`, `validate-sequence-coverage.sh`, `validate-inventory.sh`).
+
+Do not second-guess the validator. If it says clean, gate passes. If it says gap, close the gap -- do not override.
+
+See `scripts/validators/README.md` for the full validator contract.
+
+---
+
+## Legacy confidence-loop flow (still used for unvalidatable artifacts)
+
+For artifacts validators cannot check mechanically (narratives, research summaries), the legacy confidence-loop flow below remains in effect.
+
 ## Memory Integration
 
 Gate decisions are critical project history. All approvals and bypasses are stored in memory for:

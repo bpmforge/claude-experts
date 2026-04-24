@@ -2,6 +2,42 @@
 
 All notable changes to this project are documented here. Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and versioning follows [Semantic Versioning](https://semver.org/).
 
+## [0.15.0] — 2026-04-24
+
+Strict-refactor release, synced from bpm-opencode-experts 0.15.0. Replaces large monolithic prompts + manual enforcement with small targeted prompts + automated validators. sdlc-lead.md drops from 4986 lines to 386 (router only); modes and shared protocols live in their own files. Introduces the Ralph Wiggum inventory loop for exhaustive verification and the `--quick` / `--deep` depth flags for onboarding and security. Nine bash validators automate completeness checks plus a three-gate post-HANDOFF runner that proves every delegated task stayed in scope.
+
+### Added
+
+- **`scripts/validators/`** — nine bash validators + shared `_lib.sh` + `run-handoff-gates.sh`:
+  `validate-architecture.sh`, `validate-owasp.sh`, `validate-api-coverage.sh`, `validate-erd-coverage.sh`, `validate-sequence-coverage.sh`, `validate-inventory.sh`, `validate-scope.sh`, `validate-completion-manifest.sh`, `validate-phase-gate.sh`. Every validator emits JSON gap envelope + exits 0/1/2. Bash 3.2 compatible.
+
+- **`agents/shared/`** — canonical shared protocols: `BOUNDED_TASK_CONTRACT.md`, `HANDOFF_TEMPLATES.md`, `FIX_VERIFY_LOOP.md`, `RALPH_WIGGUM_LOOP.md`.
+
+- **Four mode files** extracted from the sdlc-lead monolith: `sdlc-init-mode.md`, `sdlc-onboard-mode.md`, `sdlc-feature-mode.md`, `sdlc-improve-mode.md`.
+
+- **Ralph Wiggum Deep Mode for `/sdlc onboard --deep`** — step D1-D5 flow with inventory HANDOFF, parallel DISCOVER waves, validator-driven VERIFY, focused gap-fill, 3-iteration cap.
+
+- **Depth Modes for `/security`** — `--quick` (default) vs `--deep` (Ralph Wiggum over OWASP + semgrep rule files + iterative attack chains).
+
+- **Three new onboard sub-skills**: `/onboard-inventory`, `/onboard-verify`, `/onboard-gap-fill`.
+
+- **Platform support block** in README.md and install.sh preflight refusing native Windows.
+
+- **`docs/STRICT_REFACTOR_PLAN.md`** — durable record of the 5-wave plan.
+
+### Changed
+
+- **`agents/sdlc-lead.md`: 4986 lines -> 386 lines.** Router + shared protocols only. Resume protocol step 2 calls `run-handoff-gates.sh`.
+- **`skills/gate/SKILL.md`** — now calls `validate-phase-gate.sh <phase>` for automated verdict; legacy confidence-loop flow retained for unvalidatable artifacts.
+- **`skills/security-audit/SKILL.md`** — adds `--quick` / `--deep` argument documentation.
+- **`skills/sdlc/SKILL.md`** — `/sdlc onboard` gets `--quick` / `--deep` flags.
+
+### Fixed
+
+- **bash 3.2 parser bugs** in validator scripts (triple-backticks inside `[[ ]]` and double-quoted strings).
+
+---
+
 ## [0.14.0] — 2026-04-23
 
 Structured Fix-Verify Loop across every review stage. Parallel review fan-out, unified FIX_BACKLOG, dedicated remediation + re-verification HANDOFF templates, hard 3-iteration cap with escalation, canonical severity→action matrix, and expanded git-expert merge enforcement. Closes the gap where review findings had no structured path back into code and where reviews ran sequentially instead of concurrently.

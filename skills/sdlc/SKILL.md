@@ -21,8 +21,14 @@ Triggers the **sdlc-lead** agent — a program manager and lead architect.
   **Starts with a Discovery Interview** — asks 7 targeted questions about
   problem, users, constraints, and tech before writing any documents.
 
-- `/sdlc onboard` — Existing codebase: reverse engineer, produce
-  architecture docs, C4 diagrams, onboarding guide
+- `/sdlc onboard [--quick | --deep]` — Existing codebase: reverse engineer,
+  produce architecture docs, C4 diagrams, onboarding guide.
+  `--quick` (default, ~15 min) — single-pass high-level docs.
+  `--deep` (~45-90 min) — Ralph Wiggum inventory loop (see
+  `agents/shared/RALPH_WIGGUM_LOOP.md`): enumerate every ROUTE / TABLE /
+  SERVICE / FLOW / ENTRY as an inventory row, produce one artifact per row,
+  block until `./scripts/validators/validate-phase-gate.sh onboard-deep`
+  exits clean.
 
 - `/sdlc feature "<description>"` — Add feature: **starts with a Feature
   Discovery Interview** (scope, success criteria, constraints), then impact
