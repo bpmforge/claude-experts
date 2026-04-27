@@ -91,16 +91,55 @@ Q3: [specific question]
 
 Tell the user your plan before starting.
 
-### Step 2: Research each question
+### Step 2: Research each question — iterative loop
 
-For each question, use `WebSearch` and `WebFetch`:
+**Every question goes through at least 2 search passes.** Pass 1 maps the landscape; pass 2+ asks the *informed* question you couldn't form before reading anything.
 
-1. **Search**: `WebSearch("specific question current year")` — find 2–3 relevant sources
-2. **Read**: `WebFetch(url)` for each source — read the full content
-3. **Record the finding immediately** — write it down before moving to the next question
-4. Rate your confidence (1–10) and note what's missing
+The loop:
 
-**Per question, aim for 2–3 sources. Quality over quantity.**
+```
+For each question Qi:
+    pass = 1
+    learned = []          # facts I now know
+    gaps = [Qi]           # sub-questions still open
+    confidence = 0
+
+    while confidence < 8 and pass <= 4:
+        focus = pick_most_specific_gap(gaps)
+        results = WebSearch("<focus> current year")    # or web_research if MCP is registered
+        for url in 2-3 most-relevant results:
+            content = WebFetch(url)                     # or web_fetch with relevance_query
+            extract concrete facts, dates, conflicts
+        learned ← add new facts
+        gaps    ← remove answered, add NEW sub-questions surfaced by what you read
+        confidence ← rate based on (gaps closed?, sources agree?, primary-sourced?)
+        if confidence ≥ 8: mark Qi DONE
+        elif confidence < 5 after pass 2: surface to user
+        else: refine the query and continue
+```
+
+**Why pass 2+ matters.** Pass 1 tells you the names, frameworks, and key debates. Pass 2 is where you ask the question that needed pass 1 to even formulate — e.g., after pass 1 surfaces "Cloudflare uses JA3 fingerprinting", pass 2 asks "what's Cloudflare's JA3 detection threshold for headless Chromium?" That second question couldn't exist before pass 1.
+
+**State the ledger explicitly between passes:**
+
+```
+Pass N for Q: <question>
+Learned so far: <facts with source citations>
+Still missing: <gaps>
+This pass focuses on: <gap>
+```
+
+**Per question: 2–4 search passes, 3–6 sources total. Quality over quantity.**
+
+**Optional: enhanced research via the `playwright-search` MCP.** If the MCP is registered in this project (`.mcp.json` or `~/.claude/settings.json`), three additional tools become available:
+
+| Tool | What it does |
+|------|------|
+| `web_research(query, top=5, relevance_query?)` | One-shot multi-engine search → fetch → extract → **rank paragraphs by query relevance** → return `[Source N]` blocks of best-matching content |
+| `web_search(query, limit=10)` | Multi-engine search across DDG + Brave + Bing (deduped) — broader than native `WebSearch` |
+| `web_fetch(url, max_chars=8000, relevance_query?)` | Mozilla-Readability extraction with 24h cache. With `relevance_query`, returns the BEST paragraphs for that query, not the first N chars. |
+
+Use these when you want **multi-engine results** (less single-source bias), **paragraph-level relevance ranking**, or **disk caching for repeat queries**. They're free, run locally, and respect robots.txt + per-domain rate limits. Native `WebSearch`/`WebFetch` remain the default; switch when those advantages matter.
 
 Search strategy (in order of authority):
 1. **Primary sources first** — official documentation, company reports, specs
@@ -112,6 +151,21 @@ Confidence thresholds:
 - `5–7` — iterate: try different search terms, different sources, look for counterarguments
 - `≥ 8` — mark question DONE, move to next
 - After 3 search iterations still `< 8` — surface the gap to the user
+
+### Step 2.5: Question-completion gate (MANDATORY before synthesis)
+
+**Do not proceed to synthesis until every question has been answered.** A common failure mode is to do a thorough job on Q1, then skip Q2/Q3 because Q1's findings feel "comprehensive enough." Reject that impulse — the plan is the contract.
+
+After each question, update an explicit checklist:
+
+```
+Question status:
+- [DONE]   Q1: <question>     confidence 8/10  sources: [S1, S3, S5]
+- [WIP]    Q2: <question>     confidence 6/10  pass 2 in flight
+- [TODO]   Q3: <question>     not started
+```
+
+**Rule: do not write the report while any question is `[WIP]` or `[TODO]`.** The Findings section must contain a `#### Qn:` subsection for every question in the plan. If you've truly answered everything in Q1 and Q2/Q3 are no longer needed, say so explicitly with a "scope reduction" note — never silently drop them.
 
 ### Step 3: Verify claims
 
@@ -146,8 +200,22 @@ Confidence thresholds:
 ### Executive Summary
 [2–3 sentences: key findings and recommendation]
 
+### Question Status
+- [DONE] Q1: <question>     confidence X/10
+- [DONE] Q2: <question>     confidence X/10
+- [DONE] Q3: <question>     confidence X/10
+(every question must be DONE — if not, you skipped Step 2.5; go back)
+
 ### Findings
-[Organized by research question, with citations]
+
+#### Q1: <question text>
+[Full findings for Q1, with citations]
+
+#### Q2: <question text>
+[Full findings for Q2, with citations]
+
+#### Q3: <question text>
+[Full findings for Q3, with citations]
 
 ### What Could Be Wrong
 [Counterarguments, limitations, edge cases]
