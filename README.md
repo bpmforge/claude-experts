@@ -52,7 +52,7 @@ Or describe what you want in plain English — the SDLC lead detects intent and 
 - [docs/USERGUIDE.md](docs/USERGUIDE.md) — how to invoke and use each expert
 - [docs/FEATURES.md](docs/FEATURES.md) — every agent, skill, validator, and shared protocol
 - [docs/SDLC_GUIDE.md](docs/SDLC_GUIDE.md) — full SDLC workflow
-- [CHANGELOG.md](CHANGELOG.md) — release notes (current: v0.15.0 strict-refactor)
+- [CHANGELOG.md](CHANGELOG.md) — release notes (current: v0.16.0 research + loop-prevention)
 
 ## License
 

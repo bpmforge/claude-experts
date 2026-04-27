@@ -2,6 +2,27 @@
 
 All notable changes to this project are documented here. Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and versioning follows [Semantic Versioning](https://semver.org/).
 
+## [0.16.0] — 2026-04-27
+
+Research-tooling additions + universal loop-prevention, synced from bpm-opencode-experts 0.16.0. Native `WebSearch` / `WebFetch` remain Claude Code's defaults — these additions are an opt-in alternative when you want multi-engine, paragraph-ranked, locally-cached research, plus universal hard caps on tool-call budgets.
+
+### Added
+
+- **`agents/shared/LOOP_PREVENTION.md`** — single source of truth for loop-prevention. Three failure classes covered:
+  - **Failure loop** — same tool error 3+ times → 3-strikes STOP
+  - **Schema-validation loop** — model emits malformed tool args, gets schema error, retries identical broken call → never retry; switch tool or surface to user
+  - **Success loop** — every call succeeds but model never stops → hard caps: 15 total / 4 per work-unit / 1 per URL / diminishing-returns
+  - Universal STOP triggers + required template for surfacing partial results.
+- **`agents/shared/RESEARCH_TOOLS.md`** — when the playwright-search MCP is registered, this doc tells agents how + when to use `web_research` / `web_search` / `web_fetch` and how they relate to native `WebSearch` / `WebFetch`.
+- **playwright-search MCP auto-install in `install.sh`** — clones to `~/.local/share/playwright-search`, builds, runs `claude mcp add` (or prints the manual command if the CLI isn't on PATH). Skip with `--no-playwright-search`.
+- **`agents/shared/` is now installed** — `install.sh` Step 3b symlinks every `agents/shared/*.md` to `~/.claude/agents/shared/`. Previously the `shared/` subdirectory wasn't installed at all, so agents couldn't `Read` the contracts they referenced.
+- **Iterative-loop research workflow** in `agents/researcher.md` — explicit pass-1-broad / pass-2+-refined with "Learned so far / Still missing" ledger between passes; question-completion gate before synthesis; report template requires `#### Qn:` subsections.
+- **Cross-agent loop-prevention reference** — 17 agent prompts now include a `## Loop prevention (MANDATORY)` section pointing at the shared file. Skipped: `researcher.md` (already has detailed inline rules).
+
+### Changed
+
+- **`README.md`** — new "Install flags" table (`--no-playwright-search`), install location override (`PLAYWRIGHT_SEARCH_DIR=...`), and "What others need" subsection.
+
 ## [0.15.0] — 2026-04-24
 
 Strict-refactor release, synced from bpm-opencode-experts 0.15.0. Replaces large monolithic prompts + manual enforcement with small targeted prompts + automated validators. sdlc-lead.md drops from 4986 lines to 386 (router only); modes and shared protocols live in their own files. Introduces the Ralph Wiggum inventory loop for exhaustive verification and the `--quick` / `--deep` depth flags for onboarding and security. Nine bash validators automate completeness checks plus a three-gate post-HANDOFF runner that proves every delegated task stayed in scope.
