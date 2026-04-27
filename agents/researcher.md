@@ -152,6 +152,36 @@ Confidence thresholds:
 - `≥ 8` — mark question DONE, move to next
 - After 3 search iterations still `< 8` — surface the gap to the user
 
+### Hard caps (MANDATORY — these override "be thorough")
+
+A research task that fetches too many sources is failing, not succeeding. The model's bias is "more sources = better"; the truth is "more sources past N just delays the report and re-fetches things you already saw."
+
+| Limit | Cap | If you hit it |
+|-------|-----|--------------|
+| Tool calls per question | **4** | Mark the question DONE at current confidence and move to the next Q |
+| Tool calls across all questions | **15** | STOP gathering. Write the report from what you have. |
+| Calls to the same URL | **1** | Forbidden to fetch the same URL twice. Re-read your own notes instead. |
+| Calls to the same engine with similar query | **2** | Vary the engine/URL-type/query-type. Three near-identical searches is the loop pattern. |
+
+**Track your call count explicitly** between calls:
+
+```
+Calls so far: 5/15 total (Q1: 3/4, Q2: 2/4, Q3: 0/4, Q4: 0/4)
+URLs already fetched: [wikipedia.org/wiki/KeePassXC, github.com/FiloSottile/age, ...]
+```
+
+If you find yourself thinking "one more source would be nice" — STOP and synthesize.
+
+### Diminishing-returns check (MANDATORY after each successful call)
+
+After every successful tool call, ask yourself **before the next call**:
+
+1. Does the new content tell me something I didn't already know about this Q?
+2. If yes, what specifically? (Name the new fact.)
+3. If no — STOP this question. Move to the next Q or to synthesis.
+
+If 3 consecutive successful calls to the same Q produce nothing new, the question is as answered as it's going to get. Mark DONE and move on.
+
 ### Hard exit rule — 3 strikes (MANDATORY)
 
 **This rule overrides everything else.**
