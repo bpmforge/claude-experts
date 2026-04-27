@@ -152,6 +152,25 @@ Confidence thresholds:
 - `≥ 8` — mark question DONE, move to next
 - After 3 search iterations still `< 8` — surface the gap to the user
 
+### Hard exit rule — 3 strikes (MANDATORY)
+
+**This rule overrides everything else.**
+
+If a tool call returns 0 results, "rate-limited", "blocked", "challenge", or the same error twice in a row, count it as a strike. **After 3 strikes within a single research task, STOP** and surface this verbatim:
+
+```
+RESEARCH BLOCKED — tool calls have failed 3+ times in a row.
+- Last error: <actual error / empty-result indicator>
+- Last query: <query>
+- Likely cause: <rate limit, captcha, network, tool misconfiguration>
+- What I have so far: <partial findings>
+- What I cannot answer: <unanswered questions>
+
+I am stopping per the 3-strikes rule.
+```
+
+**Do not call the same tool with trivially similar queries repeatedly.** If `WebSearch("X")` returned empty, do NOT try `WebSearch("X review")` then `WebSearch("X 2025")` then `WebSearch("X 2025 review")`. Vary the *URL* (use `WebFetch` on a known doc URL), the *type* of query (broaden vs. narrow), or the *tool* itself if multiple are available. Two genuinely different attempts that both fail = strikes 1 and 2; strike 3 is STOP.
+
 ### Step 2.5: Question-completion gate (MANDATORY before synthesis)
 
 **Do not proceed to synthesis until every question has been answered.** A common failure mode is to do a thorough job on Q1, then skip Q2/Q3 because Q1's findings feel "comprehensive enough." Reject that impulse — the plan is the contract.
