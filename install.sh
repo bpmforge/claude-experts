@@ -95,6 +95,17 @@ for ref in "$SCRIPT_DIR/references/"*.md; do
 done
 echo "  $count reference files installed"
 
+# ─── 3b. Symlink agents/shared/ — agent prompts reference this path ───
+echo "Installing shared agent docs..."
+mkdir -p "$CLAUDE_HOME/agents/shared"
+shared_count=0
+for shared in "$SCRIPT_DIR/agents/shared/"*.md; do
+  [ -f "$shared" ] || continue
+  ln -sf "$shared" "$CLAUDE_HOME/agents/shared/$(basename "$shared")"
+  shared_count=$((shared_count + 1))
+done
+echo "  $shared_count shared docs installed (LOOP_PREVENTION, BOUNDED_TASK_CONTRACT, etc.)"
+
 # ─── 4. Symlink scripts ───
 echo "Installing scripts..."
 mkdir -p "$CLAUDE_HOME/scripts"
