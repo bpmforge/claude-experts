@@ -6,6 +6,33 @@ There are three loop classes that have caused real failures in production. Each 
 
 ---
 
+## Tool selection cheat-sheet (read this FIRST — most loops start here)
+
+Before calling any tool, match the verb in your task to the right tool. **Most schema-validation loops start by calling the wrong tool with arguments that make sense for a different tool.**
+
+| You want to… | Use this tool | Example |
+|--------------|---------------|---------|
+| Read a markdown reference doc, agent prompt, or any file | `read` | `read({file_path: "~/.config/opencode/agents/shared/HANDOFF_TEMPLATES.md"})` |
+| Run a slash command (e.g., `/sdlc init`, `/security`) | `skill` | `skill({name: "sdlc"})` |
+| List files matching a pattern | `glob` | `glob({pattern: "**/*.md"})` |
+| Search file contents | `grep` | `grep({pattern: "TODO", path: "src"})` |
+| Run a shell command | `bash` (or `run`) | `bash({command: "ls -la"})` |
+| Write a new file | `write` | `write({file_path: "...", content: "..."})` |
+| Edit existing file | `edit` | `edit({file_path: "...", old_string: "...", new_string: "..."})` |
+| Fetch a URL | `webfetch` | `webfetch({url: "https://..."})` |
+| Search the web | `playwright-search_web_research` (or `websearch`) | `playwright-search_web_research({query: "..."})` |
+
+**Common confusions that trigger loops:**
+
+- `skill` is for slash commands by **name**, not for "loading" reference docs. Reference docs are files — use `read`.
+- "See `agents/shared/X.md`" / "consult X" / "per the contract in X" all mean **`read` that file**, not "load it as a skill".
+- Relative paths like `agents/shared/X.md` resolve from your install dir. If unsure, prefix with `~/.config/opencode/` (opencode) or `~/.claude/` (Claude Code) and use the absolute path. Or list the dir first via `ls`.
+- A tool with required args you can't fill is the wrong tool. Pick a different one — don't pass `undefined` and hope.
+
+If after 2 tool calls you can't find the right tool for a task, **stop and surface to user** (see Class 2 rule below). Don't bluff.
+
+---
+
 ## Class 1: Failure loop (tool errors repeating)
 
 **Pattern:** Same tool call returns the same error 3+ times. Model retries hoping for a different result.
