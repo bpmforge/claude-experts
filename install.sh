@@ -34,6 +34,21 @@ fi
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 CLAUDE_HOME="$HOME/.claude"
+INSTALL_PWS=true
+
+for arg in "$@"; do
+  case $arg in
+    --no-playwright-search) INSTALL_PWS=false ;;
+    --help|-h)
+      echo "claude-experts — Installation"
+      echo ""
+      echo "Usage:"
+      echo "  ./install.sh                       Install + (by default) set up the playwright-search MCP"
+      echo "  ./install.sh --no-playwright-search  Skip the playwright-search MCP install"
+      exit 0
+      ;;
+  esac
+done
 
 echo ""
 echo "Installing claude-experts..."
@@ -168,6 +183,82 @@ fi
 # ─── 7. Store install path ───
 echo "$SCRIPT_DIR" > "$CLAUDE_HOME/.experts-install-path"
 
+# ─── 8. playwright-search MCP setup ───
+if [ "$INSTALL_PWS" = true ]; then
+  echo ""
+  echo "Setting up playwright-search MCP (multi-engine web research + page extraction)..."
+
+  PWS_DIR="${PLAYWRIGHT_SEARCH_DIR:-$HOME/.local/share/playwright-search}"
+  PWS_REPO="https://github.com/bpmforge/playwright-search.git"
+
+  if ! command -v node &>/dev/null; then
+    echo "  ⚠️  node not found — skipping playwright-search MCP install"
+    echo "     Install Node 20+ then re-run, or pass --no-playwright-search to silence this"
+  else
+    if [ -d "$PWS_DIR/.git" ]; then
+      echo "  playwright-search already cloned at $PWS_DIR"
+      (cd "$PWS_DIR" && git pull --ff-only --quiet) 2>/dev/null \
+        && echo "    pulled latest" \
+        || echo "    skipped pull (uncommitted changes or not on main branch)"
+    else
+      echo "  Cloning $PWS_REPO -> $PWS_DIR ..."
+      mkdir -p "$(dirname "$PWS_DIR")"
+      if git clone --quiet --depth 1 "$PWS_REPO" "$PWS_DIR"; then
+        echo "    cloned ✓"
+      else
+        echo "    ⚠️  clone failed — check network / repo URL"
+        INSTALL_PWS=false
+      fi
+    fi
+
+    if [ "$INSTALL_PWS" = true ]; then
+      if [ ! -f "$PWS_DIR/dist/mcp.js" ] || [ "$PWS_DIR/src/mcp.ts" -nt "$PWS_DIR/dist/mcp.js" ]; then
+        echo "  Building playwright-search (also installs Chromium ~170MB the first time)..."
+        (cd "$PWS_DIR" && npm install --silent && npm run build --silent) 2>&1 | tail -3
+        if [ -f "$PWS_DIR/dist/mcp.js" ]; then
+          echo "    build ✓"
+        else
+          echo "    ⚠️  build failed — run manually: cd $PWS_DIR && npm install && npm run build"
+          INSTALL_PWS=false
+        fi
+      else
+        echo "  Build is current"
+      fi
+    fi
+
+    if [ "$INSTALL_PWS" = true ]; then
+      # Prefer `claude mcp add` if the CLI is on PATH; otherwise show manual instructions
+      if command -v claude &>/dev/null; then
+        if claude mcp list 2>/dev/null | grep -q "playwright-search"; then
+          echo "  playwright-search MCP already registered with Claude Code"
+        else
+          claude mcp add playwright-search node "$PWS_DIR/dist/mcp.js" 2>&1 | head -3
+          echo "  Registered with Claude Code (user-level)"
+        fi
+      else
+        echo "  Claude Code CLI not on PATH — to register the MCP run:"
+        echo ""
+        echo "    claude mcp add playwright-search node $PWS_DIR/dist/mcp.js"
+        echo ""
+        echo "  …or add to a project's .mcp.json:"
+        echo ''
+        echo '    {'
+        echo '      "mcpServers": {'
+        echo '        "playwright-search": {'
+        echo '          "command": "node",'
+        echo "          \"args\": [\"$PWS_DIR/dist/mcp.js\"]"
+        echo '        }'
+        echo '      }'
+        echo '    }'
+        echo ''
+      fi
+    fi
+  fi
+else
+  echo ""
+  echo "Skipping playwright-search MCP (--no-playwright-search set)"
+fi
+
 echo ""
 echo "Installation complete!"
 echo ""
@@ -176,6 +267,9 @@ echo "  ~/.claude/agents/*.md          (agents + references)"
 echo "  ~/.claude/skills/*/SKILL.md    (skill triggers)"
 echo "  ~/.claude/scripts/*.sh         (audit + utility scripts)"
 echo "  ~/.claude/.semgrep/            (186 custom rules, 11 languages)"
+if [ "$INSTALL_PWS" = true ] && [ -f "$PWS_DIR/dist/mcp.js" ]; then
+  echo "  $PWS_DIR/    (playwright-search MCP — web research tools)"
+fi
 echo "  ~/.claude/hooks/*              (automation scripts)"
 echo "  ~/.claude/CLAUDE.md            (updated with expert docs)"
 echo ""
