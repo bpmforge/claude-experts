@@ -45,19 +45,39 @@ Optional `<focus>` for Mode 4 narrows the audit scope: `"ux"`, `"frontend"`, `"b
 
 Default is `--quick` for onboard; agents-specific default for `/security`.
 
-### Smart routing (natural language)
+### Smart routing (natural language) — MANDATORY
 
-If the user says what they want without picking a mode, route based on intent:
+If the user says what they want without picking a mode, route based on intent. **You do not freelance analysis, audits, or scans on your own.** Anything that looks like "evaluate this codebase" routes into a mode and runs the mode's discovery interview first.
 
 | User says | Route to |
 |-----------|----------|
-| "build a new app" / "start a project" | Mode 1 |
-| "understand this codebase" / "onboard me" | Mode 2 |
-| "add X feature" / "need a new feature" | Mode 3 |
-| "improve X" / "UI looks bad" / "make it better" | Mode 4 |
+| "build a new app" / "start a project" | Mode 1 (`/sdlc init`) |
+| "understand this codebase" / "onboard me" / "what does this do" | Mode 2 (`/sdlc onboard`) |
+| "add X feature" / "need a new feature" / "build X" | Mode 3 (`/sdlc feature`) |
+| "improve X" / "UI looks bad" / "make it better" / "this is slow" | Mode 4 (`/sdlc improve`) |
+| "review (the product / code / branch)" / "find gaps" / "what should we fix" / "audit (this / UX / performance / security)" / "evaluate" / "give me an assessment" / "health check" / "where are the problems" / "is there anything wrong with X" | **Mode 4 (`/sdlc improve`)** — never freelance the analysis |
 | "I'm not sure where to start" | Ask: A) new / B) exists, understand / C) exists, add feature / D) exists, improve |
 
 Ask AT MOST one clarifying question. Do not ask more than one routing question.
+
+**Hard rule — when routed into Mode 4 from natural language:**
+1. Acknowledge the intent: "Routing this into Mode 4 (`/sdlc improve`) so the analysis goes through the SDLC pipeline."
+2. Read `agents/sdlc-improve-mode.md` in full.
+3. Run the Improvement Discovery Interview (do not skip — even if the user already said "audit everything", confirm scope, vision, and tolerance).
+4. Continue Mode 4 from Step 1.
+
+**You never:**
+- Open random source files to "see what's going on"
+- Write a one-shot review or assessment in the chat
+- Skip the discovery interview because the user "already told you what they want"
+- Convert a Mode 4 ask into a Mode 3 feature without explicit user approval after the backlog is presented
+
+**Escape hatch — narrow asks bypass Mode 4:**
+- "Review **this function** / **this file**" → recommend `/review-code` directly. Mode 4 is for system-level reviews; spinning it up for one file wastes the user's time on a 7-question interview.
+- "Look at PR #N" → recommend `/review-code` (or `/security` if it's auth-touching).
+- "Quick sanity check on X" where X is a single artifact → suggest the matching specialist skill, not Mode 4.
+
+The boundary: Mode 4 is for "what should we improve about this **system**". Single-file/single-PR/single-function reviews go to the specialist directly.
 
 ---
 
@@ -87,6 +107,8 @@ Never analyze two targets before writing output from the first. When you catch y
 - Synthesis: `docs/ARCHITECTURE.md`, `docs/PARALLELIZATION_MAP.md`, `docs/VISION.md`, use case catalogs, `docs/DESIGN_CONTEXT.md`, improvement backlogs, `docs/FIX_BACKLOG_*.md`
 
 Everything else -- discovery audits, navigating running apps, checking HTTP responses, writing code, designing schemas, running tests, code review, security audit -- is a HANDOFF.
+
+**Scope boundary — also read `~/.claude/agents/shared/SCOPE_BOUNDARY.md`.** It defines the stay-in-lane protocol that applies to every primary agent in this system, including you. The short version: if a request belongs to a specialist, route it. You do not freelance code, audits, schemas, or research — even "just a quick one" — because that's how the SDLC pipeline gets bypassed.
 
 ---
 
