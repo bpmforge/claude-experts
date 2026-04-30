@@ -85,7 +85,7 @@ Skills are thin triggers that live in `skills/<name>/SKILL.md`. Each skill maps 
 
 | Skill | Agent | Purpose |
 |---|---|---|
-| `/sdlc` | `sdlc-lead` | Full SDLC workflow (init / onboard / feature) |
+| `/sdlc` | `sdlc-lead` | Full SDLC workflow (init / onboard / feature / **improve** / gate / status) |
 | `/git-expert` | `git-expert` | Git lifecycle (init / feature / release / recover / inspect / sync) |
 | `/security` | `security-auditor` | OWASP audit, threat model, Semgrep scan |
 | `/review-code` | `code-reviewer` | Code health review (review / debt / consolidate / patterns) |
@@ -104,20 +104,25 @@ Skills are thin triggers that live in `skills/<name>/SKILL.md`. Each skill maps 
 | `/onboard-verify` | `sdlc-lead` | **NEW v0.15.0** — Ralph Wiggum D3: run onboard validators, report gaps |
 | `/onboard-gap-fill` | `sdlc-lead` | **NEW v0.15.0** — Ralph Wiggum D4: focused HANDOFFs for uncovered rows only |
 
-**18 skills total** (14 agent-backed + 4 utility/sub-skills).
+**19 skills total** (14 agent-backed + 5 utility/sub-skills).
+
+The `/sdlc` skill now advertises Mode 4 (`/sdlc improve`) and routes natural-language phrases like "review for gaps", "audit this", "what could we improve", "make it better", "find problems" into Mode 4 — never freelanced as one-shot reviews. Single-file/PR/function asks bypass Mode 4 and go to `/review-code` directly.
 
 ---
 
-## Shared protocols (v0.15.0)
+## Shared protocols
 
 Canonical reference files every specialist reads. Single source of truth — update once, propagates everywhere.
 
 | File | Purpose |
 |------|---------|
+| `agents/shared/SCOPE_BOUNDARY.md` | Stay-in-lane rule for direct-mode invocations (`/research`, `/code`, etc.) — per-agent in-scope / refer-back table + canonical SCOPE-BOUNDARY block to print when a request belongs to another specialist |
 | `agents/shared/BOUNDED_TASK_CONTRACT.md` | The five scope rules every specialist follows in Bounded Task Mode (write-scope isolation, no extras, verbatim completion phrase, no scope expansion, stop-means-stop) |
 | `agents/shared/HANDOFF_TEMPLATES.md` | Canonical HANDOFF block templates (standard, remediation, re-verification, parallel-wave) + context-packet template + post-HANDOFF gate docs |
 | `agents/shared/FIX_VERIFY_LOOP.md` | Canonical review → FIX_BACKLOG → remediate → re-verify pipeline with 3-iteration cap and escalation block |
 | `agents/shared/RALPH_WIGGUM_LOOP.md` | Canonical inventory-driven deep-verification loop used by `/sdlc onboard --deep` and `/security --deep` |
+| `agents/shared/LOOP_PREVENTION.md` | Tool-selection cheat-sheet + the three loop classes (failure / schema-validation / success) + the BLOCKED-template format |
+| `agents/shared/RESEARCH_TOOLS.md` | Research-tool surface and fallback chain. `playwright-search_*` is the preferred path; `pullmd_read_url` is the fallback for JS-heavy / Cloudflare / Reddit pages; native `WebSearch` / `WebFetch` are last-resort. |
 
 ---
 

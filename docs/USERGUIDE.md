@@ -131,6 +131,38 @@ After every specialist HANDOFF returns, the orchestrator runs three automated ga
 
 Any gate failure returns the HANDOFF with REVISE status + the specific gap. No orchestrator judgment required.
 
+### Scope boundary (stay-in-lane)
+
+Each primary agent has a defined domain. If you ask `/research` to write code, or `/code` to design a schema, the agent prints a **SCOPE-BOUNDARY** block naming the right specialist (or `/sdlc` for orchestration) and stops — it does not freelance into another lane.
+
+```
+═══════════════════════════════════════════════════════════
+  SCOPE BOUNDARY — this is not <my-domain> work
+═══════════════════════════════════════════════════════════
+You asked: <one-line summary>
+This belongs to: <agent name> (skill: /<skill>)
+Recommended next step:
+  Option A — open a new session and run: /<skill> <prompt>
+  Option B — go back to /sdlc and let the lead orchestrate this
+═══════════════════════════════════════════════════════════
+```
+
+**Why this matters:** scope creep across specialists is the #1 cause of muddy outputs. A researcher writing code skips the design-docs check; a coding-agent designing scope freelances on what to build; sdlc-lead reading source files bypasses the audit pipeline. The rule is at `~/.claude/agents/shared/SCOPE_BOUNDARY.md`.
+
+Phrases like "review for gaps", "audit this", "what could we improve", "make it better", "evaluate", "find problems" route into Mode 4 (`/sdlc improve`) — never freelanced as one-shot reviews. Single-file/PR/function asks bypass Mode 4 and go to `/review-code` directly.
+
+### Research backbone
+
+Native Claude Code `WebSearch` and `WebFetch` work fine, but the project prefers MCP-backed research when registered:
+
+1. `playwright-search_web_research(...)` — multi-engine search (DDG + Brave + Bing) → paragraph-ranked extraction → 24h cache. Default for any new investigation.
+2. `playwright-search_web_fetch(url, ...)` — for known URLs.
+3. `pullmd_read_url(url, render="force")` — fallback when (2) returns garbage / empty / errors. Especially for JS-heavy SPAs, Cloudflare-protected pages, and Reddit threads (4-stage pipeline: Reddit handler → Cloudflare native MD → Readability + Trafilatura → headless Playwright).
+4. Native `WebSearch` / `WebFetch` — only as a last resort if no MCPs are registered.
+5. If everything fails → surface `RESEARCH BLOCKED`. Do not loop.
+
+Full surface at `~/.claude/agents/shared/RESEARCH_TOOLS.md`.
+
 ---
 
 ## Typical workflows

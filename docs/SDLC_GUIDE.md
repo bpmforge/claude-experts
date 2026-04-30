@@ -272,10 +272,13 @@ Orchestrated via `./scripts/validators/validate-phase-gate.sh <phase>` — exit 
 If a gate fails, the agent tells you exactly what's missing. Use `/sdlc status` to see current gate state.
 
 **Shared protocols** — every specialist reads these canonical files:
+- `agents/shared/SCOPE_BOUNDARY.md` — stay-in-lane rule for direct-mode invocations; per-agent in-scope vs. refer-back table
 - `agents/shared/BOUNDED_TASK_CONTRACT.md` — 5 scope rules (write-scope, no extras, verbatim completion, no expansion, stop-means-stop)
 - `agents/shared/HANDOFF_TEMPLATES.md` — canonical HANDOFF block templates
 - `agents/shared/FIX_VERIFY_LOOP.md` — review → FIX_BACKLOG → remediate → re-verify pipeline
 - `agents/shared/RALPH_WIGGUM_LOOP.md` — inventory-driven deep-verification loop
+- `agents/shared/LOOP_PREVENTION.md` — tool-selection cheat-sheet + 3 loop classes + BLOCKED template
+- `agents/shared/RESEARCH_TOOLS.md` — research-tool surface and fallback chain
 
 ---
 
