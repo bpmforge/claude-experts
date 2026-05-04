@@ -48,6 +48,10 @@ case "$PHASE" in
     ;;
   phase-2)
     GATE_FILES=("docs/SRS.md" "docs/USER_STORIES.md" "docs/USE_CASES.md")
+    GATE_VALIDATORS=(
+      "validate-use-cases.sh"
+      "validate-user-stories.sh"
+    )
     ;;
   phase-3)
     GATE_FILES=("docs/ARCHITECTURE.md" "docs/API_DESIGN.md" "docs/api/openapi.yaml" "docs/TECH_STACK.md")
@@ -56,15 +60,36 @@ case "$PHASE" in
       "validate-api-coverage.sh"
       "validate-sequence-coverage.sh"
       "validate-erd-coverage.sh"
+      "validate-no-ascii-art.sh"
+      "validate-c3-coverage.sh"
+      "validate-entry-points.sh"
+      "validate-tech-stack.sh"
+      "validate-adrs.sh"
     )
     ;;
   phase-4)
-    # Per-module RUNTIME verification -- handled per-module, not centrally.
-    # This gate just confirms at least one RUNTIME_*.md exists and is PASS.
+    # Implementation gate -- the project must actually build, lint, and test,
+    # AND have completeness coverage (tests mapped to use cases, migrations
+    # documented).
+    GATE_VALIDATORS=(
+      "validate-build.sh"
+      "validate-lint.sh"
+      "validate-tests.sh"
+      "validate-tests-mapping.sh"
+      "validate-migrations.sh"
+    )
     ;;
   phase-5)
     GATE_FILES=()
-    # Phase 5 release gate -- custom inline checks below
+    # Phase 5 release gate -- operational validators + completeness validators run first
+    GATE_VALIDATORS=(
+      "validate-build.sh"
+      "validate-lint.sh"
+      "validate-tests.sh"
+      "validate-deps.sh"
+      "validate-smoke.sh"
+      "validate-fix-backlog-closed.sh"
+    )
     ;;
   onboard-deep)
     GATE_FILES=("docs/onboard/INVENTORY.md" "docs/ARCHITECTURE.md")
@@ -73,6 +98,7 @@ case "$PHASE" in
       "validate-architecture.sh"
       "validate-erd-coverage.sh"
       "validate-sequence-coverage.sh"
+      "validate-no-ascii-art.sh"
     )
     ;;
   security-deep)

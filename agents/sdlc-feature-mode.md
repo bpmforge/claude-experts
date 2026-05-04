@@ -23,6 +23,17 @@ Before any tool-heavy work, read `~/.claude/agents/shared/LOOP_PREVENTION.md`. I
 
 These rules override the "be thorough" / "iterate more" / "try harder" instinct. Always track call counts and seen URLs/files explicitly. When in doubt, synthesize a partial result and surface to user — never silently loop.
 
+## Document hygiene (MANDATORY)
+
+When you produce any markdown deliverable (VISION, ARCHITECTURE, USE_CASES, ONBOARDING, HEALTH_ASSESSMENT, audit reports, etc.):
+
+- ALL diagrams MUST use Mermaid syntax — NEVER ASCII art or Unicode box-drawing characters (`═`, `║`, `┌`, `└`, `─`, `┐`, `┘`).
+- Use markdown horizontal rules (`---`) or fenced code blocks for visual separation. Do not draw banner lines with repeated `=` or `═` characters.
+- Headings (`#`, `##`, `###`) are the only allowed visual structure outside Mermaid blocks.
+- If you find yourself drawing a chart with text characters, stop — render it as a Mermaid `graph`, `sequenceDiagram`, `erDiagram`, `stateDiagram-v2`, `classDiagram`, or `flowchart` instead.
+
+This rule is enforced by `scripts/validators/validate-no-ascii-art.sh`. Deliverables that violate it fail the phase gate.
+
 ## Step 0: Initialize SDLC_TRACKER for Mode 3
 
 After the Feature Discovery Interview confirms scope and BEFORE the impact analysis:
@@ -147,9 +158,9 @@ Next after resume: api-designer handoff (if API changes needed)
 ```
 
 ```
-═══════════════════════════════════════════════════════════
+---
   HANDOFF → /dba (db-architect)
-═══════════════════════════════════════════════════════════
+---
 Open a new OpenCode conversation and paste this EXACT prompt to /dba:
 
 SDLC-TASK for db-architect:
@@ -171,15 +182,15 @@ PRODUCE exactly these:
 When all files are written, print exactly:
 "db done — [one sentence: tables added/modified and migration approach]"
 Then stop. Do not ask for follow-up. Do not run additional phases.
-═══════════════════════════════════════════════════════════
+---
 ```
 
 If API changes needed:
 
 ```
-═══════════════════════════════════════════════════════════
+---
   HANDOFF → /api-design (api-designer)
-═══════════════════════════════════════════════════════════
+---
 Open a new OpenCode conversation and paste this EXACT prompt to /api-design:
 
 SDLC-TASK for api-designer:
@@ -201,15 +212,15 @@ PRODUCE exactly this:
 When the file is written, print exactly:
 "api done — [one sentence: endpoints added/modified and compatibility status]"
 Then stop. Do not ask for follow-up. Do not run additional phases.
-═══════════════════════════════════════════════════════════
+---
 ```
 
 If the feature touches auth, data access, or user input:
 
 ```
-═══════════════════════════════════════════════════════════
+---
   HANDOFF → /security (security-auditor)
-═══════════════════════════════════════════════════════════
+---
 Open a new OpenCode conversation and paste this EXACT prompt to /security:
 
 SDLC-TASK for security-auditor:
@@ -233,7 +244,7 @@ PRODUCE exactly this file:
 When the file is written, print exactly:
 "security done — [one sentence: risk count by severity and key finding]"
 Then stop. Do not ask for follow-up. Do not run additional phases.
-═══════════════════════════════════════════════════════════
+---
 ```
 
 ### Backward Compatibility Checklist
@@ -283,9 +294,9 @@ Next after resume: implementation checkpoint
 ```
 
 ```
-═══════════════════════════════════════════════════════════
+---
   HANDOFF → /test-expert (test-engineer)
-═══════════════════════════════════════════════════════════
+---
 Open a new OpenCode conversation and paste this EXACT prompt to /test-expert:
 
 SDLC-TASK for test-engineer:
@@ -321,7 +332,7 @@ Include a completion manifest (see Completion Manifest section).
 When all test files are written, print exactly:
 "tests done — [N tests written, all failing as expected (feature not built)]"
 Then stop. Do not ask for follow-up. Do not run additional phases.
-═══════════════════════════════════════════════════════════
+---
 ```
 
 **3. Implementation checkpoint — after "tests done":**
@@ -339,9 +350,9 @@ Next after resume: code-reviewer handoff
 ```
 
 ```
-═══════════════════════════════════════════════════════════
+---
   IMPLEMENTATION CHECKPOINT
-═══════════════════════════════════════════════════════════
+---
 Test stubs are ready. Time to implement [feature name].
 
   Feature context:  docs/FEATURE_CONTEXT.md
@@ -355,7 +366,7 @@ Follow the existing patterns in docs/PATTERNS.md.
 Make tests pass — don't change the tests to fit your implementation.
 
 When the feature is implemented and tests pass, come back and say: "implementation done"
-═══════════════════════════════════════════════════════════
+---
 ```
 
 After "implementation done":
@@ -376,9 +387,9 @@ Before emitting, evaluate the auto-trigger rules against the impact analysis:
 Emit ONE message containing every triggered HANDOFF as separate blocks. User opens N OpenCode sessions concurrently. Report back with all N completion phrases before synthesis.
 
 ```
-═══════════════════════════════════════════════════════════
+---
   PARALLEL REVIEWS — [N] HANDOFFs (open [N] OpenCode sessions)
-═══════════════════════════════════════════════════════════
+---
 
 ───── HANDOFF #1 → /review-code (code-reviewer) ─────
 SDLC-TASK for code-reviewer:
@@ -408,7 +419,7 @@ YOUR TASK: Check component conformance + WCAG 2.2 AA + flow vs spec + accessibil
 PRODUCE: docs/reviews/UX_REVIEW_<feature>_<date>.md — file:line + severity + fix per finding.
 Print exactly: "ux done — [finding counts, CRITICAL/HIGH block merge]"
 
-═══════════════════════════════════════════════════════════
+---
 ```
 
 **5. Synthesize → FIX_BACKLOG (see Fix-Verify Loop Protocol § Step 2):**

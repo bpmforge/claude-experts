@@ -2,6 +2,37 @@
 
 All notable changes to this project are documented here. Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and versioning follows [Semantic Versioning](https://semver.org/).
 
+## [0.17.0] — 2026-05-04
+
+Audit remediation sync from bpm-opencode-experts v0.17.0–v0.22.0. Fixes ASCII-chart leakage, adds operational gates that actually execute, 9 completeness validators, universal Ralph coverage loop, three-tier onboard depth levels, and template extraction. Full audit report: `docs/AUDIT_2026-05-04.md` in bpm-opencode-experts.
+
+### Added
+
+- **`scripts/validators/validate-no-ascii-art.sh`** — boxes-drawing + ASCII banner detector; wired into phase-3 + onboard-deep gates.
+- **`scripts/validators/validate-build.sh / validate-tests.sh / validate-lint.sh / validate-smoke.sh / validate-deps.sh`** — 5 operational validators that actually EXECUTE the project's build, tests, lint, smoke, and dependency-audit. Phase-4 and phase-5 gates now run real tools instead of grepping agent-written "PASS" claims.
+- **`scripts/validators/_lib_sdlc_config.sh`** — shared stack-detection, command-runnable checks, `.sdlc/sdlc.json` reader.
+- **`scripts/validators/validate-c3-coverage.sh`** — every `src/` subdir appears in C3 component diagram.
+- **`scripts/validators/validate-entry-points.sh`** — every entry point (server startup, CLI, worker) is documented.
+- **`scripts/validators/validate-use-cases.sh`** — every use-case row has all required fields + valid priority.
+- **`scripts/validators/validate-user-stories.sh`** — every story has acceptance criteria; every persona has a story.
+- **`scripts/validators/validate-tech-stack.sh`** — every direct dependency appears in TECH_STACK.md.
+- **`scripts/validators/validate-tests-mapping.sh`** — every P0/P1 use case has a test referencing it.
+- **`scripts/validators/validate-fix-backlog-closed.sh`** — all CRITICAL/HIGH findings closed before phase-5 release.
+- **`scripts/validators/validate-adrs.sh`** — every ADR reference has a file with status.
+- **`scripts/validators/validate-migrations.sh`** — every migration is referenced in DATABASE.md.
+- **`scripts/validators/run-coverage-loop.sh`** — universal Ralph Wiggum wrapper: tracks iterations, exits 0/1/2 (clean / iterate / escalate).
+- **`agents/templates/ARCHITECTURE_template.md`** + **`agents/templates/OWASP_TRACKER_template.md`** — extracted from monolithic agent prompts.
+
+### Changed
+
+- **All 4 SDLC mode files + sdlc-lead.md** — Unicode/ASCII banner separators replaced with `---`; Document Hygiene rule added.
+- **`agents/shared/RALPH_WIGGUM_LOOP.md`** — promoted to universal-loop spec (was deep-mode-only). Validator catalog table added (17 validators).
+- **`agents/sdlc-lead.md`** — "Confidence-based gates" replaced with Two-Track Gate System: Track 1 (coverage loop, objective), Track 2 (confidence score, narrative-only).
+- **`agents/sdlc-onboard-mode.md`** — Three depth levels: `--quick` (minimal), default (7-step + lightweight ROUTE/TABLE inventory), `--deep` (full Ralph 5-category). Lightweight Inventory section added.
+- **`agents/sdlc-init-mode.md`** — Phase 0 gate uses Track 2 (narrative); Phase 4 Round 3 gate calls `run-coverage-loop.sh phase-4`.
+- **`scripts/validators/validate-phase-gate.sh`** — all 9 completeness validators + 5 operational validators wired into appropriate phases.
+- **`agents/security-auditor.md`** and **`agents/sdlc-init-mode.md`** — embedded templates replaced with references to `agents/templates/`.
+
 ## [0.16.0] — 2026-04-27
 
 Research-tooling additions + universal loop-prevention, synced from bpm-opencode-experts 0.16.0. Native `WebSearch` / `WebFetch` remain Claude Code's defaults — these additions are an opt-in alternative when you want multi-engine, paragraph-ranked, locally-cached research, plus universal hard caps on tool-call budgets.

@@ -1,8 +1,23 @@
 # RALPH_WIGGUM_LOOP.md
 
-**Canonical inventory-driven deep-verification loop.**
+**Canonical universal coverage loop.**
 
-Named for the fictional character who repeats himself until he gets it right. Replaces confidence-score feelings with coverage-percentage facts. Used by `/sdlc onboard --deep`, `/security --deep`, and anywhere else exhaustive verification matters.
+Named for the fictional character who repeats himself until he gets it right. Replaces confidence-score feelings with coverage-percentage facts.
+
+As of v0.20.0, this loop is **universal** — it runs in every mode whenever validators report gaps, not just `--deep`. The orchestrator wrapper is `./scripts/validators/run-coverage-loop.sh <phase>`, which:
+
+1. Runs `validate-phase-gate.sh <phase>`
+2. Records iteration result to `docs/work/COVERAGE_LOOP_<phase>_<date>.md`
+3. Exits 0 (clean), 1 (gaps remain — iterate), or 2 (3 iterations exhausted — escalate)
+
+The orchestrator iterates manually: read the gap list, emit one gap-fill HANDOFF per uncovered row, then re-run the script. After 3 iterations, the wrapper exits 2 and the orchestrator must emit the escalation block (waiver / lower-bar / specialist / manual).
+
+Modes that USE the loop:
+- `/sdlc init` Phase 3 (design coverage) and Phase 4 (implementation coverage)
+- `/sdlc onboard` (default — lightweight) and `/sdlc onboard --deep` (full inventory)
+- `/sdlc feature` Step 5 (per-feature coverage)
+- `/sdlc improve` (audit-coverage matrix)
+- `/security` and `/security --deep` (OWASP coverage)
 
 ---
 
@@ -39,6 +54,28 @@ Produce an inventory file that enumerates every unit requiring coverage. Format:
 | `/sdlc onboard --deep` | `docs/onboard/INVENTORY.md` |
 | `/security --deep` | `docs/security/OWASP_INVENTORY.md` (already the OWASP_TRACKER) |
 | `/sdlc init` Phase 3 diagrams | `docs/sdlc/ARCHITECTURE_INVENTORY.md` (part of SDLC_TRACKER) |
+
+**Coverage validators (current catalog as of v0.19.0):**
+
+| Validator | What it covers |
+|-----------|----------------|
+| `validate-architecture.sh` | All 6 diagram types in ARCHITECTURE.md, real Mermaid fences |
+| `validate-api-coverage.sh` | Every route in source has API_DESIGN.md + openapi.yaml entry |
+| `validate-erd-coverage.sh` | Every table/model in source has an ERD entry |
+| `validate-sequence-coverage.sh` | Every P0 use case has a sequence diagram |
+| `validate-c3-coverage.sh` | Every src/ subdir has a C3 component entry |
+| `validate-entry-points.sh` | Every server/CLI/worker entry point is documented |
+| `validate-use-cases.sh` | Every use case row has all required fields + valid priority |
+| `validate-user-stories.sh` | Every story has acceptance criteria; every persona has a story |
+| `validate-tech-stack.sh` | Every dependency in package.json / pyproject.toml / Cargo.toml / go.mod is in TECH_STACK.md |
+| `validate-tests-mapping.sh` | Every P0/P1 use case has a test referencing it |
+| `validate-fix-backlog-closed.sh` | All CRITICAL/HIGH rows are VERIFIED/FIXED/WAIVED |
+| `validate-adrs.sh` | Every ADR-NNN reference has a corresponding ADR file with status |
+| `validate-migrations.sh` | Every migration file is referenced in DATABASE.md |
+| `validate-inventory.sh` | Every INVENTORY.md row has its artifact (deep mode) |
+| `validate-owasp.sh` | All 10 OWASP categories ≥ confidence 7, attack-chains.md present |
+| `validate-no-ascii-art.sh` | No box-drawing chars or banner separators in deliverables |
+| `validate-build.sh` / `validate-tests.sh` / `validate-lint.sh` / `validate-smoke.sh` / `validate-deps.sh` | Operational checks — actually execute build/test/lint/smoke/audit |
 
 The inventory is produced by one focused HANDOFF. The agent discovers the units from the actual codebase (or spec, or rule set) -- NOT from memory or guessing.
 
@@ -91,9 +128,9 @@ Go back to Step 3. Run the validator again.
 **Hard cap: 3 iterations.** If iteration 3 still has gaps:
 
 ```
-================================================================
+---
   RALPH WIGGUM LOOP EXHAUSTED (3 iterations, gaps remain)
-================================================================
+---
 Inventory file:  docs/onboard/INVENTORY.md
 Uncovered rows:
   - <row ID> (<category>): <description>
@@ -108,7 +145,7 @@ Choose one:
   (D) Manual fill -- produce the artifact yourself and mark the row DONE
 
 No 4th iteration without explicit user direction.
-================================================================
+---
 ```
 
 Record the escalation in `docs/work/DELEGATION_LOG.md`.

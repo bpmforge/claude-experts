@@ -271,7 +271,7 @@ This tells the expert EXACTLY what changed, so they can verify the fix AND check
 ```
 Review → Plan → Fix → Re-Review → Fix remaining → Re-Review → Confident
   ↑                                    ↑
-  └── First pass: 20 findings          └── Second pass: 3 new findings
+  First pass: 20 findings              Second pass: 3 new findings
                                             Fixed in real-time
 ```
 
