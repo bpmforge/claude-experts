@@ -2,6 +2,23 @@
 
 All notable changes to this project are documented here. Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and versioning follows [Semantic Versioning](https://semver.org/).
 
+## [0.18.0] — 2026-05-04
+
+Tiered research architecture — researcher now uses a mandatory tool selection gate and a 4-tier fallback chain that starts with fast pullmd-backed tools and escalates to Playwright only when needed. Synced from playwright-search v0.2.0.
+
+### Changed
+
+- **`agents/researcher.md`** — tool table expanded from 3 to 5 tools with explicit tier labels (1–4). Mandatory **Tool Selection Gate** added: must use `web_search_pullmd` (tier 1) before `web_research_pullmd` (tier 2) before `web_research` (tier 3). Escalation from tier 2 to tier 3 requires a concrete trigger (< 2 useful sources). pullmd MCP table updated to document `read_url` as a tier-4 alternative to `web_fetch`. Fallback chain rewritten to reflect the new order (pullmd SERP first, Playwright on escalation only).
+
+### Tier order (mandatory)
+
+| Tier | Tool | Trigger to escalate |
+|------|------|---------------------|
+| 1 | `web_search_pullmd` | Always start here |
+| 2 | `web_research_pullmd` | When full content needed |
+| 3 | `web_research` | Tier 2 returned < 2 useful sources |
+| 4 | `web_fetch` / `web_search` | Single known URL or pullmd SERP unavailable |
+
 ## [0.17.0] — 2026-05-04
 
 Audit remediation sync from bpm-opencode-experts v0.17.0–v0.22.0. Fixes ASCII-chart leakage, adds operational gates that actually execute, 9 completeness validators, universal Ralph coverage loop, three-tier onboard depth levels, and template extraction. Full audit report: `docs/AUDIT_2026-05-04.md` in bpm-opencode-experts.
