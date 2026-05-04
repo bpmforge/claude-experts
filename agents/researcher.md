@@ -151,28 +151,38 @@ This pass focuses on: <gap>
 
 **Preferred: research via MCP servers when registered.** Two MCPs handle research in this system when configured:
 
-**playwright-search MCP — primary surface (multi-engine search + extraction):**
+**playwright-search MCP — primary surface (5 tools, tiered by speed):**
+
+| Tool | Tier | When to use | What it does |
+|------|------|------------|------|
+| `web_search_pullmd(query, limit=10)` | **1 — start here** | Any new topic — triage before fetching | SERP-only, no browser. DDG + Mojeek + Brave + Startpage via pullmd. Titles/URLs/snippets ranked by engine agreement (~5-10s). |
+| `web_research_pullmd(query, top=3, relevance_query?)` | **2 — full content** | After triage, when full page content needed | SERP + pullmd fetch + BM25. Auto-falls back to Playwright for pages returning < 500 chars. Annotates `fetch: pullmd` or `fetch: playwright fallback`. |
+| `web_research(query, top=3, relevance_query?)` | **3 — escalate** | Only when tier 2 returns < 2 useful sources | All-Playwright pipeline: multi-engine SERP → full-page fetch → BM25. Slower (~30-60s). |
+| `web_fetch(url, max_chars=8000, relevance_query?)` | **4 — known URL** | Specific citation / doc link already in hand | Playwright Readability + 24h cache. With `relevance_query`, returns BEST paragraphs. |
+| `web_search(query, limit=10)` | **4 — SERP fallback** | When pullmd SERP is unavailable | Playwright multi-engine SERP (DDG + Brave + Bing), titles + snippets only. |
+
+**pullmd MCP — direct URL fetch:**
 
 | Tool | What it does |
 |------|------|
-| `web_research(query, top=5, relevance_query?)` | One-shot multi-engine search → fetch → extract → **rank paragraphs by query relevance** → return `[Source N]` blocks of best-matching content |
-| `web_search(query, limit=10)` | Multi-engine search across DDG + Brave + Bing (deduped) — broader than native `WebSearch` |
-| `web_fetch(url, max_chars=8000, relevance_query?)` | Mozilla-Readability extraction with 24h cache. With `relevance_query`, returns the BEST paragraphs for that query, not the first N chars. |
+| `read_url(url, render?)` | URL → markdown via Reddit handler → Cloudflare native MD → Readability + Trafilatura → headless Playwright. Pass `render="force"` to force browser. |
 
-**pullmd MCP — fallback surface (URL → markdown via 4-stage pipeline):**
+**Tool selection gate (MANDATORY — answer before every tool call):**
+1. Have I used `web_search_pullmd` first for this topic? If not — use it now (tier 1).
+2. Fetching full content? → `web_research_pullmd` (tier 2) before `web_research` (tier 3).
+3. Did tier 2 return < 2 useful sources? Only then escalate to tier 3.
+4. Fetching one known URL? → `web_fetch` or pullmd `read_url`.
+5. Never skip a tier without logging why.
 
-| Tool | What it does |
-|------|------|
-| `read_url(url, render?)` | Fetches one URL → markdown via Reddit handler → Cloudflare native MD → Readability + Trafilatura → headless Playwright fallback. Pass `render="force"` to skip the heuristic. |
+**Fallback chain — in order, no skipping:**
+1. `web_search_pullmd(query)` — orientation and triage. No browser. Always start here.
+2. `web_research_pullmd(query, top=3)` — pullmd full-page + auto-Playwright for thin pages.
+3. `web_research(query, top=3)` — all-Playwright. Only if step 2 returns < 2 useful sources.
+4. `web_fetch(url)` or `pullmd read_url(url)` — single known URL.
+5. Native `WebSearch` / `WebFetch` — last resort if no MCPs registered.
+6. If everything fails → surface `RESEARCH BLOCKED`. Do not loop.
 
-**Fallback chain (use in order):**
-1. `web_research(...)` for new investigations — multi-engine, paragraph-ranked, cached.
-2. `web_fetch(url, ...)` for known URLs.
-3. `pullmd_read_url(url, render="force")` when (2) returns garbage / empty / errors. Especially for JS-heavy SPAs, Cloudflare-protected pages, and Reddit threads.
-4. Native `WebSearch` / `WebFetch` — only as a last resort if no MCPs are registered.
-5. If everything fails → surface `RESEARCH BLOCKED`. Do not loop.
-
-Read `~/.claude/agents/shared/RESEARCH_TOOLS.md` for the full surface, install instructions, and call examples.
+Read `~/.claude/agents/shared/RESEARCH_TOOLS.md` for install instructions and call examples.
 
 Search strategy (in order of authority):
 1. **Primary sources first** — official documentation, company reports, specs
