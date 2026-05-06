@@ -124,10 +124,15 @@ For each question Qi:
 
     while confidence < 8 and pass <= 4:
         focus = pick_most_specific_gap(gaps)
-        results = WebSearch("<focus> current year")    # or web_research if MCP is registered
-        for url in 2-3 most-relevant results:
-            content = WebFetch(url)                     # or web_fetch with relevance_query
-            extract concrete facts, dates, conflicts
+        # Tier 1: triage (pullmd SERP, no browser)
+        results = web_search_pullmd("<focus> current year", limit=10)
+        # Tier 2: full content (pullmd + auto-Playwright fallback)
+        results = web_research_pullmd("<focus> current year", top=3, relevance_query=focus)
+        # Tier 3: escalate ONLY if tier 2 < 2 useful sources
+        # results = web_research("<focus> current year", top=3)
+        # Tier 4: known URL
+        # content = web_fetch(url, relevance_query=focus)
+        extract concrete facts, dates, conflicts
         learned ← add new facts
         gaps    ← remove answered, add NEW sub-questions surfaced by what you read
         confidence ← rate based on (gaps closed?, sources agree?, primary-sourced?)
