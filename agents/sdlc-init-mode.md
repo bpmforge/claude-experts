@@ -13,15 +13,23 @@ This file contains the Mode 1 workflow. The spine, shared protocols (delegation,
 
 Build from scratch with proper engineering artifacts at every phase.
 
-## Loop prevention (MANDATORY)
+## Loop prevention (MANDATORY — rules are here, no file read required)
 
-Before any tool-heavy work, read `~/.claude/agents/shared/LOOP_PREVENTION.md`. It defines hard caps and stop conditions for three loop classes that have caused real failures:
+**Class 2 — Schema-validation loop — STOP after 2 strikes.** If any tool call returns `"expected string, received undefined"` / `"Invalid input"` / `"Required field missing"`, that is strike 1. A second schema error on any tool = strike 2. Write this verbatim and end the turn:
 
-1. **Failure loop** — same tool error 3+ times → STOP after 3 strikes
-2. **Schema-validation loop** — malformed tool args repeating → never retry the same broken call; switch tool or surface
-3. **Success loop** — every call works but you keep going → hard cap at 15 total / 4 per work-unit, no duplicate URLs, diminishing-returns check after each call
+```
+[BLOCKED — schema-validation loop]
+- I attempted: <list the 2 calls and errors>
+- What I cannot complete: <items>
+Stopping per 2-strikes rule.
+```
 
-These rules override the "be thorough" / "iterate more" / "try harder" instinct. Always track call counts and seen URLs/files explicitly. When in doubt, synthesize a partial result and surface to user — never silently loop.
+Other caps: failure loop → 3 strikes; success loop → 15 total calls max.
+
+**Tool format — copy these exactly:**
+- Read a file: `read(filePath="~/.config/opencode/agents/sdlc-init-mode.md")`
+- Shell command: `bash(command="ls ~/.config/opencode/agents/")`
+- Write a file: `write(filePath="docs/work/sdlc-state.md", content="...")`
 
 ## Document hygiene (MANDATORY)
 
@@ -62,7 +70,7 @@ Delegation log: docs/work/DELEGATION_LOG.md
 
 ```
 ---
-  HANDOFF → /research (researcher)
+  HANDOFF → researcher
 ---
 Open a new OpenCode conversation and paste this EXACT prompt to /research:
 
@@ -91,7 +99,7 @@ Then stop. Do not ask for follow-up. Do not run additional phases.
 **You write:** VISION.md (strategic, not technical) using answers from DISCOVERY.md + any direction changes the user approved in the Research Findings Review.
 **Exit:** Clear problem statement, target users identified, competitive gap defined.
 
-**Gate Loop:** VISION.md and COMPETITIVE_ANALYSIS.md are narrative artifacts → use Track 2 (confidence loop) per the Two-Track Gate System in `sdlc-lead.md`. Minimum score 7 before Phase 1.
+**Gate Loop:** VISION.md and COMPETITIVE_ANALYSIS.md are narrative artifacts → use Track 2 (confidence loop) per the Two-Track Gate System section in `sdlc-lead.md`. Minimum score 7 before Phase 1.
 **Git checkpoint — commit Phase 0 docs before advancing:**
 ```
 task(agent="git-expert", prompt="Commit all new docs/ files from Phase 0 (VISION.md, COMPETITIVE_ANALYSIS.md, any research files) to the sdlc/setup branch. Conventional commit: 'docs(phase-0): add ideation artifacts — VISION + competitive analysis'. Push sdlc/setup to origin. Do NOT push to main.", timeout=60)
@@ -119,7 +127,7 @@ Delegation log: docs/work/DELEGATION_LOG.md
 
 ```
 ---
-  HANDOFF → /research (researcher)
+  HANDOFF → researcher
 ---
 Open a new OpenCode conversation and paste this EXACT prompt to /research:
 
@@ -175,7 +183,7 @@ Next after resume: write SRS.md and USER_STORIES.md using the flow diagrams
 
 ```
 ---
-  HANDOFF → /ux (ux-engineer)
+  HANDOFF → ux-engineer
 ---
 Open a new OpenCode conversation and paste this EXACT prompt to /ux:
 
@@ -200,7 +208,73 @@ Then stop. Do not ask for follow-up. Do not run additional phases.
 ---
 ```
 
-After "ux done": read `docs/design/USER_FLOWS.md`, then write SRS.md following the format below.
+After "ux done", run the **Requirements Derivation Pass** before writing any requirements docs.
+
+### Requirements Derivation Pass (MANDATORY — run before writing SRS/USER_STORIES/USE_CASES)
+
+The goal: systematically mine all Phase 0+1 artifacts so no requirements are missed. The agent that "thinks of" use cases only finds what it already knows. The derivation pass finds what the docs imply.
+
+**Step 1 — Build the candidate matrix.** For EACH combination of:
+- Every persona in USER_PERSONAS.md
+- Every feature/goal in SCOPE.md (in-scope items only)
+- Every risk in RISKS.md (as negative use case drivers)
+- Every constraint in CONSTRAINTS.md (as use case boundaries)
+- Every vision goal in VISION.md
+
+→ Derive 1-3 candidate use cases. Write them to `docs/work/REQUIREMENTS_MATRIX.md`:
+
+```markdown
+# Requirements Matrix
+
+## Derivation Sources
+| Source Doc | Items Mined |
+|------------|-------------|
+| USER_PERSONAS.md | [list persona names] |
+| SCOPE.md (in-scope) | [list scope items] |
+| RISKS.md | [list risk IDs] |
+| CONSTRAINTS.md | [list constraint IDs] |
+| VISION.md | [list goals] |
+
+## Candidate Use Cases
+| ID | Persona | Trigger / Feature Area | Source | Status |
+|----|---------|----------------------|--------|--------|
+| M-001 | [persona] | [what they need to do] | SC-01, FR-02 | CANDIDATE |
+| M-002 | [persona] | [what they need to do] | RISK-03 | CANDIDATE |
+...
+
+## Coverage Check
+| Persona | # Use Cases | Gaps |
+|---------|-------------|------|
+| [name] | N | [any feature areas with 0 use cases] |
+
+## Empty Cells (flag these to user)
+These persona × feature area combinations have no candidate use cases:
+- [persona]: [feature area] — possibly out of scope?
+- ...
+```
+
+**Step 2 — Present to user.** Print this block and STOP:
+
+```
+REQUIREMENTS DERIVATION COMPLETE
+docs/work/REQUIREMENTS_MATRIX.md written.
+
+I derived [N] candidate use cases from your Phase 0+1 docs.
+
+Empty cells (no use cases derived yet):
+[list any persona × feature area combos with 0 candidates, or "none"]
+
+Questions before I write the requirements docs:
+1. Are there any use cases I'm missing from your experience with this domain?
+2. Do any of the empty cells represent real requirements I should add?
+3. Any of the [N] candidates should be removed or merged?
+
+Please respond, then I'll write SRS.md, USER_STORIES.md, and USE_CASES.md.
+```
+
+**Wait for user response.** Incorporate additions into the matrix.
+
+**Step 3 — Write requirements docs.** Now write SRS.md following the format below.
 
 ### SRS Format (IEEE 830 based)
 
@@ -266,62 +340,23 @@ Write `docs/testing/USE_CASES.md` — derive one use case per user story:
 - Index table at top: UC number, name, persona, priority (P0/P1/P2)
 - P0 = demo-blocking critical paths, P1 = should work, P2 = nice-to-have
 
-**Then hand off to test-engineer for the test plan:**
-
-```
-write(filePath="docs/work/sdlc-state.md", content="
-Mode: 1 / Phase: 2 — Requirements
-Last completed: SRS.md, USER_STORIES.md, USE_CASES.md
-Awaiting: test-engineer — docs/testing/TEST_PLAN.md
-Next after resume: Phase 2 gate
-")
-```
-
-```
----
-  HANDOFF → /test-expert (test-engineer)
----
-Open a new OpenCode conversation and paste this EXACT prompt to /test-expert:
-
-SDLC-TASK for test-engineer:
-
-CONTEXT (read these before starting):
-- docs/testing/USE_CASES.md — all use cases with personas and acceptance criteria
-- docs/SRS.md — functional and non-functional requirements
-- docs/USER_STORIES.md — user stories with acceptance criteria
-
-YOUR TASK:
-Review the use case catalog and produce a test plan. For each use case:
-assign a priority (P0/P1/P2), map it to a test file name, and note the
-test type (unit/integration/e2e). Define cross-cutting checks that apply
-to every test (no console errors, no 5xx responses, loading states visible).
-
-PRODUCE exactly this file:
-- docs/testing/TEST_PLAN.md — index table (UC, test file, priority, status),
-  rollout criteria (P0 must pass for demo, P0+P1 for ship), cross-cutting
-  checks, run history table (date, pass count, fail count)
-
-When the file is written, print exactly:
-"test-plan done — [N use cases mapped, N P0 / N P1 / N P2]"
-Then stop. Do not ask for follow-up. Do not run additional phases.
-
----
-```
-
-→ After "test-plan done": verify docs/testing/TEST_PLAN.md exists → mark DONE
-
-**Gate Loop:** Rate SRS.md, USER_STORIES.md, USE_CASES.md, and TEST_PLAN.md. Key quality checks:
+**Gate Loop:** Rate SRS.md, USER_STORIES.md, and USE_CASES.md. Key quality checks:
 - Every FR has a `Given/When/Then` acceptance criterion (not just a description)
 - Every NFR has a measurable metric (not "should be fast" — "< 200ms at P95")
 - Every user story has a corresponding use case in USE_CASES.md
-- TEST_PLAN.md maps every P0 use case to a test file
+- Every use case has a `Source:` field tracing back to a FR-NN, SC-NN, RK-NN, or persona ID
+- REQUIREMENTS_MATRIX.md has no unexplored blank cells (all resolved with user)
 - If any FR/NFR is vague, revise before advancing
+
+**Note:** TEST_DESIGN.md (detailed test case design per component/endpoint/threat) is produced in Phase 3.5 after architecture and security controls are complete. Phase 2 only produces requirements artifacts.
 
 **Git checkpoint — commit Phase 2 docs before advancing:**
 ```
-task(agent="git-expert", prompt="Commit all new docs/ files from Phase 2 (SRS.md, USER_STORIES.md, docs/design/USER_FLOWS.md, docs/testing/USE_CASES.md, docs/testing/TEST_PLAN.md) to the sdlc/setup branch. Conventional commit: 'docs(phase-2): add requirements + test plan — SRS, user stories, use cases, test plan'. Push sdlc/setup to origin. Do NOT push to main.", timeout=60)
+task(agent="git-expert", prompt="Commit all new docs/ files from Phase 2 (SRS.md, USER_STORIES.md, docs/design/USER_FLOWS.md, docs/testing/USE_CASES.md, docs/work/REQUIREMENTS_MATRIX.md) to the sdlc/setup branch. Conventional commit: 'docs(phase-2): add requirements — SRS, user stories, use cases, requirements matrix'. Push sdlc/setup to origin. Do NOT push to main.", timeout=60)
 ```
 **Inter-Phase Check-In:** After the gate passes AND docs are committed, run the Inter-Phase Check-In Protocol. Do NOT auto-advance.
+
+**HUMAN APPROVAL GATE A:** After the inter-phase check-in, emit **Human Approval Gate A** (defined in `sdlc-lead.md` § Human approval gates). Wait for explicit "yes" before any Phase 3 work.
 
 ## Phase 3: Design — HOW do we build it?
 
@@ -380,7 +415,7 @@ Delegation log: docs/work/DELEGATION_LOG.md
 
 ```
 ---
-  HANDOFF → /research (researcher)
+  HANDOFF → researcher
 ---
 Open a new OpenCode conversation and paste this EXACT prompt to /research:
 
@@ -424,7 +459,7 @@ Next after resume: api-designer handoff
 
 ```
 ---
-  HANDOFF → /dba (db-architect)
+  HANDOFF → db-architect
 ---
 Open a new OpenCode conversation and paste this EXACT prompt to /dba:
 
@@ -468,7 +503,7 @@ Next after resume: UX branch (if UI-bearing) or security-auditor handoff
 
 ```
 ---
-  HANDOFF → /api-design (api-designer)
+  HANDOFF → api-designer
 ---
 Open a new OpenCode conversation and paste this EXACT prompt to /api-design:
 
@@ -518,55 +553,107 @@ Then stop. Do not ask for follow-up. Do not run additional phases.
 
 **Step 5 — Threat model (HANDOFF):**
 
+The threat model runs BEFORE ARCHITECTURE.md is synthesized — it reads the design artifacts directly (TECH_STACK + DATABASE + API_DESIGN) to identify threats. ARCHITECTURE.md is synthesized AFTER security controls are incorporated so it captures the full security picture.
+
 Save state:
 ```
 write(filePath="docs/work/sdlc-state.md", content="
 Mode: 1 / Phase: 3 — Design
 Last completed: API_DESIGN.md (and UX docs if UI-bearing)
 Awaiting: security-auditor — docs/THREAT_MODEL.md
-Next after resume: write ARCHITECTURE.md, run Phase 3 gate
+Next after resume: SECURITY_CONTROLS HANDOFF, then security reconciliation, then write ARCHITECTURE.md
 ")
 ```
 
 ```
 ---
-  HANDOFF → /security (security-auditor)
+  HANDOFF → security-auditor
 ---
 Open a new OpenCode conversation and paste this EXACT prompt to /security:
 
 SDLC-TASK for security-auditor:
 
 CONTEXT (read these before starting):
-- docs/ARCHITECTURE.md — system components, data flows, entry points
 - docs/TECH_STACK.md — technologies and their known vulnerability profiles
-- docs/API_DESIGN.md — API endpoints and authentication requirements
+- docs/API_DESIGN.md — API endpoints, authentication requirements, data inputs
+- docs/DATABASE.md — schema, sensitive fields, access patterns
+- docs/SRS.md — security requirements and compliance constraints
 
 YOUR TASK:
 Produce a STRIDE threat model for [project]. For every component and data flow
-in the architecture, identify threats across all 6 STRIDE categories. For each
-threat: describe the attack scenario, rate severity (CRITICAL/HIGH/MEDIUM/LOW),
-and provide a concrete mitigation that a developer can actually implement.
+(derived from TECH_STACK + API_DESIGN + DATABASE), identify threats across all
+6 STRIDE categories. Assign a threat ID (T-01, T-02, ...) to every threat. For each:
+describe the attack scenario, rate severity (CRITICAL/HIGH/MEDIUM/LOW), identify
+the affected component, and describe the attack vector.
 
 PRODUCE exactly this file:
-- docs/THREAT_MODEL.md — STRIDE threats organized by component, severity-rated,
-  with concrete mitigations and a summary table of all threats
+- docs/THREAT_MODEL.md — STRIDE threats organized by component, with threat IDs,
+  severity ratings, attack descriptions, and a summary table of all threats
 
 When the file is written, print exactly:
-"security done — [one sentence: how many threats found and highest severity level]"
+"security done — [one sentence: how many threats found, how many CRITICAL/HIGH]"
 Then stop. Do not ask for follow-up. Do not run additional phases.
 
 ---
 ```
 
-→ After "security done": verify docs/THREAT_MODEL.md → mark DONE
+→ After "security done": verify docs/THREAT_MODEL.md exists and has threat IDs → mark DONE
 
-**You produce (orchestrator synthesis documents — write these yourself, they are NOT specialist handoffs):**
-- `docs/ARCHITECTURE.md` — reconciles TECH_STACK + DATABASE + API_DESIGN + THREAT_MODEL into C4 diagrams and modular design decisions
+**Step 6 — Security controls (HANDOFF):**
+
+Save state:
+```
+write(filePath="docs/work/sdlc-state.md", content="
+Mode: 1 / Phase: 3 — Design
+Last completed: docs/THREAT_MODEL.md written
+Awaiting: security-auditor — docs/SECURITY_CONTROLS.md + document change requests
+Next after resume: issue security reconciliation HANDOFFs to db-architect + api-designer, then ARCHITECTURE.md
+")
+```
+
+Use **Template 5** from `~/.config/opencode/agents/shared/HANDOFF_TEMPLATES.md` for this HANDOFF.
+
+→ After "security done" (security controls): run handoff gates with `--coverage validate-security-controls.sh` → mark DONE
+
+**Step 7 — Security reconciliation (HANDOFFs to db-architect and api-designer):**
+
+SECURITY_CONTROLS.md contains specific change requests for DATABASE.md and API_DESIGN.md. Issue targeted update HANDOFFs:
+
+Save state:
+```
+write(filePath="docs/work/sdlc-state.md", content="
+Mode: 1 / Phase: 3 — Design
+Last completed: SECURITY_CONTROLS.md written
+Awaiting: db-architect (update DATABASE.md) + api-designer (update API_DESIGN.md + openapi.yaml)
+Next after resume: verify both updates, then write ARCHITECTURE.md
+")
+```
+
+For each update HANDOFF, use Template 1 from `HANDOFF_TEMPLATES.md` scoped to just the update:
+- **db-architect update:** read SECURITY_CONTROLS.md change requests for DATABASE.md → add encryption-at-rest notes, sensitive field labels, access control patterns
+- **api-designer update:** read SECURITY_CONTROLS.md change requests for API_DESIGN.md → add rate limiting, CORS policy, input validation, and security header notes per endpoint; update openapi.yaml securitySchemes
+
+→ After both update HANDOFFs return and pass handoff gates → mark DONE
+
+**You produce (orchestrator synthesis documents — write these yourself, AFTER steps 1-7):**
+- `docs/ARCHITECTURE.md` — reconciles TECH_STACK + DATABASE + API_DESIGN + THREAT_MODEL + SECURITY_CONTROLS into C4 diagrams and modular design decisions. The Security Architecture section MUST reference SECURITY_CONTROLS.md.
 - `docs/PARALLELIZATION_MAP.md` — derives Wave 1/2/3/... from ARCHITECTURE.md module boundaries and dependencies (format above)
 
-Write these AFTER all specialist handoffs in Phase 3 have returned. They exist because no single specialist owns the whole-system view — they are the "documentation master" role of the sdlc-lead.
+Write ARCHITECTURE.md AFTER security controls are incorporated into DATABASE.md and API_DESIGN.md. This ensures the architecture diagram reflects the final, security-hardened design.
 
-Never trigger two Phase 3 handoffs at once. Each expert's output informs the next (tech stack → DB design → API → UX → security). **Phase 4 is different** — it supports parallel waves (see below).
+**Phase 3 sequencing rule (enforced — do not skip or reorder):**
+1. TECH_STACK.md (researcher)
+2. DATABASE.md (db-architect) — needs TECH_STACK
+3. API_DESIGN.md + openapi.yaml (api-designer) — needs TECH_STACK + DATABASE
+4. UX docs (ux-engineer, if UI-bearing) — needs TECH_STACK + USER_STORIES
+5. THREAT_MODEL.md (security-auditor) — reads TECH_STACK + DATABASE + API_DESIGN
+6. SECURITY_CONTROLS.md (security-auditor) — reads THREAT_MODEL
+7. DATABASE.md update (db-architect) — applies security controls
+8. API_DESIGN.md + openapi.yaml update (api-designer) — applies security controls
+9. ARCHITECTURE.md synthesis (sdlc-lead) — incorporates all of the above
+10. PARALLELIZATION_MAP.md (sdlc-lead)
+
+**Never trigger two Phase 3 handoffs at once.** Each expert's output informs the next. **Phase 4 is different** — it supports parallel waves (see below).
 
 ### UX Branch — Mandatory If UI-Bearing
 
@@ -591,7 +678,7 @@ Next after resume: security-auditor handoff
 
 ```
 ---
-  HANDOFF → /ux (ux-engineer)
+  HANDOFF → ux-engineer
 ---
 Open a new OpenCode conversation and paste this EXACT prompt to /ux:
 
@@ -642,7 +729,7 @@ the visual design is specified but not implemented. Hand off to frontend-design:
 
 ```
 ---
-  HANDOFF → /frontend (frontend-design)
+  HANDOFF → frontend-design
 ---
 Open a new OpenCode conversation and paste this EXACT prompt to /frontend:
 
@@ -747,123 +834,8 @@ This overview is grounded in the real decisions made during the diagram phase �
 
 **MANDATORY:** Every section below must be filled with real names from the project — no `[placeholder]` text in the final document. Placeholders exist only in this template as a guide.
 
-```markdown
-# Software Architecture Document — [Project Name]
+**Use the canonical template:** read `agents/templates/ARCHITECTURE_template.md` and copy its structure into `docs/ARCHITECTURE.md`. Fill every section with real project names — no `[placeholder]` text. The template includes all 6 mandatory diagram types (C1 / C2 / C3 / sequence / data flow / deployment) as Mermaid blocks.
 
-## 0. HLA Overview
-[Write LAST — after all diagrams pass. See Per-Diagram Confidence Loop above.]
-[3 paragraphs: system partition metaphor | key architectural decisions | what to read first]
-
-## 1. Architecture Goals & Constraints
-- Quality attributes: [specific targets from SRS.md NFR section — e.g., "P95 < 200ms, 99.9% uptime"]
-- Technology constraints: [from DESIGN_CONTEXT.md — e.g., "must run on AWS us-east-1, Node 22 LTS"]
-- Team constraints: [from DESIGN_CONTEXT.md — e.g., "team of 3 engineers, TypeScript expertise"]
-
-## 2. C4 Diagrams
-
-### 2.1 System Context (C1)
-<!-- Actors: all personas from USER_PERSONAS.md. External systems: all from SRS §5.2 -->
-<!-- Score this diagram with the C1 confidence loop before writing § 2.2 -->
-```mermaid
-graph TB
-    [Persona1 from USER_PERSONAS.md]-->SystemBoundary[System Name]
-    [Persona2]-->SystemBoundary
-    SystemBoundary-->[ExternalSystem1 from SRS §5.2]
-    SystemBoundary-->[ExternalSystem2]
-```
-
-### 2.2 Container Diagram (C2)
-<!-- All services/runtimes from TECH_STACK.md. Communication style on arrows. -->
-<!-- Score with C2 confidence loop before writing § 2.3 -->
-```mermaid
-graph TB
-    subgraph System
-        [ServiceName from TECH_STACK.md]
-        ...
-    end
-```
-
-### 2.3 Component Diagrams (C3) — one subsection per major service
-<!-- Real module names from the feature-sliced structure. Arrows show dependency direction. -->
-<!-- Score each C3 separately before writing the next. -->
-
-#### 2.3.1 [Service Name 1]
-```mermaid
-graph TB
-    [RealModuleName]-->[OtherRealModule]
-    ...
-```
-
-#### 2.3.2 [Service Name 2]
-```mermaid
-graph TB
-    ...
-```
-<!-- Add one 2.3.x subsection per major service -->
-
-### 2.4 Deployment Diagram
-<!-- Reflect DESIGN_CONTEXT.md infrastructure choices. No invented infra. -->
-<!-- Score with Deployment confidence loop before writing § 2.5 -->
-```mermaid
-graph TB
-    ...
-```
-
-### 2.5 Data Flow Diagram
-<!-- Trace user request all the way to persistence and back. Show transforms and masking. -->
-<!-- Score with Data Flow confidence loop before writing § 3 -->
-```mermaid
-graph LR
-    ...
-```
-
-### 2.6 Sequence Diagrams — one per P0 Use Case
-<!-- Derive from USE_CASES.md. Each MUST have a happy path AND an error path. -->
-<!-- Score each sequence diagram separately. -->
-
-#### [UC-001 name from USE_CASES.md]
-```mermaid
-sequenceDiagram
-    participant [RealActorName]
-    participant [RealServiceName]
-    ...
-    Note over API: On error: [specific error response]
-```
-<!-- Add one sequence section per P0 use case -->
-
-## 3. Logical View
-- Major modules: [real module names from feature-sliced structure]
-- Module dependencies: [who depends on whom — reference C3 diagrams above]
-- Design patterns: [repository, service, factory — where each is used]
-- Interface definitions: [list key interfaces and where they live in src/]
-
-## 4. Process View
-- Request flow: [specific path for the most common request — names all hops]
-- Async flows: [queue names, event names, job names — if applicable]
-- Concurrency model: [e.g., "Node.js single-threaded event loop + worker threads for CPU work"]
-- Sequence diagrams: [reference the 2.6 subsections above]
-
-## 5. Implementation View
-- Directory structure: [actual planned feature-sliced layout]
-- Module boundaries: [which modules are public API vs internal]
-- Build system: [command, output location, key scripts]
-
-## 6. Deployment View
-- Infrastructure: [reference the deployment diagram in § 2.4]
-- CI/CD: [pipeline file path, stages, deploy target]
-- Environment configuration: [where .env lives, required vars, secrets management]
-
-## 7. Architecture Decision Records
-| ADR | Decision | Rationale | Alternatives Considered |
-|-----|----------|-----------|------------------------|
-| ADR-001 | [Real decision, e.g., Use PostgreSQL] | [Why — reference DESIGN_CONTEXT.md or research findings] | [Real alternatives evaluated] |
-
-## 8. Cross-Cutting Concerns
-- Logging strategy: [specific library + format + levels — not "use a logger"]
-- Error handling: [pattern name + where defined — e.g., "Result<T,E> type in src/shared/result.ts"]
-- Caching strategy: [what is cached, TTL, where invalidated]
-- Security controls: [reference THREAT_MODEL.md mitigations — e.g., "JWT RS256, httpOnly cookies"]
-```
 
 ### Modular Design Requirements
 
@@ -1093,9 +1065,39 @@ Architecture Diagram Inventory — Phase 3 Pre-Gate:
 
 **Git checkpoint — commit Phase 3 docs before advancing:**
 ```
-task(agent="git-expert", prompt="Commit all new docs/ files from Phase 3 (ARCHITECTURE.md, TECH_STACK.md, DATABASE.md, API_DESIGN.md, docs/api/openapi.yaml, THREAT_MODEL.md, docs/PARALLELIZATION_MAP.md, docs/diagrams/, docs/design/ if UI-bearing) to the sdlc/setup branch. Conventional commit: 'docs(phase-3): add design artifacts — architecture, tech stack, DB, API, OpenAPI spec, threat model, parallelization map'. Push sdlc/setup to origin. Do NOT push to main.", timeout=60)
+task(agent="git-expert", prompt="Commit all new docs/ files from Phase 3 (ARCHITECTURE.md, TECH_STACK.md, DATABASE.md, API_DESIGN.md, docs/api/openapi.yaml, THREAT_MODEL.md, SECURITY_CONTROLS.md, docs/PARALLELIZATION_MAP.md, docs/diagrams/, docs/design/ if UI-bearing) to the sdlc/setup branch. Conventional commit: 'docs(phase-3): add design artifacts — architecture, tech stack, DB, API, OpenAPI spec, threat model, security controls, parallelization map'. Push sdlc/setup to origin. Do NOT push to main.", timeout=60)
 ```
-**Inter-Phase Check-In:** After the gate passes AND docs are committed, run the Inter-Phase Check-In Protocol. Do NOT auto-advance to Phase 4 — architecture decisions have the biggest downstream impact, so user confirmation here is especially important.
+**Inter-Phase Check-In:** After the gate passes AND docs are committed, run the Inter-Phase Check-In Protocol. Do NOT auto-advance.
+
+## Phase 3.5: Test Design — WHAT exactly do we verify?
+
+Phase 3.5 bridges design and implementation. All architecture, API contracts, and security controls are now frozen. The test engineer reads everything produced in Phases 0-3 and produces a detailed test design — concrete test cases per component, endpoint, use case, and threat.
+
+**Save state:**
+```
+write(filePath="docs/work/sdlc-state.md", content="
+Mode: 1 / Phase: 3.5 — Test Design
+Last completed: Phase 3 gate passed, Human Approval Gate A confirmed
+Awaiting: test-engineer — docs/testing/TEST_DESIGN.md
+Next after resume: Phase 3.5 gate, then Human Approval Gate B, then Phase 4
+")
+```
+
+**HANDOFF:** Use **Template 6** from `~/.config/opencode/agents/shared/HANDOFF_TEMPLATES.md`.
+
+→ After "test-design done": run handoff gates with `--coverage validate-test-design.sh`
+
+**Gate Loop:** Run `./scripts/validators/run-coverage-loop.sh phase-3.5` (uses validate-test-design.sh). Non-blocking style:
+- Exit 0 (clean) → mark DONE, advance
+- Exit 1 (gaps, iter < 3) → return specific gaps to test-engineer, re-run
+- Exit 2 (3 iterations exhausted) → emit Ralph Wiggum escalation block — test-design gaps do NOT block implementation; user may waive individual rows
+
+**Git checkpoint — commit Phase 3.5 docs:**
+```
+task(agent="git-expert", prompt="Commit docs/testing/TEST_DESIGN.md and docs/work/REQUIREMENTS_MATRIX.md to sdlc/setup branch. Conventional commit: 'docs(phase-3.5): add test design — unit targets, integration cases, E2E scenarios, security tests'. Push to origin.", timeout=60)
+```
+
+**HUMAN APPROVAL GATE B:** After Phase 3.5 gate passes and docs are committed, emit **Human Approval Gate B** (defined in `sdlc-lead.md` § Human approval gates). Wait for explicit "yes" before any Phase 4 coding HANDOFFs.
 
 **Merge `sdlc/setup` → `main` before Phase 4 begins:**
 Design is approved — merge the planning and design docs into main now so Phase 4 feature branches have an up-to-date base.
@@ -1190,7 +1192,7 @@ Round 3 gate (mandatory before Wave N+1):
 1. Every module reported its runtime completion phrase
 2. Every `RUNTIME_<module>_<date>.md` has verdict `PASS`
 3. No two agents wrote to the same file across the wave
-4. **Coverage loop clean** — run `./scripts/validators/run-coverage-loop.sh phase-4` from project root. Exits 0 (clean), 1 (gaps — emit gap-fill HANDOFFs, re-run), or 2 (escalate). Chains: `validate-build.sh`, `validate-lint.sh`, `validate-tests.sh`, `validate-tests-mapping.sh`, `validate-migrations.sh`.
+4. **Coverage loop clean** — run `./scripts/validators/run-coverage-loop.sh phase-4` from project root. This wraps `validate-phase-gate.sh phase-4` with iteration tracking + escalation. Exits 0 (clean), 1 (gaps remain — orchestrator emits gap-fill HANDOFFs and re-runs), or 2 (3 iterations exhausted — emit escalation block). Chained validators: `validate-build.sh`, `validate-lint.sh`, `validate-tests.sh`, `validate-tests-mapping.sh`, `validate-migrations.sh`. Override commands per project via `.sdlc/sdlc.json`.
 5. Update the SDLC_TRACKER Phase 4 Wave Execution row: `Status = ✅ DONE | per-module scores`
 
 A module that fails Round 3 blocks only itself — fix that module and re-run its Round 3 HANDOFF while other modules' PASS verdicts remain valid.
@@ -1202,44 +1204,46 @@ A module that fails Round 3 blocks only itself — fix that module and re-run it
 
 Delegate implementation work via HANDOFF — one specialist at a time within a sequential wave, or three rounds of N HANDOFFs in a parallel wave.
 
-**1. Test strategy first — before any code:**
+**1. Test strategy confirmation — before any code:**
+
+TEST_DESIGN.md from Phase 3.5 already defines what to test and how. Phase 4 begins with test-engineer confirming the framework setup and tooling choices so coding agents write tests in the right format from day one.
 
 ```
 write(filePath="docs/work/sdlc-state.md", content="
 Mode: 1 / Phase: 4 — Implementation
-Last completed: Phase 3 gate passed
-Awaiting: test-engineer — docs/TEST_STRATEGY.md
+Last completed: Phase 3.5 gate passed, Human Approval Gate B confirmed
+Awaiting: test-engineer — docs/TEST_STRATEGY.md (framework setup confirmation)
 Next after resume: db-architect migrations handoff
 ")
 ```
 
 ```
 ---
-  HANDOFF → /test-expert (test-engineer)
+  HANDOFF → test-engineer
 ---
 Open a new OpenCode conversation and paste this EXACT prompt to /test-expert:
 
 SDLC-TASK for test-engineer:
 
 CONTEXT (read these before starting):
-- docs/SRS.md — functional requirements and acceptance criteria
-- docs/USER_STORIES.md — user scenarios that must be verified
+- docs/testing/TEST_DESIGN.md — detailed test cases already defined (unit/integration/e2e/security)
 - docs/ARCHITECTURE.md — module structure and critical paths
 - docs/TECH_STACK.md — tech stack to select test frameworks from
 
 YOUR TASK:
-Produce a test strategy for [project]. Determine which test types are needed
-(unit / integration / e2e), select appropriate frameworks for the stack,
-identify critical paths that must have 100% coverage, and define a test data
-strategy. Do not write test code — strategy and plan only.
+TEST_DESIGN.md already defines what to test. Your task is to produce a test strategy
+that specifies HOW: select test frameworks for the stack in TECH_STACK.md, define
+the project test scaffold (directory structure, config files, CI integration), and
+confirm the coverage targets per module. Do NOT re-derive what to test — that's in
+TEST_DESIGN.md. Focus on framework selection, tooling, and scaffold setup.
 
 PRODUCE exactly this file:
-- docs/TEST_STRATEGY.md — test types, framework choices with rationale, coverage
-  targets per module, list of critical paths requiring 100% coverage, test data
-  approach, and a table mapping each user story to its test type
+- docs/TEST_STRATEGY.md — framework choices with rationale, test directory scaffold,
+  coverage tool setup, CI integration approach, test data strategy, and a confirmed
+  mapping from TEST_DESIGN.md test categories to test file naming conventions
 
 When the file is written, print exactly:
-"test-strategy done — [one sentence: frameworks chosen and critical paths identified]"
+"test-strategy done — [one sentence: frameworks chosen and test scaffold defined]"
 Then stop. Do not ask for follow-up. Do not run additional phases.
 ---
 ```
@@ -1337,7 +1341,7 @@ Next after resume: discovery audit, then expert reviews
 
 ```
 ---
-  HANDOFF → /test-expert (test-engineer)
+  HANDOFF → test-engineer
 ---
 Open a new OpenCode conversation and paste this EXACT prompt to /test-expert:
 
@@ -1345,12 +1349,12 @@ SDLC-TASK for test-engineer:
 
 CONTEXT (read these before starting):
 - docs/testing/USE_CASES.md — all use cases with personas and flows
-- docs/testing/TEST_PLAN.md — priorities and test file mapping
-- docs/TEST_STRATEGY.md — framework choices and approach
+- docs/testing/TEST_DESIGN.md — E2E scenarios section (Phase 3.5 output — use these as spec)
+- docs/TEST_STRATEGY.md — framework choices, test scaffold, naming conventions
 - docs/API_DESIGN.md — endpoint contracts for API-level tests
 
 YOUR TASK:
-Write E2E test specs for ALL P0 use cases from TEST_PLAN.md. For each P0:
+Write E2E test specs for ALL P0 use cases defined in TEST_DESIGN.md § E2E Scenarios. For each P0:
 create a Playwright (or framework from TEST_STRATEGY.md) test file that
 exercises the main flow end-to-end. Use a shared fixtures helper for
 login, data creation, and cleanup.
@@ -1394,7 +1398,7 @@ Next after resume: DB migrations, then expert reviews
 
 ```
 ---
-  HANDOFF → /test-expert (test-engineer)   [or /ux if UI-bearing]
+  HANDOFF → test-engineer   [or /ux if UI-bearing]
 ---
 Open a new OpenCode conversation and paste this EXACT prompt:
 
@@ -1443,7 +1447,7 @@ Next after resume: api-designer contract verification
 
 ```
 ---
-  HANDOFF → /dba (db-architect)
+  HANDOFF → db-architect
 ---
 Open a new OpenCode conversation and paste this EXACT prompt to /dba:
 
@@ -1473,7 +1477,7 @@ Then stop. Do not ask for follow-up. Do not run additional phases.
 
 ```
 ---
-  HANDOFF → /api-design (api-designer)
+  HANDOFF → api-designer
 ---
 Open a new OpenCode conversation and paste this EXACT prompt to /api-design:
 
@@ -1503,7 +1507,7 @@ Then stop. Do not ask for follow-up. Do not run additional phases.
 
 ```
 ---
-  HANDOFF → /containers (container-ops)
+  HANDOFF → container-ops
 ---
 Open a new OpenCode conversation and paste this EXACT prompt to /containers:
 
@@ -1534,7 +1538,7 @@ Then stop. Do not ask for follow-up. Do not run additional phases.
 
 ```
 ---
-  HANDOFF → /devops (sre-engineer)
+  HANDOFF → sre-engineer
 ---
 Open a new OpenCode conversation and paste this EXACT prompt to /devops:
 
@@ -1565,7 +1569,7 @@ Then stop. Do not ask for follow-up. Do not run additional phases.
 
 ```
 ---
-  HANDOFF → /security (security-auditor)
+  HANDOFF → security-auditor
 ---
 Open a new OpenCode conversation and paste this EXACT prompt to /security:
 
@@ -1602,7 +1606,7 @@ Then stop. Do not ask for follow-up. Do not run additional phases.
 
 ```
 ---
-  HANDOFF → /review-code (code-reviewer)
+  HANDOFF → code-reviewer
 ---
 Open a new OpenCode conversation and paste this EXACT prompt to /review-code:
 
@@ -1638,7 +1642,7 @@ task(agent="git-expert", prompt="--feature: [action — create branch / commit /
 
 ```
 ---
-  HANDOFF → /perf (performance-engineer)
+  HANDOFF → performance-engineer
 ---
 Open a new OpenCode conversation and paste this EXACT prompt to /perf:
 
@@ -1744,7 +1748,7 @@ Iterate up to 3 times:
 
 ```
 ---
-  HANDOFF → /review-code (code-reviewer)
+  HANDOFF → code-reviewer
 ---
 Open a new OpenCode conversation and paste this EXACT prompt to /review-code:
 
@@ -1774,7 +1778,7 @@ Then stop. Do not ask for follow-up. Do not run additional phases.
 
 ```
 ---
-  HANDOFF → /test-expert (test-engineer)
+  HANDOFF → test-engineer
 ---
 Open a new OpenCode conversation and paste this EXACT prompt to /test-expert:
 
@@ -1805,7 +1809,7 @@ Then stop. Do not ask for follow-up. Do not run additional phases.
 
 ```
 ---
-  HANDOFF → /containers (container-ops)
+  HANDOFF → container-ops
 ---
 Open a new OpenCode conversation and paste this EXACT prompt to /containers:
 
