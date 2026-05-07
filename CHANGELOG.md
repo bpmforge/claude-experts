@@ -2,108 +2,372 @@
 
 All notable changes to this project are documented here. Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and versioning follows [Semantic Versioning](https://semver.org/).
 
-## [0.18.0] — 2026-05-04
+## [0.24.0] — 2026-05-07
 
-Tiered research architecture — researcher now uses a mandatory tool selection gate and a 4-tier fallback chain that starts with fast pullmd-backed tools and escalates to Playwright only when needed. Synced from playwright-search v0.2.0.
+Full-lifecycle quality enforcement — traceability chain from requirements to passing tests, production Playwright infrastructure, complete git workflow with SDLC branch topology, 27 new validators, Phase 3.5 test design gate, Phase 5 5-round release structure, and git checkpoints at every document-producing step.
+
+### Added
+
+**Agents**
+- **`architecture-designer`** — new specialist agent that derives module boundaries from business domains (not technical layers). Enforces hexagonal/FSD/DDD patterns. Produces `MODULE_DESIGN.md` (8 required sections incl. dependency rules, feature recipe, enforcement config) and `INFRASTRUCTURE.md` (topology-only, 5 sections). Validated by `validate-module-design.sh` and `validate-infrastructure.sh`.
+
+**Validators (27 new, 36 total)**
+
+| New validator | Checks |
+|---|---|
+| `validate-module-design.sh` | MODULE_DESIGN.md: pattern+justification, no technical-layer naming, circular dep detection, enforcement config |
+| `validate-infrastructure.sh` | INFRASTRUCTURE.md: env matrix, compute, data, networking+Mermaid, ops concerns; rejects IaC code |
+| `validate-security-controls.sh` | SECURITY_CONTROLS.md: every HIGH/CRITICAL threat has a control; DB/API/ARCH have security sections |
+| `validate-test-design.sh` | TEST_DESIGN.md: 5 mandatory sections (Unit, Integration, E2E, Security, Test Infrastructure), P0 UCs covered |
+| `validate-iac.sh` | IaC scaffolding: entry/variables/outputs/per-env configs, `terraform validate`, no hardcoded secrets |
+| `validate-module-boundaries.sh` | Cross-module internal imports in TS/JS/Python/Go; enforces dep rules from MODULE_DESIGN.md |
+| `validate-code-health.sh` | 9 anti-slop patterns: catch-all blocks, try-in-loop, what-comments, emoji-comments, >50L functions, >250L files, TODO/FIXME, debug prints, magic numbers |
+| `validate-ux-spec.sh` | UX_SPEC.md: component library chosen (not TBD), ≥5 inventory items, P0 UCs covered, WCAG 4 pillars, responsive strategy |
+| `validate-design-system.sh` | Token file, component files match UX_SPEC inventory, DESIGN_SYSTEM.md, no hardcoded hex |
+| `validate-release-readiness.sh` | 10-condition release gate: FIX_BACKLOG clean, 4 review verdicts, coverage gaps, container CVEs, tech debt catalogued, all RUNTIME PASS |
+| `validate-requirements-matrix.sh` | REQUIREMENTS_MATRIX.md: P0 UC rows have Test + Status columns; cross-references USE_CASES.md |
+| `validate-e2e-setup.sh` | Playwright config has JSON reporter, retries, screenshot, baseURL; auth fixture; POM/fixtures dir; CI workflow has E2E step |
+| `validate-adrs.sh` | Every ADR-NNN reference has a file with valid status |
+| `validate-completion-manifest.sh` | HANDOFF manifest schema + completion phrase present |
+| `validate-migrations.sh` | Migration files have both up and down; reversible |
+| `validate-deps.sh` | npm audit / pip-audit / cargo audit; subtracts waivers |
+| `validate-build.sh` | Runs project build, captures exit code |
+| `validate-lint.sh` | Runs linter + typecheck |
+| `validate-fix-backlog-closed.sh` | CRITICAL/HIGH rows VERIFIED/FIXED/WAIVED before phase-5 |
+| `validate-smoke.sh` | Boots server, hits configured routes, asserts 200 |
+| `validate-no-ascii-art.sh` | No Unicode box-drawing or ASCII banners in docs |
+| `validate-scope.sh` | Post-HANDOFF git-scope enforcement |
+| `validate-c3-coverage.sh` | Every source module in C3 component diagram |
+| `validate-entry-points.sh` | Every entry point documented |
+| `validate-tech-stack.sh` | All deps appear in TECH_STACK.md |
+| `validate-use-cases.sh` | UC-IDs, required fields, priority, Source: traceability |
+| `validate-user-stories.sh` | Given/When/Then acceptance criteria, traceability to UC/FR |
+
+`validate-tests-mapping.sh` extended: now parses jest/vitest/pytest JSON results files and produces UC-level PASS/FAIL verdict table. `validate-tests.sh` extended: Playwright fast-path with `--reporter=json,html,list` to produce `test-results.json`.
+
+**Shared protocols**
+- **`ANTI_SLOP_RULES.md`** — canonical 20-rule AI slop catalog (R-01..R-20) across error handling, abstraction, defensive bloat, comment/style, structural patterns. Used by `code-reviewer` (8th scored dimension, threshold ≥8) and `coding-agent`.
+
+**SDLC phases**
+- **Phase 3.5 (Test Design)** — new gate between Design and Implementation. `test-engineer` produces `TEST_DESIGN.md` (5 sections: Unit, Integration, E2E Scenarios, Security, Test Infrastructure) and E2E config files. Non-blocking style (gaps escalate, don't hard-block). Validated by `validate-test-design.sh`.
+- **Human Approval Gate A** (Phase 2→3) and **Gate B** (Phase 3.5→4) — explicit user sign-off before irreversible design and implementation work begins.
 
 ### Changed
 
-- **`agents/researcher.md`** — tool table expanded from 3 to 5 tools with explicit tier labels (1–4). Mandatory **Tool Selection Gate** added: must use `web_search_pullmd` (tier 1) before `web_research_pullmd` (tier 2) before `web_research` (tier 3). Escalation from tier 2 to tier 3 requires a concrete trigger (< 2 useful sources). pullmd MCP table updated to document `read_url` as a tier-4 alternative to `web_fetch`. Fallback chain rewritten to reflect the new order (pullmd SERP first, Playwright on escalation only).
+**Code review — 8 dimensions**
+- `code-reviewer.md`: anti-slop is now the 8th scored dimension (threshold ≥8, not 7). Progress Summary table, confidence loop table, Health Dashboard mirror, mode descriptions, and verdict rubric all updated to 8 dimensions.
+- All HANDOFF prompts across all modes updated from "7-dimension review" to "8-dimension review".
+
+**Phase 5 restructured as 5 rounds**
+- Round 1: Reviews fan-out (code, security, perf, UX — always parallel)
+- Round 2: Fix-Verify loop (up to 3 iterations with remediation + targeted re-verify)
+- Round 3: Audit fan-out (tech-debt + coverage + container — parallel-safe with Round 2)
+- Round 4: Release gate via `run-coverage-loop.sh phase-5` (must exit 0)
+- Round 5: Release via `git-expert --release`
+
+**Parallel execution — improve-mode**
+- `sdlc-improve-mode.md` Step 2: `[S]equential / [P]arallel` audit fan-out selection before specialist HANDOFFs (mirrors Phase 5 Round 1 pattern).
+
+**Git workflow**
+- `references/git-workflow-checklist.md`: SDLC Branch Topology section (complete branch map, decision table, merge strategy per type, commit cadence, draft-PR-first rule), Hotfix Flow section (13-step P0/security fix pattern, forward-merge, automatic PATCH release).
+- `agents/git-expert.md`: CI pipeline green added as explicit merge gate (alongside RUNTIME_*.md PASS); draft-PR-on-first-push rule; SDLC Branch Awareness quick-reference table.
+- Phase 4 Step 8: split into 8a (branch + push + draft PR immediately), 8b (atomic commits after coding-agent), 8c (merge gate after all conditions met).
+- `sdlc-feature-mode.md` Step 3.1: create draft PR on first push (not after code is done).
+
+**Git checkpoints everywhere**
+- Phase 3: 6 new checkpoints after each specialist gate (MODULE_DESIGN, DATABASE, API+OpenAPI, THREAT_MODEL, SECURITY_CONTROLS, INFRASTRUCTURE). Session crash no longer loses validated design artifacts.
+- Phase 5: checkpoints after Round 1 reviews, after each Fix-Verify iteration, after Round 3 audits. Review documents are now tracked in git on the feature branch.
+- Improve-mode: checkpoints after each audit, after backlog synthesis, after each item fix+verify.
+- Onboard-mode: 2 intermediate checkpoints (steps 1-2, steps 3-4) before the final PR commit.
+
+**UC-level test traceability**
+- `validate-requirements-matrix.sh`: new validator checks REQUIREMENTS_MATRIX.md coverage.
+- `validate-tests-mapping.sh`: extended with jest/vitest/pytest JSON parsing for per-UC PASS/FAIL verdicts.
+- Test-engineer HANDOFF: `describe("UC-NNN: <name>")` and `it("AC-N: <criterion>")` naming convention enforced.
+
+**Playwright E2E infrastructure**
+- `test-engineer.md`: full Playwright infrastructure section — `playwright.config.ts` template (JSON reporter, retries, screenshot, storageState auth project), `auth.setup.ts`, Page Object Model base class, `test.extend()` custom fixtures with auto-cleanup, `global-setup.ts` DB reset, GitHub Actions/Gitea CI workflow, sharding, soft assertions, network mocking, Cypress equivalent patterns.
+- `validate-e2e-setup.sh`: gates that playwright.config.ts has JSON reporter (required for UC-level verdicts), auth fixture, POM directory, CI E2E step.
+- Phase 4 test-strategy HANDOFF: requires E2E infrastructure files as deliverables (not just TEST_STRATEGY.md).
+- `validate-test-design.sh`: requires `## Test Infrastructure` section with framework, JSON reporter path, auth strategy.
+
+**Canonical rules — six**
+- `BOUNDED_TASK_CONTRACT.md`: "five canonical rules" updated to "six canonical rules" throughout all agent files and HANDOFF_TEMPLATES.md. Rule 6 (Pre-Completion Self-Check) is now properly counted.
+
+### Phase gate changes
+
+| Gate | New validators added |
+|------|---------------------|
+| phase-2 | `validate-requirements-matrix.sh` |
+| phase-3 | `validate-module-design.sh`, `validate-infrastructure.sh`, `validate-security-controls.sh`, `validate-ux-spec.sh` (UI-bearing) |
+| phase-3.5 | `validate-test-design.sh` (non-blocking) |
+| phase-4 | `validate-iac.sh`, `validate-module-boundaries.sh`, `validate-code-health.sh`, `validate-e2e-setup.sh`, `validate-design-system.sh` (UI-bearing) |
+| phase-5 | `validate-code-health.sh`, `validate-module-boundaries.sh`, `validate-release-readiness.sh` |
+
+---
+
+## [0.23.0] — 2026-05-04
+
+Tiered research architecture — researcher now uses a mandatory tool selection gate and a 4-tier fallback chain that starts with fast pullmd-backed tools and escalates to Playwright only when needed. Synced from playwright-search v0.2.0 and claude-experts v0.18.0.
+
+### Changed
+
+- **`agents/researcher.md`** — tool table expanded from 3 to 5 tools with explicit tier labels (1–4). Mandatory **Tool Selection Gate** added: must use `playwright-search_web_search_pullmd` (tier 1) before `playwright-search_web_research_pullmd` (tier 2) before `playwright-search_web_research` (tier 3). Escalation trigger from tier 2 to tier 3 is explicit: < 2 useful sources returned. Fallback chain rewritten to reflect the new order (pullmd SERP first, Playwright on escalation only). Standard and escalation pattern examples updated.
 
 ### Tier order (mandatory)
 
 | Tier | Tool | Trigger to escalate |
 |------|------|---------------------|
-| 1 | `web_search_pullmd` | Always start here |
-| 2 | `web_research_pullmd` | When full content needed |
-| 3 | `web_research` | Tier 2 returned < 2 useful sources |
-| 4 | `web_fetch` / `web_search` | Single known URL or pullmd SERP unavailable |
+| 1 | `playwright-search_web_search_pullmd` | Always start here |
+| 2 | `playwright-search_web_research_pullmd` | When full content needed |
+| 3 | `playwright-search_web_research` | Tier 2 returned < 2 useful sources |
+| 4 | `playwright-search_web_fetch` | Single known URL |
+
+## [0.22.0] — 2026-05-04
+
+Wave E of the audit remediation — template extraction. Conservative size reduction by extracting two large embedded templates (the ARCHITECTURE.md template from sdlc-init-mode and the OWASP_TRACKER template from security-auditor) into their own files in `agents/templates/`. Mode files reference the templates by path instead of inlining 100+ line markdown blocks.
+
+### Added
+
+- **`agents/templates/ARCHITECTURE_template.md`** (~115 lines) — the canonical ARCHITECTURE.md template with all 6 mandatory diagram types as Mermaid blocks. Was inline in `sdlc-init-mode.md` Phase 3.
+- **`agents/templates/OWASP_TRACKER_template.md`** (~332 lines) — the canonical OWASP audit tracker (10 categories + Semgrep Triage Summary + Pass Progress + Attack Chain Analysis + Final Gate). Was inline in `security-auditor.md` initialization.
+
+### Changed
+
+- **`agents/sdlc-init-mode.md`** — 1868 → 1765 lines (~103 lines saved). Phase 3 now references the template via "read `agents/templates/ARCHITECTURE_template.md`" instead of inlining 117 lines of markdown.
+- **`agents/security-auditor.md`** — 2227 → 1900 lines (~327 lines saved). Tracker initialization now reads from the template file instead of inlining 332 lines of markdown.
+- **`install.sh`** — already copies `agents/` recursively, so `agents/templates/*` lands at `~/.config/opencode/agents/templates/*` automatically. No script change needed.
+
+### Why this matters and what was deferred
+
+The audit's Finding 4 identified that monolithic agent prompts cause attention degradation and exceed local-LLM effective context. Two largest offenders were `sdlc-init-mode.md` (1868) and `security-auditor.md` (2227). Extracting embedded template blocks (which the agent reads, then COPIES into deliverables) is a safe size reduction — the templates aren't behavioral instructions, they're document scaffolds.
+
+**Deferred to a future wave:** full per-phase split of `sdlc-init-mode.md` (Phase 0 / 1 / 2 / 3 / 4 / 5 each in its own file with a thin router). That work requires careful end-to-end testing on a sandbox project and changes to how sdlc-lead loads the right phase based on `docs/work/sdlc-state.md`. The conservative template-extraction approach in this wave delivers ~440 lines of immediate savings without regression risk; the deeper restructure can be tackled separately when a sandbox project is ready for E2E validation.
+
+## [0.21.0] — 2026-05-04
+
+Wave D of the audit remediation — default-onboard Ralph. The default `/sdlc onboard` (no flag) now includes a lightweight inventory pass that catches the two highest-value coverage gaps — undocumented routes and undocumented tables — without going to the full 45–90 min Ralph Wiggum 5-category loop. Three depth levels are now distinct:
+
+| Flag | Inventory categories | Time | Use case |
+|------|----------------------|------|----------|
+| `--quick` | none (7-step only) | ~10–15 min | Quick exploratory orientation |
+| (default) | ROUTE + TABLE | ~25–35 min | Standard onboard — default for most users |
+| `--deep` | ROUTE / TABLE / SERVICE / FLOW / ENTRY | ~45–90 min | Contract bid / due diligence / security takeover |
+
+### Changed
+
+- **`agents/sdlc-onboard-mode.md`** — added a "Three depth levels" table at the top, plus a new "Lightweight Inventory" section between the 7-step flow and the existing Ralph Wiggum Deep Mode section. The lightweight section issues ONE HANDOFF to researcher to enumerate ROUTE + TABLE rows only, then runs `run-coverage-loop.sh onboard-deep` (the existing onboard-deep validator chain — SERVICE/FLOW/ENTRY validators warn-skip when no rows of those types exist).
+- **`commands/sdlc-onboard.md`** — help text rewritten to document all three flags clearly. Default behavior is now described as the standard onboard (was: alias for `--quick`).
+
+### Why this matters
+
+The audit's Finding 2 noted that Ralph was opt-in only — default `/sdlc onboard` ran 7 steps once with no inventory verification. Users reported that "ralph wiggum and such are always being run" was the desired default. This wave bridges quick (no inventory) and deep (full inventory) with a sensible middle that catches the most common gaps in 25–35 min instead of 45–90.
+
+`--quick` is preserved for users who want the original minimal flow.
+
+## [0.20.0] — 2026-05-04
+
+Wave C of the audit remediation — universal Ralph Wiggum coverage loop. The 3-iteration validator-loop with escalation is no longer reserved for `--deep` modes. Every phase gate in every mode now iterates to coverage, with explicit escalation when 3 iterations don't close the gap list.
+
+### Added
+
+- **`scripts/validators/run-coverage-loop.sh`** — wrapper around `validate-phase-gate.sh` with iteration tracking and escalation. Reads/writes `docs/work/COVERAGE_LOOP_<phase>_<date>.md` (markdown table of iteration → gap count → status). Exit codes:
+  - `0` = clean (advance to next phase)
+  - `1` = gaps remain, iteration < 3 (orchestrator emits one gap-fill HANDOFF per uncovered row, re-runs)
+  - `2` = 3 iterations exhausted (orchestrator emits the escalation block from `RALPH_WIGGUM_LOOP.md`)
+- **Two-Track Gate System** documented in `agents/sdlc-lead.md`. Replaces the old "Confidence-based gates" section.
+  - **Track 1 (objective)** — coverage loop for any artifact a validator can check. Default for everything except narrative.
+  - **Track 2 (subjective)** — confidence 1-10 self-rating for narratives only (VISION, summaries, research reports). Used sparingly; if a validator could be written, write the validator.
+
+### Changed
+
+- **`agents/shared/RALPH_WIGGUM_LOOP.md`** — promoted from "deep-mode-only protocol" to "universal coverage-loop spec." Header now lists every mode that uses the loop (init Phase 3 + 4, onboard default + deep, feature Step 5, improve audit-coverage matrix, security default + deep).
+- **`agents/sdlc-init-mode.md`** —
+  - Phase 0 gate language clarified to call out Track 2 (narrative confidence loop) for VISION + COMPETITIVE_ANALYSIS.
+  - Phase 4 Round 3 gate now calls `run-coverage-loop.sh phase-4` (was: `validate-phase-gate.sh phase-4`). Iteration + escalation handled by the wrapper.
+
+### Why this matters
+
+The audit's Finding 6 sub-issue: "Validators report gaps once; nothing forces re-iteration outside `--deep`." The orchestrator was making subjective "is this good enough?" calls when validators had already returned objective gap lists. The universal loop closes that judgment gap.
+
+Now every mode that has validatable deliverables iterates until clean OR escalates after 3 tries. The escalation block forces a deliberate user choice (waive / lower bar / change specialist / fill manually) instead of letting work drift to "DONE" with gaps still open.
+
+## [0.19.0] — 2026-05-04
+
+Wave B+ of the audit remediation — completeness gates. Nine new validators close the missing coverage dimensions identified in the audit. Every "all X are documented" check is now enforceable by script.
+
+### Added
+
+- **`scripts/validators/validate-c3-coverage.sh`** — every top-level `src/` (or `app/`, `server/`, `internal/`, `pkg/`, `packages/`, `services/`, `modules/`) subdirectory must appear in the C3 component diagram in `ARCHITECTURE.md` or `docs/diagrams/c3-components.md`.
+- **`scripts/validators/validate-entry-points.sh`** — enumerates entry points from source: `package.json` `bin`/`main`/`scripts.start`, `__main__.py` files, Go `main.go` files, Rust `src/main.rs` and `src/bin/*.rs`, common server entry files. Each must be referenced in `ONBOARDING.md`, `docs/diagrams/entry-points.md`, or `ARCHITECTURE.md`.
+- **`scripts/validators/validate-use-cases.sh`** — parses `USE_CASES.md` and verifies each row (table-form OR section-form) has non-empty Persona, Trigger, Main Flow, Success Criteria, and a valid Priority (P0/P1/P2). Catches stub rows.
+- **`scripts/validators/validate-user-stories.sh`** — every story in `USER_STORIES.md` must have acceptance criteria (Given/When/Then OR ≥3 numbered steps OR explicit "Acceptance Criteria" heading). Cross-checks: every persona in `USER_PERSONAS.md` has at least one story.
+- **`scripts/validators/validate-tech-stack.sh`** — reads dependencies from `package.json` (deps + devDeps + peerDeps), `pyproject.toml`, `requirements.txt`, `Cargo.toml`, `go.mod` (direct only). Every direct dep must appear in `TECH_STACK.md`.
+- **`scripts/validators/validate-tests-mapping.sh`** — bidirectional UC ↔ test coverage. Forward: every P0/P1 use case in `USE_CASES.md` must have a test file referencing its UC-NN ID (in filename or content). Reverse: warns on test files that don't reference any UC-ID.
+- **`scripts/validators/validate-fix-backlog-closed.sh`** — before phase-5 release, every CRITICAL or HIGH row in any `FIX_BACKLOG_*.md` must have status `VERIFIED`, `FIXED`, `RESOLVED`, `CLOSED`, `WAIVED`, or `WAIVED-WITH-JUSTIFICATION`. Open statuses (`OPEN`, `PENDING`, `IN-PROGRESS`, `REOPENED`, `NEW`, `TODO`) fail the gate. Waived rows must have a non-empty justification.
+- **`scripts/validators/validate-adrs.sh`** — every `ADR-NNN` reference in `ARCHITECTURE.md` or `DECISION_LOG.md` must have a corresponding `docs/adrs/ADR-NNN-*.md` file with a recognized status (`proposed`, `accepted`, `deprecated`, `superseded`, `rejected`).
+- **`scripts/validators/validate-migrations.sh`** — every migration file in `migrations/`, `prisma/migrations/`, `db/migrations/`, `alembic/versions/`, or `src/migrations/` must be referenced (by basename) in `docs/DATABASE.md` or `docs/MIGRATIONS.md`.
+
+### Changed
+
+- **`scripts/validators/validate-phase-gate.sh`** — completeness validators wired into the appropriate phases:
+  - `phase-2` adds: `validate-use-cases.sh`, `validate-user-stories.sh`
+  - `phase-3` adds: `validate-c3-coverage.sh`, `validate-entry-points.sh`, `validate-tech-stack.sh`, `validate-adrs.sh`
+  - `phase-4` adds: `validate-tests-mapping.sh`, `validate-migrations.sh`
+  - `phase-5` adds: `validate-fix-backlog-closed.sh`
+- **`agents/shared/RALPH_WIGGUM_LOOP.md`** — expanded the validator catalog table to list all 17 validators (architecture, coverage, completeness, operational) so mode authors can pick the right one.
+
+### Why this matters
+
+The audit's Finding 6 identified that completeness checking existed but was partial. Six high-value coverage dimensions had no validator: C3 components, entry points, use case structure, user-story acceptance criteria, tech-stack ↔ deps, ADR existence, and migration-doc consistency. Plus two phase-5 gaps: fix-backlog closure, tests ↔ use-case mapping.
+
+All nine are now scripts. Each enumerates the source-of-truth (manifest file, source dir, or source-doc) and verifies every item has its corresponding artifact. No subjective confidence score; either every item has an entry or it does not.
+
+Combined with the universal Ralph loop in Wave C, validators that find gaps will trigger automatic gap-fill HANDOFFs (capped at 3 iterations) instead of waiting for orchestrator judgment.
+
+## [0.18.0] — 2026-05-04
+
+Wave B of the audit remediation — operational gates. Phase-4 and phase-5 release gates no longer trust agent self-report. Five new validators auto-detect the project's stack (node / python / rust / go) and actually EXECUTE the build, lint, typecheck, test, smoke, and dependency-audit steps. Every gate produces a `docs/reviews/RUNTIME_<kind>_<date>.md` report with verdict and tail output.
+
+### Added
+
+- **`scripts/validators/validate-build.sh`** — runs the project's build command (npm run build / python -m build / cargo build / go build), captures exit code + tail output. Override via `.sdlc/sdlc.json` "build" key.
+- **`scripts/validators/validate-tests.sh`** — runs the test suite, parses pass/fail counts where the runner format is recognizable (vitest, jest, pytest, cargo test, go test). Tests are mandatory — missing test config is a gap.
+- **`scripts/validators/validate-lint.sh`** — runs lint AND typecheck, both must exit clean. Tool-specific config-file checks (tsc requires tsconfig.json, eslint requires eslint config, mypy requires mypy.ini or pyproject.toml). Missing config = warn + skip; configured + broken = gap.
+- **`scripts/validators/validate-smoke.sh`** — boots the server in background, waits for `wait_url` to respond, hits configured routes, asserts 200/204. Requires `.sdlc/sdlc.json` "smoke" config; skips clean if absent.
+- **`scripts/validators/validate-deps.sh`** — runs `npm audit` / `pip-audit` / `cargo audit` / `govulncheck`, counts high+critical advisories, subtracts waivers from `.sdlc/deps-waivers.txt`. Fails on any unwaived high/critical.
+- **`scripts/validators/_lib_sdlc_config.sh`** — shared helpers: stack detection, `.sdlc/sdlc.json` reader (supports jq, python3, sed fallback), `command_runnable()` with prerequisite checks (tsc → tsconfig.json, eslint → eslint config, etc.), `write_runtime_report()`.
+- **`.sdlc/sdlc.json` schema documentation** in `docs/SDLC_GUIDE.md` with per-stack defaults table, smoke config example, and waivers explanation.
+
+### Changed
+
+- **`scripts/validators/validate-phase-gate.sh`** —
+  - phase-4 gate now chains `validate-build.sh + validate-lint.sh + validate-tests.sh` (was: empty, "handled inline").
+  - phase-5 gate now chains all 5 operational validators in addition to the existing FIX_BACKLOG / review-verdict / RUNTIME doc checks.
+- **`agents/sdlc-feature-mode.md`** — Step 5 runtime gate now documents the validator scripts directly. Coding-agent is still used for feature-specific smoke (happy path of the feature + 1-2 regression paths) but build/lint/test/deps are run by validator scripts, not by agent self-report.
+- **`agents/sdlc-init-mode.md`** — Phase 4 Round 3 gate adds explicit `validate-phase-gate.sh phase-4` invocation as the operational backstop. Per-module `RUNTIME_<module>_<date>.md` agent reports remain (for feature-specific assertions) but the orchestrator no longer accepts them as the sole evidence.
+
+### Why this matters
+
+The audit found that phase-5 release gate was performative: it grepped for the literal string "PASS" in agent-written `RUNTIME_*.md` files. An agent could write `verdict: PASS` without ever running anything, and the gate would exit 0. Five new validators replace the grep-for-PASS with actual exit-code checks. A green release gate now means the system actually built, linted, typechecked, tested, smoked, and audited dependencies — not that someone wrote PASS in markdown.
+
+Graceful skipping ensures the validators don't break projects that don't have every tool configured. Each validator checks both "is the command configured" and "are its prerequisites met" (e.g., `tsc` needs `tsconfig.json`). Missing configuration warns and skips clean; broken configuration gaps and fails. Tests are the one mandatory step.
 
 ## [0.17.0] — 2026-05-04
 
-Audit remediation sync from bpm-opencode-experts v0.17.0–v0.22.0. Fixes ASCII-chart leakage, adds operational gates that actually execute, 9 completeness validators, universal Ralph coverage loop, three-tier onboard depth levels, and template extraction. Full audit report: `docs/AUDIT_2026-05-04.md` in bpm-opencode-experts.
+Document hygiene + Wave A of the audit remediation. SDLC mode files no longer use Unicode box-drawing banners as visual separators around HANDOFF blocks — those banners were leaking into deliverables generated by smaller models (verified: `docs/USERGUIDE.md` already had stray banners; `docs/AGENT_PROCESS_FLOW.md` was 419 lines of ASCII tree art). All deliverable docs are now Mermaid-only; a new `validate-no-ascii-art.sh` enforces the rule across every `docs/*.md` and is wired into the phase-3 and onboard-deep gates.
 
 ### Added
 
-- **`scripts/validators/validate-no-ascii-art.sh`** — boxes-drawing + ASCII banner detector; wired into phase-3 + onboard-deep gates.
-- **`scripts/validators/validate-build.sh / validate-tests.sh / validate-lint.sh / validate-smoke.sh / validate-deps.sh`** — 5 operational validators that actually EXECUTE the project's build, tests, lint, smoke, and dependency-audit. Phase-4 and phase-5 gates now run real tools instead of grepping agent-written "PASS" claims.
-- **`scripts/validators/_lib_sdlc_config.sh`** — shared stack-detection, command-runnable checks, `.sdlc/sdlc.json` reader.
-- **`scripts/validators/validate-c3-coverage.sh`** — every `src/` subdir appears in C3 component diagram.
-- **`scripts/validators/validate-entry-points.sh`** — every entry point (server startup, CLI, worker) is documented.
-- **`scripts/validators/validate-use-cases.sh`** — every use-case row has all required fields + valid priority.
-- **`scripts/validators/validate-user-stories.sh`** — every story has acceptance criteria; every persona has a story.
-- **`scripts/validators/validate-tech-stack.sh`** — every direct dependency appears in TECH_STACK.md.
-- **`scripts/validators/validate-tests-mapping.sh`** — every P0/P1 use case has a test referencing it.
-- **`scripts/validators/validate-fix-backlog-closed.sh`** — all CRITICAL/HIGH findings closed before phase-5 release.
-- **`scripts/validators/validate-adrs.sh`** — every ADR reference has a file with status.
-- **`scripts/validators/validate-migrations.sh`** — every migration is referenced in DATABASE.md.
-- **`scripts/validators/run-coverage-loop.sh`** — universal Ralph Wiggum wrapper: tracks iterations, exits 0/1/2 (clean / iterate / escalate).
-- **`agents/templates/ARCHITECTURE_template.md`** + **`agents/templates/OWASP_TRACKER_template.md`** — extracted from monolithic agent prompts.
+- **`scripts/validators/validate-no-ascii-art.sh`** — scans markdown for Unicode box-drawing characters (`═`, `║`, `┌`, `└`, `─`, `┐`, `┘`, `╔`, `╗`, `╚`, `╝`, `╠`, `╣`, `╦`, `╩`, `╬`, `┏`, `┓`, `┗`, `┛`, `━`, `┃`, `├`, `┤`, `┬`, `┴`, `┼`, etc.) and 40+ char `=` banner lines. Skips Mermaid blocks. Excludes `AUDIT_*.md` (which intentionally references the patterns it bans). Wired into `validate-phase-gate.sh` for `phase-3` and `onboard-deep`.
+- **`docs/AUDIT_2026-05-04.md`** — full audit report covering 6 findings (ASCII leakage, Ralph opt-in, performative gates, prompt bloat, code-review verification, completeness gaps).
+- **`TODO.md`** — actionable wave plan tracking remediation across A → E.
+- **Document hygiene section** in all four SDLC mode files (`sdlc-init-mode.md`, `sdlc-onboard-mode.md`, `sdlc-feature-mode.md`, `sdlc-improve-mode.md`) and `sdlc-lead.md`. Standard rule: "ALL diagrams MUST use Mermaid syntax — NEVER ASCII art or Unicode box-drawing characters."
 
 ### Changed
 
-- **All 4 SDLC mode files + sdlc-lead.md** — Unicode/ASCII banner separators replaced with `---`; Document Hygiene rule added.
-- **`agents/shared/RALPH_WIGGUM_LOOP.md`** — promoted to universal-loop spec (was deep-mode-only). Validator catalog table added (17 validators).
-- **`agents/sdlc-lead.md`** — "Confidence-based gates" replaced with Two-Track Gate System: Track 1 (coverage loop, objective), Track 2 (confidence score, narrative-only).
-- **`agents/sdlc-onboard-mode.md`** — Three depth levels: `--quick` (minimal), default (7-step + lightweight ROUTE/TABLE inventory), `--deep` (full Ralph 5-category). Lightweight Inventory section added.
-- **`agents/sdlc-init-mode.md`** — Phase 0 gate uses Track 2 (narrative); Phase 4 Round 3 gate calls `run-coverage-loop.sh phase-4`.
-- **`scripts/validators/validate-phase-gate.sh`** — all 9 completeness validators + 5 operational validators wired into appropriate phases.
-- **`agents/security-auditor.md`** and **`agents/sdlc-init-mode.md`** — embedded templates replaced with references to `agents/templates/`.
+- **`agents/sdlc-init-mode.md`** — 81 Unicode `═══` banner separators replaced with `---`.
+- **`agents/sdlc-onboard-mode.md`** — 33 Unicode + ASCII banners replaced.
+- **`agents/sdlc-feature-mode.md`** — 18 banners replaced.
+- **`agents/sdlc-improve-mode.md`** — 36 banners replaced.
+- **`agents/shared/SCOPE_BOUNDARY.md`** — 3 banners replaced.
+- **`agents/shared/HANDOFF_TEMPLATES.md`** — 12 ASCII `===` banners replaced with `---` to align with the new convention. Templates remain functionally identical.
+- **`agents/shared/RALPH_WIGGUM_LOOP.md`** + **`agents/shared/FIX_VERIFY_LOOP.md`** — 3 banners each replaced.
+- **`docs/USERGUIDE.md`** — 3 banners replaced (already-leaked instance).
+- **`docs/AGENT_PROCESS_FLOW.md`** — full rewrite of all ASCII tree diagrams as Mermaid `flowchart TD` blocks. Mode 1 phases 0-5, Mode 3, Mode 4, and the Ralph Wiggum loop are all Mermaid now. 419 lines → ~250 lines, more readable, renderable in any markdown viewer.
+
+### Why this matters
+
+Local LLMs (Qwen3-coder, Gemma-3-27b) imitate in-prompt visual style. When a mode file surrounds every HANDOFF with `═══...═══` banner separators, the model treats banners as the project's style — and copies them into deliverables like `ARCHITECTURE.md`, `HEALTH_ASSESSMENT.md`, and `USE_CASES.md`. The audit found 192 banner lines across agent prompts AND already-leaked banners in `docs/USERGUIDE.md` (the repo's own user-facing documentation). Removing the in-prompt examples is the load-bearing fix; the validator prevents recurrence.
+
+The canonical `validate-architecture.sh` enforces real Mermaid fences but only on `ARCHITECTURE.md`. The new `validate-no-ascii-art.sh` generalizes that backstop to every deliverable.
 
 ## [0.16.0] — 2026-04-27
 
-Research-tooling additions + universal loop-prevention, synced from bpm-opencode-experts 0.16.0. Native `WebSearch` / `WebFetch` remain Claude Code's defaults — these additions are an opt-in alternative when you want multi-engine, paragraph-ranked, locally-cached research, plus universal hard caps on tool-call budgets.
+Research-tooling overhaul + universal loop-prevention. The legacy DDG-only `web-search.ts` / `web-fetch.ts` tools are deleted in favor of the new **playwright-search MCP** (auto-installed by `install.sh`), giving every agent in the project free, multi-engine web research with paragraph-level relevance ranking. Use-case testing surfaced three distinct loop classes that were causing real failures with local LLMs (LM Studio + Qwen3-coder); all three are now blocked by a shared `LOOP_PREVENTION.md` referenced from every agent prompt.
 
 ### Added
 
-- **`agents/shared/LOOP_PREVENTION.md`** — single source of truth for loop-prevention. Three failure classes covered:
+- **`agents/shared/LOOP_PREVENTION.md`** — single source of truth for loop-prevention rules. Covers three failure classes:
   - **Failure loop** — same tool error 3+ times → 3-strikes STOP
-  - **Schema-validation loop** — model emits malformed tool args, gets schema error, retries identical broken call → never retry; switch tool or surface to user
-  - **Success loop** — every call succeeds but model never stops → hard caps: 15 total / 4 per work-unit / 1 per URL / diminishing-returns
-  - Universal STOP triggers + required template for surfacing partial results.
-- **`agents/shared/RESEARCH_TOOLS.md`** — when the playwright-search MCP is registered, this doc tells agents how + when to use `web_research` / `web_search` / `web_fetch` and how they relate to native `WebSearch` / `WebFetch`.
-- **playwright-search MCP auto-install in `install.sh`** — clones to `~/.local/share/playwright-search`, builds, runs `claude mcp add` (or prints the manual command if the CLI isn't on PATH). Skip with `--no-playwright-search`.
-- **`agents/shared/` is now installed** — `install.sh` Step 3b symlinks every `agents/shared/*.md` to `~/.claude/agents/shared/`. Previously the `shared/` subdirectory wasn't installed at all, so agents couldn't `Read` the contracts they referenced.
-- **Iterative-loop research workflow** in `agents/researcher.md` — explicit pass-1-broad / pass-2+-refined with "Learned so far / Still missing" ledger between passes; question-completion gate before synthesis; report template requires `#### Qn:` subsections.
-- **Cross-agent loop-prevention reference** — 17 agent prompts now include a `## Loop prevention (MANDATORY)` section pointing at the shared file. Skipped: `researcher.md` (already has detailed inline rules).
+  - **Schema-validation loop** — model emits malformed tool args (e.g. `glob({pattern: undefined})`), gets a Zod error, retries identical broken call → never retry the same broken call; switch tool or surface
+  - **Success loop** — every call succeeds but the model never stops fetching (re-fetches same URLs, keeps wanting "one more source") → hard caps: 15 total / 4 per work-unit / 1 per URL / diminishing-returns check
+  - Universal STOP triggers + a required template for surfacing partial results to the user. Every agent must apply these.
+- **`agents/shared/RESEARCH_TOOLS.md`** — single-source reference doc agents Read at runtime. Documents the playwright-search MCP tool surface, per-agent when-to-use guidance, query tips.
+- **playwright-search MCP auto-install in `install.sh`** — clones from GitHub to `~/.local/share/playwright-search` (override via `PLAYWRIGHT_SEARCH_DIR`), runs `npm install && npm run build`, merges the MCP into `opencode.json` via `jq`. Skip with `--no-playwright-search`. Idempotent.
+- **Iterative-loop research workflow** in `agents/researcher.md` — explicit pass-1-broad / pass-2+-refined pattern with a "Learned so far / Still missing" ledger between passes. New Step 2.5 question-completion gate blocks synthesis until every decomposed question reaches DONE; report template requires `#### Qn:` subsections per question.
+- **Cross-agent research surface** — `web_research / web_search / web_fetch` (via `playwright-search_*` MCP tool names) made available to and documented in 11 agents that benefit from web lookups before deciding: coding-agent, api-designer, security-auditor, db-architect, performance-engineer, container-ops, frontend-design, ux-engineer, sre-engineer, test-engineer, code-reviewer.
+
+### Removed
+
+- **`tools/web-search.ts` and `tools/web-fetch.ts`** — replaced by playwright-search MCP. The legacy tools were DDG-only with no captcha awareness, and their hyphenated names were being picked over the MCP-prefixed equivalents by smaller models. The replacements are multi-engine, captcha-aware, paragraph-ranked, and cached.
+- **`install.sh` playwright-npm install step** — previously installed `playwright` into the opencode node_modules for the deleted `web-fetch.ts`. `@playwright/cli` is still installed (for `tools/playwright-web.ts`).
 
 ### Changed
 
-- **`README.md`** — new "Install flags" table (`--no-playwright-search`), install location override (`PLAYWRIGHT_SEARCH_DIR=...`), and "What others need" subsection.
+- **`tools/CUSTOM_TOOLS_GUIDE.md`** — Web Research section rewritten to point at the MCP tools.
+- **`examples/opencode.json`** — adds the `playwright-search` MCP entry alongside `context7` and `mempalace`.
+- **`README.md`** — new "Install flags" table (`--no-playwright-search`, `PLAYWRIGHT_SEARCH_DIR=...`) and "What others need" subsection. Recipients get one-command install with the MCP wired in automatically.
 
 ## [0.15.0] — 2026-04-24
 
-Strict-refactor release, synced from bpm-opencode-experts 0.15.0. Replaces large monolithic prompts + manual enforcement with small targeted prompts + automated validators. sdlc-lead.md drops from 4986 lines to 386 (router only); modes and shared protocols live in their own files. Introduces the Ralph Wiggum inventory loop for exhaustive verification and the `--quick` / `--deep` depth flags for onboarding and security. Nine bash validators automate completeness checks plus a three-gate post-HANDOFF runner that proves every delegated task stayed in scope.
+Strict-refactor release. Replaces large monolithic prompts + manual enforcement with small targeted prompts + automated validators. sdlc-lead.md drops from 4986 lines to 386 (router only); modes and shared protocols live in their own files. Introduces the Ralph Wiggum inventory loop for exhaustive verification (inventory -> discover -> verify -> gap -> repeat, 3-iteration cap) and the `--quick` / `--deep` depth flags for onboarding and security. Nine bash validators automate completeness checks that previously required orchestrator judgment, plus a three-gate post-HANDOFF runner that proves every delegated task stayed in scope and produced a valid manifest.
 
 ### Added
 
-- **`scripts/validators/`** — nine bash validators + shared `_lib.sh` + `run-handoff-gates.sh`:
-  `validate-architecture.sh`, `validate-owasp.sh`, `validate-api-coverage.sh`, `validate-erd-coverage.sh`, `validate-sequence-coverage.sh`, `validate-inventory.sh`, `validate-scope.sh`, `validate-completion-manifest.sh`, `validate-phase-gate.sh`. Every validator emits JSON gap envelope + exits 0/1/2. Bash 3.2 compatible.
+- **`scripts/validators/`** — nine bash validators + shared `_lib.sh`:
+  - `validate-architecture.sh` — 6 diagram types, Mermaid syntax, HLA overview, no placeholders
+  - `validate-owasp.sh` — all 10 OWASP categories present, confidence >= 7, attack-chains.md present
+  - `validate-api-coverage.sh` — every route in source has a row in API_DESIGN.md AND openapi.yaml (Express/Fastify/Next app router/FastAPI/Flask/Go net-http detection)
+  - `validate-erd-coverage.sh` — every table/model in source has an ERD entry (Prisma/TypeORM/Sequelize/Knex/SQLAlchemy/Django/raw SQL detection)
+  - `validate-sequence-coverage.sh` — every P0 use case in USE_CASES.md has a sequence diagram
+  - `validate-inventory.sh` — every row in INVENTORY.md has a corresponding artifact
+  - `validate-scope.sh` — post-HANDOFF git-scope enforcement (`git status --porcelain` confined to assigned directories)
+  - `validate-completion-manifest.sh` — HANDOFF manifest schema + completion phrase
+  - `validate-phase-gate.sh` — orchestrator that chains the right validators for a given phase (phase-0..5, onboard-deep, security-deep)
+  - `run-handoff-gates.sh` — three-gate orchestrator (scope + manifest + coverage) with any-failure-aborts semantics
+  - Every validator emits a JSON envelope to stdout, a human-readable gap list to stderr, and exits 0 / 1 / 2. Bash 3.2 compatible (macOS default).
 
-- **`agents/shared/`** — canonical shared protocols: `BOUNDED_TASK_CONTRACT.md`, `HANDOFF_TEMPLATES.md`, `FIX_VERIFY_LOOP.md`, `RALPH_WIGGUM_LOOP.md`.
+- **`agents/shared/`** — canonical shared protocols:
+  - `BOUNDED_TASK_CONTRACT.md` (71 lines) — single source of truth for scope rules every specialist follows in Bounded Task Mode. Enables delete-duplicates-from-every-specialist follow-up.
+  - `HANDOFF_TEMPLATES.md` (201 lines) — canonical HANDOFF block templates (standard, remediation, re-verification, parallel-wave) + context-packet template + post-HANDOFF gate documentation.
+  - `FIX_VERIFY_LOOP.md` (152 lines) — canonical five-step pipeline (parallel fan-out -> FIX_BACKLOG -> remediation -> re-verification -> gate), severity matrix, merge gate, escalation block. Extracted from sdlc-lead.md.
+  - `RALPH_WIGGUM_LOOP.md` — canonical inventory-driven deep-verification loop reused by onboard-deep and security-deep.
 
-- **Four mode files** extracted from the sdlc-lead monolith: `sdlc-init-mode.md`, `sdlc-onboard-mode.md`, `sdlc-feature-mode.md`, `sdlc-improve-mode.md`.
+- **Four mode files** extracted from the sdlc-lead monolith:
+  - `agents/sdlc-init-mode.md` (1850 lines) — Mode 1 new project, Phases 0-5
+  - `agents/sdlc-onboard-mode.md` (823 lines) — Mode 2 onboard, 7-step + Ralph Wiggum deep section
+  - `agents/sdlc-feature-mode.md` (483 lines) — Mode 3 add feature
+  - `agents/sdlc-improve-mode.md` (890 lines) — Mode 4 audit & improve
 
-- **Ralph Wiggum Deep Mode for `/sdlc onboard --deep`** — step D1-D5 flow with inventory HANDOFF, parallel DISCOVER waves, validator-driven VERIFY, focused gap-fill, 3-iteration cap.
+- **Ralph Wiggum Deep Mode for `/sdlc onboard --deep`** — step D1-D5 flow appended to sdlc-onboard-mode.md with inventory producer HANDOFF, parallel DISCOVER waves per category, validator-driven VERIFY, focused one-row gap-fill HANDOFFs, and 3-iteration cap.
 
-- **Depth Modes for `/security`** — `--quick` (default) vs `--deep` (Ralph Wiggum over OWASP + semgrep rule files + iterative attack chains).
+- **Depth Modes for `/security`** — new Depth Modes section in security-auditor.md. `--quick` (default) runs phases 1-3 once; `--deep` runs the Ralph Wiggum loop over every OWASP category, every custom semgrep rule file, and iteratively over 9 attack-chain patterns until a full pass finds no new chains. Gate: `validate-phase-gate.sh security-deep` exit 0.
 
-- **Three new onboard sub-skills**: `/onboard-inventory`, `/onboard-verify`, `/onboard-gap-fill`.
+- **Three new onboard sub-skills** (thin triggers):
+  - `/onboard-inventory` — trigger for step D1
+  - `/onboard-verify` — trigger for step D3 (runs `validate-phase-gate.sh onboard-deep`)
+  - `/onboard-gap-fill` — trigger for step D4 (focused per-row HANDOFFs)
 
-- **Platform support block** in README.md and install.sh preflight refusing native Windows.
+- **Platform support block** in README.md and install.sh preflight refusing native Windows and pointing to WSL2.
 
 - **`docs/STRICT_REFACTOR_PLAN.md`** — durable record of the 5-wave plan.
 
 ### Changed
 
-- **`agents/sdlc-lead.md`: 4986 lines -> 386 lines.** Router + shared protocols only. Resume protocol step 2 calls `run-handoff-gates.sh`.
-- **`skills/gate/SKILL.md`** — now calls `validate-phase-gate.sh <phase>` for automated verdict; legacy confidence-loop flow retained for unvalidatable artifacts.
-- **`skills/security-audit/SKILL.md`** — adds `--quick` / `--deep` argument documentation.
-- **`skills/sdlc/SKILL.md`** — `/sdlc onboard` gets `--quick` / `--deep` flags.
+- **`agents/sdlc-lead.md`: 4986 lines -> 386 lines.** Router + shared protocols only. Modes extracted to `sdlc-<mode>-mode.md`. Resume protocol step 2 rewritten to call `run-handoff-gates.sh` with a HANDOFF-type -> coverage-validator mapping table. No behavioral regression — same flow, just delegated.
+
+- **`commands/sdlc-onboard.md`** — gains `--quick` / `--deep` flags with guidance on when to pick deep.
+
+- **`skills/gate/SKILL.md`** — rewritten from confidence-score self-evaluation to call `validate-phase-gate.sh <phase>`. Output is the validator's JSON gap list, not a subjective rating.
+
+- **`skills/security/SKILL.md`** — depth-flag matrix + guidance on when deep makes sense.
+
+- **Gate verdict mechanism** — every phase advance now blocked by `validate-phase-gate.sh <phase>` exit code. Confidence-score loops remain ONLY for artifacts validators cannot check (narratives, summaries, research reports).
 
 ### Fixed
 
-- **bash 3.2 parser bugs** in validator scripts (triple-backticks inside `[[ ]]` and double-quoted strings).
+- **bash 3.2 parser bugs** in validator scripts — triple-backticks inside `[[ ]]` comparisons and double-quoted strings mis-parse on macOS. Fix: bind to variables via `printf '%s' '...'` first. Also stripped em-dashes and box-drawing unicode from code bodies (kept in output via format strings).
 
 ---
 

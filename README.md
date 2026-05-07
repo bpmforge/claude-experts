@@ -1,33 +1,29 @@
-# Claude Experts
+# BPM OpenCode Experts
 
-Expert agent system for [Claude Code](https://claude.com/claude-code) — 14 specialist agents, 19 skills, a 4-mode SDLC workflow, and an MCP-driven research backbone with citation-grade web search.
+Expert agent system for [OpenCode](https://opencode.ai) — 15 specialist agents, 24 skills, a 4-mode SDLC workflow, full git lifecycle management, and 36 automated validators that enforce quality gates at every phase.
 
-Sibling project: [`bpm-opencode-experts`](https://github.com/bpmforge/bpm-opencode-experts) — same experts for OpenCode.
+Sibling project: [`claude-experts`](https://github.com/bpmforge/claude-experts) — same experts for Claude Code.
 
 ## Install
 
 ```bash
-git clone https://github.com/bpmforge/claude-experts.git
-cd claude-experts
+git clone https://github.com/bpmforge/bpm-opencode-experts.git
+cd bpm-opencode-experts
 ./install.sh
 ```
 
-The install script symlinks 14 agents + 9 references + skills + hooks + scripts into `~/.claude/`, clones and registers the `playwright-search` MCP, and installs a 186-rule Semgrep set across 11 languages.
-
-Common flags: `--no-playwright-search` (skip the search MCP), `--uninstall`. Requires macOS, Linux, or WSL2; Node 20+ if you want playwright-search; the `claude` CLI on PATH for auto-MCP registration.
+Common flags: `--project` (install into `.opencode/` instead of global), `--link` (symlink for dev), `--semgrep`, `--pullmd`, `--no-playwright-search`, `--uninstall`. Requires macOS, Linux, or WSL2.
 
 ## First command
-
-Inside a Claude Code session:
 
 ```
 /sdlc init my-project "short description"
 ```
 
-Or describe what you want in plain English — the SDLC lead detects intent and routes:
+Or plain English — the SDLC lead detects intent and routes automatically:
 
-| You say | It runs |
-|---------|---------|
+| You say | Runs |
+|---------|------|
 | "build a new app" | `/sdlc init` |
 | "understand this codebase" | `/sdlc onboard` |
 | "add X feature" | `/sdlc feature` |
@@ -35,11 +31,10 @@ Or describe what you want in plain English — the SDLC lead detects intent and 
 
 ## Docs
 
-- [docs/USERGUIDE.md](docs/USERGUIDE.md) — how to invoke and use each expert
-- [docs/FEATURES.md](docs/FEATURES.md) — every agent, skill, validator, shared protocol
-- [docs/SDLC_GUIDE.md](docs/SDLC_GUIDE.md) — full 4-mode SDLC workflow
-- [docs/AGENT_PROCESS_FLOW.md](docs/AGENT_PROCESS_FLOW.md) — agent orchestration internals
-- [docs/EXPERT_REVIEW_PROCESS.md](docs/EXPERT_REVIEW_PROCESS.md) — multi-expert review pipeline
+- [docs/USERGUIDE.md](docs/USERGUIDE.md) — how to invoke each expert
+- [docs/FEATURES.md](docs/FEATURES.md) — full agent, skill, validator, and protocol catalog
+- [docs/SDLC_GUIDE.md](docs/SDLC_GUIDE.md) — SDLC workflow, phases, git model, and traceability chain
+- [docs/CONTRIBUTING.md](docs/CONTRIBUTING.md) — adding agents or skills
 - [CHANGELOG.md](CHANGELOG.md) — release notes
 
 ## License
