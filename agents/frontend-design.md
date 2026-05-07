@@ -23,7 +23,7 @@ You have three modes:
 
 ## Loop prevention (MANDATORY)
 
-Before any tool-heavy work, read `~/.claude/agents/shared/LOOP_PREVENTION.md`. It defines hard caps and stop conditions for three loop classes that have caused real failures:
+Before any tool-heavy work, read `~/.config/opencode/agents/shared/LOOP_PREVENTION.md`. It defines hard caps and stop conditions for three loop classes that have caused real failures:
 
 1. **Failure loop** — same tool error 3+ times → STOP after 3 strikes
 2. **Schema-validation loop** — malformed tool args repeating → never retry the same broken call; switch tool or surface
@@ -39,7 +39,7 @@ Three web-research tools are registered project-wide via the `playwright-search`
 - `web_search(query, limit=10)` — titles + URLs + snippets only (triage)
 - `web_fetch(url, max_chars=8000, relevance_query?)` — clean article text via Mozilla Readability
 
-Read `~/.claude/agents/shared/RESEARCH_TOOLS.md` for the full surface, when-to-use guidance, and tips. Free, polite (rate-limited + robots.txt), 24h cached.
+Read `~/.config/opencode/agents/shared/RESEARCH_TOOLS.md` for the full surface, when-to-use guidance, and tips. Free, polite (rate-limited + robots.txt), 24h cached.
 
 ## What You Own vs What ux-engineer Owns
 
@@ -115,7 +115,7 @@ This mode exists because the orchestrator (sdlc-lead) is managing the sequence. 
 
 ## Strict Scope Rules (Bounded Task Mode)
 
-The five canonical rules live in `~/.claude/agents/shared/BOUNDED_TASK_CONTRACT.md`. Read that file and follow it. Summary:
+The five canonical rules live in `~/.config/opencode/agents/shared/BOUNDED_TASK_CONTRACT.md`. Read that file and follow it. Summary:
 
 1. **Write-scope isolation** — edit files only inside the HANDOFF's assigned directory (plus `docs/work/**`, `docs/reviews/**`)
 2. **No extra files** — produce only what PRODUCE names
@@ -131,7 +131,7 @@ The five canonical rules live in `~/.claude/agents/shared/BOUNDED_TASK_CONTRACT.
 
 Any gate failure returns your HANDOFF with REVISE status; re-run with the specific gap closed.
 
-**Findings flow:** this agent produces a review report. Findings flow into `docs/reviews/FIX_BACKLOG_<feature>_<date>.md` per the pipeline in `~/.claude/agents/shared/FIX_VERIFY_LOOP.md`. Do NOT apply fixes yourself — coding-agent handles remediation in a separate HANDOFF.
+**Findings flow:** this agent produces a review report. Findings flow into `docs/reviews/FIX_BACKLOG_<feature>_<date>.md` per the pipeline in `~/.config/opencode/agents/shared/FIX_VERIFY_LOOP.md`. Do NOT apply fixes yourself — coding-agent handles remediation in a separate HANDOFF.
 
 
 ## Completion Manifest (Mandatory for SDLC Handoffs)
@@ -153,6 +153,26 @@ Any gate failure returns your HANDOFF with REVISE status; re-run with the specif
 
 ## Ready for: [next agent or "SDLC lead resume"]
 ```
+
+## Pre-Completion Self-Check (MANDATORY — before printing completion phrase)
+
+Per Rule 6 of `agents/shared/BOUNDED_TASK_CONTRACT.md`:
+
+**Design system (Wave 0) deliverables:**
+- [ ] Token file exists at the correct location (tailwind.config.ts / src/styles/tokens.ts / theme.ts)
+- [ ] Color token names match STYLE_GUIDE.md color palette (not renamed or subset)
+- [ ] Typography tokens present (font family, size scale, weight)
+- [ ] Every component listed in UX_SPEC.md § Component Inventory has a corresponding file in src/components/ui/
+- [ ] Barrel export file exists (src/components/ui/index.ts or equivalent)
+- [ ] No hardcoded hex colors in component files (use token references only)
+- [ ] DESIGN_SYSTEM.md written with token inventory, naming conventions, usage examples
+- [ ] No `[TODO]`, `[TBD]`, or `PLACEHOLDER` anywhere
+
+**Run the validator:**
+```bash
+bash scripts/validators/validate-design-system.sh .
+```
+If gaps reported → fix → re-run until exit 0.
 
 ---
 

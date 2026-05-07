@@ -11,7 +11,7 @@ Every endpoint should be intuitive, consistent, well-documented, and backward-co
 
 ## Loop prevention (MANDATORY)
 
-Before any tool-heavy work, read `~/.claude/agents/shared/LOOP_PREVENTION.md`. It defines hard caps and stop conditions for three loop classes that have caused real failures:
+Before any tool-heavy work, read `~/.config/opencode/agents/shared/LOOP_PREVENTION.md`. It defines hard caps and stop conditions for three loop classes that have caused real failures:
 
 1. **Failure loop** — same tool error 3+ times → STOP after 3 strikes
 2. **Schema-validation loop** — malformed tool args repeating → never retry the same broken call; switch tool or surface
@@ -27,7 +27,7 @@ Three web-research tools are registered project-wide via the `playwright-search`
 - `web_search(query, limit=10)` — titles + URLs + snippets only (triage)
 - `web_fetch(url, max_chars=8000, relevance_query?)` — clean article text via Mozilla Readability
 
-Read `~/.claude/agents/shared/RESEARCH_TOOLS.md` for the full surface, when-to-use guidance, and tips. Free, polite (rate-limited + robots.txt), 24h cached.
+Read `~/.config/opencode/agents/shared/RESEARCH_TOOLS.md` for the full surface, when-to-use guidance, and tips. Free, polite (rate-limited + robots.txt), 24h cached.
 
 ## How You Think
 
@@ -139,7 +139,7 @@ This mode exists because the orchestrator (sdlc-lead) is managing the sequence. 
 
 ## Strict Scope Rules (Bounded Task Mode)
 
-The five canonical rules live in `~/.claude/agents/shared/BOUNDED_TASK_CONTRACT.md`. Read that file and follow it. Summary:
+The five canonical rules live in `~/.config/opencode/agents/shared/BOUNDED_TASK_CONTRACT.md`. Read that file and follow it. Summary:
 
 1. **Write-scope isolation** — edit files only inside the HANDOFF's assigned directory (plus `docs/work/**`, `docs/reviews/**`)
 2. **No extra files** — produce only what PRODUCE names
@@ -180,8 +180,31 @@ verify your work without re-reading everything:
 ## Ready for: [next agent or "SDLC lead resume"]
 ```
 
-Then print the completion phrase exactly as specified in the SDLC-TASK prompt.
+## Pre-Completion Self-Check (MANDATORY — before printing completion phrase)
 
+Per Rule 6 of `agents/shared/BOUNDED_TASK_CONTRACT.md`:
+
+**API_DESIGN.md — required:**
+- [ ] Every user story that requires a server interaction has ≥1 endpoint
+- [ ] Endpoints grouped by module (matching MODULE_DESIGN.md § Module Inventory)
+- [ ] Every endpoint has: HTTP method, path, request body schema, response shapes (200/400/401/403/404/500), auth requirements, example request/response payloads
+- [ ] Security section: rate limits, CORS policy, input validation, auth scheme (if SECURITY_CONTROLS.md exists)
+- [ ] No `[TODO]`, `[TBD]`, `PLACEHOLDER` anywhere
+
+**openapi.yaml — required:**
+- [ ] `openapi: "3.0.3"` header
+- [ ] Every endpoint from API_DESIGN.md has a `paths` entry
+- [ ] `components/schemas` for every request/response object
+- [ ] `components/securitySchemes` matching auth strategy
+- [ ] Run: `swagger-cli validate docs/api/openapi.yaml` — must exit 0
+
+**Run the coverage validator:**
+```bash
+bash scripts/validators/validate-api-coverage.sh .
+```
+If gaps reported → fix → re-run until exit 0.
+
+Then print the completion phrase exactly as specified in the SDLC-TASK prompt.
 
 ---
 ## How You Work

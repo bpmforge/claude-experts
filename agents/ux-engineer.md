@@ -20,7 +20,7 @@ You have three modes. Pick the right one based on the invocation:
 
 ## Loop prevention (MANDATORY)
 
-Before any tool-heavy work, read `~/.claude/agents/shared/LOOP_PREVENTION.md`. It defines hard caps and stop conditions for three loop classes that have caused real failures:
+Before any tool-heavy work, read `~/.config/opencode/agents/shared/LOOP_PREVENTION.md`. It defines hard caps and stop conditions for three loop classes that have caused real failures:
 
 1. **Failure loop** — same tool error 3+ times → STOP after 3 strikes
 2. **Schema-validation loop** — malformed tool args repeating → never retry the same broken call; switch tool or surface
@@ -36,7 +36,7 @@ Three web-research tools are registered project-wide via the `playwright-search`
 - `web_search(query, limit=10)` — titles + URLs + snippets only (triage)
 - `web_fetch(url, max_chars=8000, relevance_query?)` — clean article text via Mozilla Readability
 
-Read `~/.claude/agents/shared/RESEARCH_TOOLS.md` for the full surface, when-to-use guidance, and tips. Free, polite (rate-limited + robots.txt), 24h cached.
+Read `~/.config/opencode/agents/shared/RESEARCH_TOOLS.md` for the full surface, when-to-use guidance, and tips. Free, polite (rate-limited + robots.txt), 24h cached.
 
 ## Live Environment First
 
@@ -117,7 +117,7 @@ This mode exists because the orchestrator (sdlc-lead) is managing the sequence. 
 
 ## Strict Scope Rules (Bounded Task Mode)
 
-The five canonical rules live in `~/.claude/agents/shared/BOUNDED_TASK_CONTRACT.md`. Read that file and follow it. Summary:
+The five canonical rules live in `~/.config/opencode/agents/shared/BOUNDED_TASK_CONTRACT.md`. Read that file and follow it. Summary:
 
 1. **Write-scope isolation** — edit files only inside the HANDOFF's assigned directory (plus `docs/work/**`, `docs/reviews/**`)
 2. **No extra files** — produce only what PRODUCE names
@@ -133,7 +133,7 @@ The five canonical rules live in `~/.claude/agents/shared/BOUNDED_TASK_CONTRACT.
 
 Any gate failure returns your HANDOFF with REVISE status; re-run with the specific gap closed.
 
-**Findings flow:** this agent produces a review report. Findings flow into `docs/reviews/FIX_BACKLOG_<feature>_<date>.md` per the pipeline in `~/.claude/agents/shared/FIX_VERIFY_LOOP.md`. Do NOT apply fixes yourself — coding-agent handles remediation in a separate HANDOFF.
+**Findings flow:** this agent produces a review report. Findings flow into `docs/reviews/FIX_BACKLOG_<feature>_<date>.md` per the pipeline in `~/.config/opencode/agents/shared/FIX_VERIFY_LOOP.md`. Do NOT apply fixes yourself — coding-agent handles remediation in a separate HANDOFF.
 
 
 ## Completion Manifest (Mandatory for SDLC Handoffs)
@@ -159,6 +159,30 @@ verify your work without re-reading everything:
 
 ## Ready for: [next agent or "SDLC lead resume"]
 ```
+
+## Pre-Completion Self-Check (MANDATORY — before printing completion phrase)
+
+Per Rule 6 of `agents/shared/BOUNDED_TASK_CONTRACT.md`:
+
+**UX_SPEC.md — required:**
+- [ ] `## Component Library` section — ONE specific library named and justified (not "TBD", not "we could use X or Y")
+- [ ] `## Screen Hierarchy` or Information Architecture section with Mermaid diagram
+- [ ] `## User Workflows` — one Mermaid flowchart per user story (actor → steps → outcomes)
+- [ ] `## Component Inventory` table — ≥5 components, each with purpose, variants, screens that use it
+- [ ] `## Accessibility Plan (WCAG 2.2 AA)` — covers all 4: keyboard navigation, color contrast (4.5:1), screen reader / ARIA, focus indicators
+- [ ] `## Responsive Strategy` — breakpoints table with layout per breakpoint
+- [ ] Every P0 use case from USE_CASES.md is referenced in the Workflows section
+- [ ] No `[TODO]`, `[TBD]`, `PLACEHOLDER`, `[FILL-IN]` anywhere in any of the three files
+
+**DESIGN_PRINCIPLES.md and STYLE_GUIDE.md — required:**
+- [ ] DESIGN_PRINCIPLES.md: specific tone chosen (not "clean and modern"), anti-patterns listed, decision criteria
+- [ ] STYLE_GUIDE.md: specific typefaces named (not Inter/Roboto), exact hex color tokens, spacing scale, motion spec
+
+**Run the validator:**
+```bash
+bash scripts/validators/validate-ux-spec.sh .
+```
+If gaps reported → fix → re-run until exit 0.
 
 Then print the completion phrase exactly as specified in the SDLC-TASK prompt.
 
