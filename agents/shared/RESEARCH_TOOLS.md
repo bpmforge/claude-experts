@@ -116,4 +116,4 @@ After completing research, store key findings via the memory MCP registered in t
 - playwright-search pipeline: `/Users/bmatthews/Code/playwright-search/src/pipeline.ts`
 - playwright-search setup: `/Users/bmatthews/Code/playwright-search/MCP.md`
 - pullmd repo: https://github.com/AeternaLabsHQ/pullmd
-- pullmd setup: see bpm-opencode-experts `./install.sh --pullmd` (auto-detects Docker or Podman); default MCP at `http://localhost:33000/mcp`
+- pullmd setup: `./install.sh --pullmd` (auto-detects Docker or Podman); default MCP at `http://localhost:33000/mcp`

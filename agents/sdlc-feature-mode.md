@@ -13,15 +13,23 @@ This file contains the Mode 3 workflow. The spine, shared protocols, discovery i
 
 Add a feature to an existing system without breaking it.
 
-## Loop prevention (MANDATORY)
+## Loop prevention (MANDATORY — rules are here, no file read required)
 
-Before any tool-heavy work, read `~/.claude/agents/shared/LOOP_PREVENTION.md`. It defines hard caps and stop conditions for three loop classes that have caused real failures:
+**Class 2 — Schema-validation loop — STOP after 2 strikes.** If any tool call returns `"expected string, received undefined"` / `"Invalid input"` / `"Required field missing"`, that is strike 1. A second schema error on any tool = strike 2. Write this verbatim and end the turn:
 
-1. **Failure loop** — same tool error 3+ times → STOP after 3 strikes
-2. **Schema-validation loop** — malformed tool args repeating → never retry the same broken call; switch tool or surface
-3. **Success loop** — every call works but you keep going → hard cap at 15 total / 4 per work-unit, no duplicate URLs, diminishing-returns check after each call
+```
+[BLOCKED — schema-validation loop]
+- I attempted: <list the 2 calls and errors>
+- What I cannot complete: <items>
+Stopping per 2-strikes rule.
+```
 
-These rules override the "be thorough" / "iterate more" / "try harder" instinct. Always track call counts and seen URLs/files explicitly. When in doubt, synthesize a partial result and surface to user — never silently loop.
+Other caps: failure loop → 3 strikes; success loop → 15 total calls max.
+
+**Tool format — copy these exactly:**
+- Read a file: `read(filePath="~/.config/opencode/agents/sdlc-feature-mode.md")`
+- Shell command: `bash(command="ls ~/.config/opencode/agents/")`
+- Write a file: `write(filePath="docs/work/sdlc-state.md", content="...")`
 
 ## Document hygiene (MANDATORY)
 
@@ -159,7 +167,7 @@ Next after resume: api-designer handoff (if API changes needed)
 
 ```
 ---
-  HANDOFF → /dba (db-architect)
+  HANDOFF → db-architect
 ---
 Open a new OpenCode conversation and paste this EXACT prompt to /dba:
 
@@ -189,7 +197,7 @@ If API changes needed:
 
 ```
 ---
-  HANDOFF → /api-design (api-designer)
+  HANDOFF → api-designer
 ---
 Open a new OpenCode conversation and paste this EXACT prompt to /api-design:
 
@@ -219,7 +227,7 @@ If the feature touches auth, data access, or user input:
 
 ```
 ---
-  HANDOFF → /security (security-auditor)
+  HANDOFF → security-auditor
 ---
 Open a new OpenCode conversation and paste this EXACT prompt to /security:
 
@@ -295,7 +303,7 @@ Next after resume: implementation checkpoint
 
 ```
 ---
-  HANDOFF → /test-expert (test-engineer)
+  HANDOFF → test-engineer
 ---
 Open a new OpenCode conversation and paste this EXACT prompt to /test-expert:
 
@@ -394,7 +402,7 @@ Emit ONE message containing every triggered HANDOFF as separate blocks. User ope
 ───── HANDOFF #1 → /review-code (code-reviewer) ─────
 SDLC-TASK for code-reviewer:
 CONTEXT: [feature] implementation files + docs/ARCHITECTURE.md.
-YOUR TASK: 7-dimension review (complexity, DRY, error handling, type safety, pattern consistency, naming, comment accuracy). File:line + severity + fix per finding.
+YOUR TASK: 8-dimension review (complexity, DRY, error handling, type safety, pattern consistency, naming, comment accuracy, anti-slop). File:line + severity + fix per finding.
 PRODUCE: docs/reviews/CODE_REVIEW_<feature>_<date>.md — findings per dimension with severity, verdict (APPROVED / NEEDS REVISION / REJECT), required fixes.
 Print exactly: "review done — [verdict and top finding]"
 
@@ -478,15 +486,27 @@ Tests green and reviews approved do not prove the app boots. Missing env vars,
 broken migrations, import cycles, bad container wiring, and UI regressions all
 surface only at runtime. **Do not merge until a clean run is confirmed.**
 
+**The orchestrator runs operational validators directly — no agent self-report.** Each script auto-detects the project's stack (node/python/rust/go) and runs the actual build/lint/test/smoke/deps tools. Override via `.sdlc/sdlc.json` for non-standard commands. Each writes `docs/reviews/RUNTIME_<kind>_<date>.md` with verdict + tail output.
+
+```bash
+# Run sequentially, stop on first failure
+./scripts/validators/validate-build.sh             # build the project
+./scripts/validators/validate-lint.sh              # lint + typecheck
+./scripts/validators/validate-tests.sh             # full test suite
+./scripts/validators/validate-smoke.sh             # boot server, hit known routes
+./scripts/validators/validate-deps.sh              # CVE / advisory check
+./scripts/validators/validate-code-health.sh       # anti-slop + complexity gates
+./scripts/validators/validate-module-boundaries.sh # cross-module import enforcement
 ```
-task(agent="coding-agent", prompt="Runtime validation for feat/[slug]. Execute in order, stop at first failure.
- 1. BUILD — run the project's build command(s) (npm run build, tsc, cargo build, docker build — whichever applies). Report pass/fail with last 30 lines of output.
- 2. LINT/TYPECHECK — run `npm run lint` and any typecheck step (tsc --noEmit, mypy, etc.). Must pass clean.
- 3. START — boot the app (dev server, container, or CLI entrypoint). Confirm it comes up with no errors in the first 15 seconds and stays up.
- 4. FEATURE SMOKE — exercise the happy path of [feature name] end-to-end against the running app (HTTP request, UI click-through via the browser if frontend, CLI call — whichever matches). Verify behavior matches the acceptance criteria.
- 5. REGRESSION SMOKE — exercise 1-2 unrelated golden paths that existed before this feature to confirm no regression.
- Produce docs/reviews/RUNTIME_<feature>_<date>.md with: build output summary, startup log snippet, smoke commands + actual results, verdict (PASS or FAIL — list exactly what broke with file:line if known).
- When the file is written, print exactly: 'runtime done — [PASS or FAIL, one sentence]' then stop.", timeout=600)
+
+For a feature-scoped validation, the orchestrator can also delegate the FEATURE SMOKE and REGRESSION SMOKE steps to coding-agent:
+
+```
+task(agent="coding-agent", prompt="Runtime feature smoke for feat/[slug]:
+ 1. FEATURE SMOKE — exercise the happy path of [feature name] end-to-end (HTTP request, UI click-through via the browser if frontend, CLI call). Verify behavior matches the acceptance criteria.
+ 2. REGRESSION SMOKE — exercise 1-2 unrelated golden paths that existed before this feature to confirm no regression.
+ Append to docs/reviews/RUNTIME_smoke_<date>.md (created by validate-smoke.sh) with feature-specific assertions.
+ Print exactly: 'feature-smoke done — [PASS or FAIL, one sentence]' then stop.", timeout=600)
 ```
 
 **If verdict is FAIL: DO NOT MERGE.** Return to implementation, fix the defects,

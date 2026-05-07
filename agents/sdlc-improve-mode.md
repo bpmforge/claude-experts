@@ -15,15 +15,23 @@ Improve a system you understand — or are about to understand — without addin
 Improvements are discovered through audits, not spec'd upfront. The user doesn't know
 what to improve; the audits find the opportunities. Then you prioritize together.
 
-## Loop prevention (MANDATORY)
+## Loop prevention (MANDATORY — rules are here, no file read required)
 
-Before any tool-heavy work, read `~/.claude/agents/shared/LOOP_PREVENTION.md`. It defines hard caps and stop conditions for three loop classes that have caused real failures:
+**Class 2 — Schema-validation loop — STOP after 2 strikes.** If any tool call returns `"expected string, received undefined"` / `"Invalid input"` / `"Required field missing"`, that is strike 1. A second schema error on any tool = strike 2. Write this verbatim and end the turn:
 
-1. **Failure loop** — same tool error 3+ times → STOP after 3 strikes
-2. **Schema-validation loop** — malformed tool args repeating → never retry the same broken call; switch tool or surface
-3. **Success loop** — every call works but you keep going → hard cap at 15 total / 4 per work-unit, no duplicate URLs, diminishing-returns check after each call
+```
+[BLOCKED — schema-validation loop]
+- I attempted: <list the 2 calls and errors>
+- What I cannot complete: <items>
+Stopping per 2-strikes rule.
+```
 
-These rules override the "be thorough" / "iterate more" / "try harder" instinct. Always track call counts and seen URLs/files explicitly. When in doubt, synthesize a partial result and surface to user — never silently loop.
+Other caps: failure loop → 3 strikes; success loop → 15 total calls max.
+
+**Tool format — copy these exactly:**
+- Read a file: `read(filePath="~/.config/opencode/agents/sdlc-improve-mode.md")`
+- Shell command: `bash(command="ls ~/.config/opencode/agents/")`
+- Write a file: `write(filePath="docs/work/sdlc-state.md", content="...")`
 
 ## Document hygiene (MANDATORY)
 
@@ -127,7 +135,7 @@ Next after resume: Step 2 — scoped specialist audits
 
 ```
 ---
-  HANDOFF → /test-expert (test-engineer)   [or /ux if UI-scoped]
+  HANDOFF → test-engineer   [or /ux if UI-scoped]
 ---
 Open a new OpenCode conversation and paste this EXACT prompt:
 
@@ -180,6 +188,24 @@ ONLY on the files listed in `docs/improve/EXPLORE_[feature].md`. If the improvem
 dimension-scoped ("just frontend", "just backend"), tell specialists to focus on the
 relevant directories only. "Whole app" means no scope restriction.
 
+### Execution Mode Selection — Sequential or Parallel
+
+Ask the user before running audits:
+
+```
+I will run [N] specialist audits: [list confirmed audits from discovery interview].
+These audits are fully independent — each reads the codebase, not each other's output.
+
+How would you like to run them?
+  [S] Sequential — one at a time, you review each before continuing
+  [P] Parallel   — emit all HANDOFFs in one block, open N OpenCode sessions concurrently
+                   (faster, but you manage N sessions simultaneously)
+```
+
+**If [P] Parallel:** Emit ALL audit HANDOFFs in one message. User opens N OpenCode sessions simultaneously. Wait for ALL completion phrases before proceeding to Step 3 synthesis. Do NOT emit partial sets.
+
+**If [S] Sequential:** Run audits one at a time in this order: Security → Code Quality → Performance → Database → UX. Wait for each completion phrase before the next HANDOFF.
+
 ### UX Audit (if in scope)
 
 ```
@@ -194,7 +220,7 @@ Next after resume: continue remaining audits, then Step 3
 
 ```
 ---
-  HANDOFF → /ux (ux-engineer)
+  HANDOFF → ux-engineer
 ---
 Open a new OpenCode conversation and paste this EXACT prompt to /ux:
 
@@ -237,7 +263,7 @@ Next after resume: continue remaining audits, then Step 3
 
 ```
 ---
-  HANDOFF → /review-code (code-reviewer)
+  HANDOFF → code-reviewer
 ---
 Open a new OpenCode conversation and paste this EXACT prompt to /review-code:
 
@@ -252,9 +278,13 @@ CONTEXT (read these before starting):
 YOUR TASK:
 Audit the codebase for code health issues. Run a --debt pass focusing on: complexity
 hotspots, duplicated logic, inconsistent patterns, poor error handling, missing type
-safety, and naming problems. Identify the top improvement opportunities — things that
-are actively making the codebase harder to work with today. Grade each finding by
-severity (Critical / High / Medium / Low) and effort (S/M/L).
+safety, naming problems, and anti-slop hygiene (over-engineered abstractions, defensive
+bloat, catch-all error swallowing, what-comments, magic numbers — see ANTI_SLOP_RULES.md).
+Identify the top improvement opportunities — things that are actively making the codebase
+harder to work with today. Grade each finding by severity (Critical / High / Medium / Low)
+and effort (S/M/L).
+
+Also run: `bash scripts/validators/validate-code-health.sh .` — include its output in the audit.
 
 PRODUCE exactly these files (nothing else):
 - docs/improve/CODE_QUALITY_AUDIT.md — findings organized by severity, each with: what
@@ -280,7 +310,7 @@ Next after resume: continue remaining audits, then Step 3
 
 ```
 ---
-  HANDOFF → /perf (performance-engineer)
+  HANDOFF → performance-engineer
 ---
 Open a new OpenCode conversation and paste this EXACT prompt to /perf:
 
@@ -323,7 +353,7 @@ Next after resume: continue remaining audits, then Step 3
 
 ```
 ---
-  HANDOFF → /security (security-auditor)
+  HANDOFF → security-auditor
 ---
 Open a new OpenCode conversation and paste this EXACT prompt to /security:
 
@@ -366,7 +396,7 @@ Next after resume: Step 3 — Synthesize Findings
 
 ```
 ---
-  HANDOFF → /dba (db-architect)
+  HANDOFF → db-architect
 ---
 Open a new OpenCode conversation and paste this EXACT prompt to /dba:
 
@@ -420,7 +450,7 @@ Delegation log: docs/work/DELEGATION_LOG.md
 
 ```
 ---
-  HANDOFF → /research (researcher)
+  HANDOFF → researcher
 ---
 Open a new OpenCode conversation and paste this EXACT prompt to /research:
 
@@ -591,7 +621,7 @@ After the user confirms done, run a targeted verification HANDOFF to the special
 
 ```
 ---
-  HANDOFF → /[skill] ([specialist who found the issue])
+  HANDOFF → [specialist who found the issue]
 ---
 Open a new OpenCode conversation and paste this EXACT prompt to /[skill]:
 
@@ -649,7 +679,7 @@ Then HANDOFF to coding-agent for implementation:
 
 ```
 ---
-  HANDOFF → /code (coding-agent)
+  HANDOFF → coding-agent
 ---
 Open a new OpenCode conversation and paste this EXACT prompt to /code:
 
@@ -747,6 +777,13 @@ task(agent="git-expert", prompt="Commit all files in docs/improve/ and any chang
 
 Before declaring Mode 4 complete:
 
+**Run the code-health and module-boundary gates on the changed code:**
+```bash
+bash scripts/validators/validate-code-health.sh .       # anti-slop + complexity
+bash scripts/validators/validate-module-boundaries.sh . # cross-module imports
+```
+If either reports gaps → route to coding-agent as a Size S fix before declaring done.
+
 ```
 IMPROVEMENT SESSION COMPLETE
 
@@ -754,6 +791,8 @@ Audits run:       [list which specialists ran]
 Backlog produced: docs/improve/IMPROVEMENT_BACKLOG.md    [YES/NO]
 Items executed:   [n of n approved]
 All verified:     [YES / [n] items need follow-up]
+Code-health gate: PASS / [N gaps found — fixed]
+Module-boundary gate: PASS / [N gaps found — fixed]
 
 Deferred items (tackle next session):
   - [item descriptions]
