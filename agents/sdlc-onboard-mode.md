@@ -28,15 +28,23 @@ The 7-step pass below runs in all three modes. After Step 7:
 - (default) → run the **Lightweight Inventory section** at the end of this file
 - `--deep` → run the **Ralph Wiggum Deep Mode section** at the end of this file
 
-## Loop prevention (MANDATORY)
+## Loop prevention (MANDATORY — rules are here, no file read required)
 
-Before any tool-heavy work, read `~/.claude/agents/shared/LOOP_PREVENTION.md`. It defines hard caps and stop conditions for three loop classes that have caused real failures:
+**Class 2 — Schema-validation loop — STOP after 2 strikes.** If any tool call returns `"expected string, received undefined"` / `"Invalid input"` / `"Required field missing"`, that is strike 1. A second schema error on any tool = strike 2. Write this verbatim and end the turn:
 
-1. **Failure loop** — same tool error 3+ times → STOP after 3 strikes
-2. **Schema-validation loop** — malformed tool args repeating → never retry the same broken call; switch tool or surface
-3. **Success loop** — every call works but you keep going → hard cap at 15 total / 4 per work-unit, no duplicate URLs, diminishing-returns check after each call
+```
+[BLOCKED — schema-validation loop]
+- I attempted: <list the 2 calls and errors>
+- What I cannot complete: <items>
+Stopping per 2-strikes rule.
+```
 
-These rules override the "be thorough" / "iterate more" / "try harder" instinct. Always track call counts and seen URLs/files explicitly. When in doubt, synthesize a partial result and surface to user — never silently loop.
+Other caps: failure loop → 3 strikes; success loop → 15 total calls max.
+
+**Tool format — copy these exactly:**
+- Read a file: `read(filePath="~/.config/opencode/agents/sdlc-onboard-mode.md")`
+- Shell command: `bash(command="ls ~/.config/opencode/agents/")`
+- Write a file: `write(filePath="docs/work/sdlc-state.md", content="...")`
 
 ## Document hygiene (MANDATORY)
 
@@ -198,7 +206,7 @@ Next after resume: Step 4 Map Components
 
 ```
 ---
-  HANDOFF → /dba (db-architect)
+  HANDOFF → db-architect
 ---
 Open a new OpenCode conversation and paste this EXACT prompt to /dba:
 
@@ -276,7 +284,7 @@ Next after resume: security-auditor handoff
 
 ```
 ---
-  HANDOFF → /review-code (code-reviewer) — full health
+  HANDOFF → code-reviewer — full health
 ---
 Open a new OpenCode conversation and paste this EXACT prompt to /review-code:
 
@@ -305,7 +313,7 @@ Then stop. Do not ask for follow-up. Do not run additional phases.
 
 ```
 ---
-  HANDOFF → /review-code (code-reviewer) — debt
+  HANDOFF → code-reviewer — debt
 ---
 Open a new OpenCode conversation and paste this EXACT prompt to /review-code:
 
@@ -333,7 +341,7 @@ Then stop. Do not ask for follow-up. Do not run additional phases.
 
 ```
 ---
-  HANDOFF → /review-code (code-reviewer) — patterns
+  HANDOFF → code-reviewer — patterns
 ---
 Open a new OpenCode conversation and paste this EXACT prompt to /review-code:
 
@@ -363,7 +371,7 @@ Then stop. Do not ask for follow-up. Do not run additional phases.
 
 ```
 ---
-  HANDOFF → /security (security-auditor)
+  HANDOFF → security-auditor
 ---
 Open a new OpenCode conversation and paste this EXACT prompt to /security:
 
@@ -394,7 +402,7 @@ Then stop. Do not ask for follow-up. Do not run additional phases.
 
 ```
 ---
-  HANDOFF → /test-expert (test-engineer)
+  HANDOFF → test-engineer
 ---
 Open a new OpenCode conversation and paste this EXACT prompt to /test-expert:
 
@@ -423,7 +431,7 @@ Then stop. Do not ask for follow-up. Do not run additional phases.
 
 ```
 ---
-  HANDOFF → /perf (performance-engineer)
+  HANDOFF → performance-engineer
 ---
 Open a new OpenCode conversation and paste this EXACT prompt to /perf:
 
@@ -454,7 +462,7 @@ Then stop. Do not ask for follow-up. Do not run additional phases.
 
 ```
 ---
-  HANDOFF → /ux (ux-engineer)
+  HANDOFF → ux-engineer
 ---
 Open a new OpenCode conversation and paste this EXACT prompt to /ux:
 
@@ -508,7 +516,7 @@ Then hand off to test-engineer for TEST_PLAN.md:
 
 ```
 ---
-  HANDOFF → /test-expert (test-engineer)
+  HANDOFF → test-engineer
 ---
 Open a new OpenCode conversation and paste this EXACT prompt to /test-expert:
 
@@ -667,11 +675,11 @@ Mode 2 Completion:
 
 # Lightweight Inventory (default mode — runs after Step 7)
 
-When the user invokes onboard WITHOUT a flag (default), run this after the 7-step pass. Catches the two highest-value gaps — undocumented routes and undocumented tables — without the full Ralph Wiggum 5-category enumeration.
+When the user invokes onboard WITHOUT a flag (default), run this section after the 7-step pass. It catches the two highest-value coverage gaps — undocumented routes and undocumented tables — without the full Ralph Wiggum 5-category enumeration.
 
 ## Step L1 — Lightweight Inventory
 
-Issue ONE HANDOFF to researcher to produce `docs/onboard/INVENTORY.md` with ROUTE and TABLE rows only:
+Issue ONE HANDOFF to researcher (read-only) to produce `docs/onboard/INVENTORY.md` with rows for ROUTE and TABLE categories ONLY. Use the same schema as deep mode (ID / Category / Description / Artifact / Status), but skip SERVICE / FLOW / ENTRY rows.
 
 ```
 HANDOFF -> /research (researcher) -- LIGHTWEIGHT INVENTORY
@@ -687,11 +695,11 @@ WRITE-SCOPE (exclusive):
 - docs/onboard/
 
 YOUR TASK:
-Enumerate every ROUTE in source (Express/Fastify/Next/FastAPI/Flask/Go) and every TABLE (Prisma/SQLAlchemy/TypeORM/Knex/raw SQL/Django). Produce ONE row per unit. Skip SERVICE, FLOW, ENTRY — deep mode only.
+Enumerate every ROUTE found in source (Express/Fastify/Next route/FastAPI/Flask/Go handler) and every TABLE (Prisma model / SQLAlchemy / TypeORM / Knex / raw SQL CREATE TABLE / Django models). Produce ONE row in the inventory per unit. Skip SERVICE, FLOW, ENTRY categories — those are for --deep mode only.
 
 PRODUCE:
-- docs/onboard/INVENTORY.md — markdown table: ID | Category | Description | Artifact | Status (all PENDING). Categories: ROUTE, TABLE only.
-- docs/onboard/INVENTORY_NOTES.md — discovery method + any ambiguities.
+- docs/onboard/INVENTORY.md — markdown table with columns ID, Category, Description, Artifact, Status (all rows start PENDING). Categories: ROUTE, TABLE only.
+- docs/onboard/INVENTORY_NOTES.md — brief notes on discovery method and any ambiguities.
 
 Print: "researcher done -- lightweight inventory: N routes, M tables"
 Then stop.
@@ -699,19 +707,29 @@ Then stop.
 
 ## Step L2 — Verify
 
+Run the universal coverage loop:
+
 ```bash
 ./scripts/validators/run-coverage-loop.sh onboard-deep
 ```
 
-Exit 0 → done. Exit 1 → emit gap-fill HANDOFFs, re-run. Exit 2 → escalation block from `RALPH_WIGGUM_LOOP.md`.
+This chains `validate-inventory.sh` + `validate-architecture.sh` + `validate-erd-coverage.sh` + `validate-sequence-coverage.sh` + `validate-no-ascii-art.sh`. The lightweight inventory only contains ROUTE and TABLE rows, so SERVICE / FLOW / ENTRY validators will warn-skip (no rows of those types) — that's correct.
+
+Exit 0 → onboard default complete.
+Exit 1 → emit gap-fill HANDOFFs (one per uncovered row), re-run.
+Exit 2 → emit escalation block from `RALPH_WIGGUM_LOOP.md` and stop.
+
+## Step L3 — Cap or upgrade
+
+If after 3 iterations the lightweight inventory still has gaps that require deeper investigation (a route is in the code but no API_DESIGN.md exists at all, or a table appears nowhere in any ERD), recommend the user re-run with `--deep` for full Ralph coverage.
 
 ---
 
 # Ralph Wiggum Deep Mode (`/sdlc onboard --deep`)
 
-When the user invokes onboard with `--deep`, the standard 7-step flow above runs FIRST as the baseline. Then the Ralph Wiggum loop runs SECOND to verify exhaustive coverage of all 5 categories.
+When the user invokes onboard with `--deep`, the standard 7-step flow above runs FIRST as the baseline. Then the Ralph Wiggum loop runs SECOND to verify exhaustive coverage of all 5 categories (ROUTE / TABLE / SERVICE / FLOW / ENTRY).
 
-Canonical protocol: `~/.claude/agents/shared/RALPH_WIGGUM_LOOP.md`.
+Canonical protocol: `~/.config/opencode/agents/shared/RALPH_WIGGUM_LOOP.md`.
 
 ## When to recommend deep mode
 
@@ -896,5 +914,121 @@ Artifacts:
   - docs/DATABASE.md (erDiagram)          (P tables)
   - docs/sequences/*.md                   (Q P0 flows)
   - docs/ONBOARDING.md
+```
+
+After printing the completion block, **always run the SDLC Gap-Fill Pass below.**
+
+---
+
+## SDLC Gap-Fill Pass (runs after every onboard depth level)
+
+After the main onboard flow completes, check which SDLC phase artifacts are still missing and fill them using the existing codebase as context. This converts an onboarded codebase into a fully SDLC-documented project.
+
+**Step GF-1 — Run the state detector:**
+
+```
+bash(command="bash scripts/detect-sdlc-state.sh")
+read(filePath="docs/work/SDLC_AUDIT.md")
+```
+
+**Step GF-2 — Assess the gap list.**
+
+Read the Phase Status table in SDLC_AUDIT.md. For each phase that is INCOMPLETE or NOT_STARTED, check which specific artifacts are missing.
+
+**Step GF-3 — Present gap summary to user:**
+
+```
+SDLC GAP-FILL PASS
+
+After onboarding, the following SDLC artifacts are missing:
+
+  Phase N: [list of missing docs]
+  Phase N: [list of missing docs]
+
+I can produce these by reverse-engineering from the existing codebase.
+Each will be a HANDOFF to the appropriate specialist who reads your code
+and produces the document that should have been written first.
+
+Shall I proceed with gap-fill? (yes / skip / skip [phase] only)
+```
+
+Wait for user response before continuing.
+
+**Step GF-4 — Issue gap-fill HANDOFFs (if user confirms).**
+
+For each missing artifact, issue a targeted HANDOFF. These are **reverse-engineering** HANDOFFs — the specialist reads the EXISTING code and produces the document, rather than designing from scratch.
+
+Issue HANDOFFs in phase order. Do not skip to Phase 3 docs if Phase 2 docs are missing.
+
+### Gap-fill HANDOFF patterns
+
+**Missing Phase 0/1 docs (VISION, SCOPE, RISKS, PERSONAS):**
+→ Orchestrator writes these directly from DISCOVERY.md and the existing README/codebase — do not delegate, synthesize from what you've learned during onboarding.
+
+**Missing Phase 2 docs (SRS, USER_STORIES, USE_CASES):**
+→ sdlc-lead synthesizes from existing feature code, route handlers, and any inline comments. Produce these directly — they are synthesis documents.
+
+**Missing MODULE_DESIGN.md (Phase 3):**
+HANDOFF to `architecture-designer` with reverse-engineering context:
+```
+SDLC-TASK for architecture-designer:
+CONTEXT:
+- docs/ONBOARDING.md — existing codebase structure
+- docs/ARCHITECTURE.md — if it exists
+- docs/onboard/INVENTORY.md — discovered routes/tables/services
+- src/ — read the actual module structure
+YOUR TASK:
+Reverse-engineer the module design from the existing codebase. Document what the
+modules ARE (even if they were not designed modularly). If the codebase is a monolith,
+document that honestly and propose what a modular refactor would look like.
+PRODUCE: docs/MODULE_DESIGN.md (current state + recommended target state if different)
+```
+
+**Missing INFRASTRUCTURE.md (Phase 3):**
+HANDOFF to `sre-engineer` with reverse-engineering context:
+```
+SDLC-TASK for sre-engineer:
+CONTEXT:
+- docker-compose.yml, Dockerfile, .env.example (if they exist)
+- docs/ARCHITECTURE.md — any deployment notes
+- README.md — any infrastructure documentation
+YOUR TASK:
+Reverse-engineer the infrastructure topology from existing deployment config.
+Document what infrastructure this project requires based on what you find in the
+config files. If no deployment config exists, document the minimum required based
+on the application's dependencies.
+PRODUCE: docs/INFRASTRUCTURE.md
+```
+
+**Missing THREAT_MODEL.md (Phase 3):**
+HANDOFF to `security-auditor` — standard threat model HANDOFF but reading existing API routes and data shapes from the codebase.
+
+**Missing UX_SPEC.md (Phase 3, UI-bearing):**
+HANDOFF to `ux-engineer` — reverse-engineer the component inventory and flows from existing UI code.
+
+**Missing TEST_DESIGN.md (Phase 3.5):**
+HANDOFF to `test-engineer` — read existing test files and fill in what's missing from the test design.
+
+**Step GF-5 — After each gap-fill HANDOFF returns:**
+Run `./scripts/validators/run-handoff-gates.sh` with the appropriate `--coverage` validator.
+
+**Step GF-6 — Re-run state detector:**
+```
+bash(command="bash scripts/detect-sdlc-state.sh")
+```
+Confirm gaps are closing. Continue until all phases show COMPLETE or user stops the process.
+
+**Step GF-7 — Final status:**
+```
+SDLC GAP-FILL COMPLETE
+
+SDLC artifacts now present:
+  [list what was produced]
+
+Remaining gaps (if any):
+  [list what was skipped or couldn't be produced]
+
+The codebase is now SDLC-documented. Use /sdlc feature to add new features
+following the full gated process.
 ```
 
