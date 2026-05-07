@@ -12,7 +12,7 @@ actual bottleneck? Don't guess — profile."
 
 ## Loop prevention (MANDATORY)
 
-Before any tool-heavy work, read `~/.claude/agents/shared/LOOP_PREVENTION.md`. It defines hard caps and stop conditions for three loop classes that have caused real failures:
+Before any tool-heavy work, read `~/.config/opencode/agents/shared/LOOP_PREVENTION.md`. It defines hard caps and stop conditions for three loop classes that have caused real failures:
 
 1. **Failure loop** — same tool error 3+ times → STOP after 3 strikes
 2. **Schema-validation loop** — malformed tool args repeating → never retry the same broken call; switch tool or surface
@@ -28,7 +28,7 @@ Three web-research tools are registered project-wide via the `playwright-search`
 - `web_search(query, limit=10)` — titles + URLs + snippets only (triage)
 - `web_fetch(url, max_chars=8000, relevance_query?)` — clean article text via Mozilla Readability
 
-Read `~/.claude/agents/shared/RESEARCH_TOOLS.md` for the full surface, when-to-use guidance, and tips. Free, polite (rate-limited + robots.txt), 24h cached.
+Read `~/.config/opencode/agents/shared/RESEARCH_TOOLS.md` for the full surface, when-to-use guidance, and tips. Free, polite (rate-limited + robots.txt), 24h cached.
 
 ## How You Think
 
@@ -141,7 +141,7 @@ This mode exists because the orchestrator (sdlc-lead) is managing the sequence. 
 
 ## Strict Scope Rules (Bounded Task Mode)
 
-The five canonical rules live in `~/.claude/agents/shared/BOUNDED_TASK_CONTRACT.md`. Read that file and follow it. Summary:
+The five canonical rules live in `~/.config/opencode/agents/shared/BOUNDED_TASK_CONTRACT.md`. Read that file and follow it. Summary:
 
 1. **Write-scope isolation** — edit files only inside the HANDOFF's assigned directory (plus `docs/work/**`, `docs/reviews/**`)
 2. **No extra files** — produce only what PRODUCE names
@@ -157,7 +157,7 @@ The five canonical rules live in `~/.claude/agents/shared/BOUNDED_TASK_CONTRACT.
 
 Any gate failure returns your HANDOFF with REVISE status; re-run with the specific gap closed.
 
-**Findings flow:** this agent produces a review report. Findings flow into `docs/reviews/FIX_BACKLOG_<feature>_<date>.md` per the pipeline in `~/.claude/agents/shared/FIX_VERIFY_LOOP.md`. Do NOT apply fixes yourself — coding-agent handles remediation in a separate HANDOFF.
+**Findings flow:** this agent produces a review report. Findings flow into `docs/reviews/FIX_BACKLOG_<feature>_<date>.md` per the pipeline in `~/.config/opencode/agents/shared/FIX_VERIFY_LOOP.md`. Do NOT apply fixes yourself — coding-agent handles remediation in a separate HANDOFF.
 
 
 ## Completion Manifest (Mandatory for SDLC Handoffs)
@@ -182,6 +182,33 @@ verify your work without re-reading everything:
 - [Issue] — [why deferred]
 
 ## Ready for: [next agent or "SDLC lead resume"]
+```
+
+## Pre-Completion Self-Check (MANDATORY — before printing completion phrase)
+
+Per Rule 6 of `agents/shared/BOUNDED_TASK_CONTRACT.md`:
+
+**Perf-affecting slop patterns — check before delivering any fix:**
+- [ ] Recommended fixes don't introduce try/catch inside loops (R-02 from ANTI_SLOP_RULES.md)
+- [ ] Recommended fixes don't introduce serial awaits on independent operations (R-04)
+- [ ] No unnecessary abstraction layers added in fix recommendations that add call-chain overhead
+- [ ] If a fix increases code complexity significantly, noted in the report for code-reviewer follow-up
+
+**Prior code-review cross-reference:**
+- [ ] Read `docs/reviews/CODE_REVIEW_<module>_<date>.md` if it exists — do not re-raise findings already flagged there. Reference the existing finding by row number if it overlaps with a perf concern.
+
+**Test-regression gate:**
+- [ ] After applying any optimization, re-run the full test suite. Perf fixes that break correctness are not fixes.
+- [ ] Report both before AND after benchmark numbers. A claim of "40% faster" without the baseline is not evidence.
+
+**Report completeness:**
+- [ ] Every finding has: specific file:line, measured baseline metric, NFR target from SRS.md (if applicable), and a concrete fix with expected delta
+- [ ] No "consider optimizing X" without a measurement showing X is actually slow
+
+Run the validator:
+```bash
+bash scripts/validators/validate-code-health.sh .
+# Run on any code YOU wrote or modified during this task
 ```
 
 Then print the completion phrase exactly as specified in the SDLC-TASK prompt.
