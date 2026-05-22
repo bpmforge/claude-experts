@@ -6,6 +6,31 @@ Single source of truth. Mode files reference these templates by name instead of 
 
 ---
 
+## HANDOFF Format Specification (LLM-agnostic)
+
+Every HANDOFF block MUST use the standard delimiter format below. This format works identically regardless of which LLM (Claude, GPT-4, qwen, gemma, or any local model) receives the block.
+
+### Delimiter rules
+
+```
+════════════════════════════════════════════════════════════
+HANDOFF #N → [agent-name]  |  open: /[skill-command]
+USER: copy EVERYTHING between the ════ lines into a new session
+════════════════════════════════════════════════════════════
+[HANDOFF BODY — do not modify anything inside these lines]
+════════════════════════════════════════════════════════════
+END HANDOFF #N
+════════════════════════════════════════════════════════════
+```
+
+**Why delimiters matter:** When using local LLMs or handing off in complex multi-step sessions, models can lose track of which text is the HANDOFF body vs. surrounding commentary. The `════` border makes the copy region unambiguous. Online models (Claude, GPT-4) handle ambiguity fine, but the consistency helps all models.
+
+**sdlc-lead output rule:** Print the delimiter header, the HANDOFF body, then the delimiter footer. Never add commentary inside the delimited region — explanation goes ABOVE the opening delimiter.
+
+**Receiving agent rule:** When your prompt starts with `SDLC-TASK for` — follow the six rules in `agents/shared/BOUNDED_TASK_CONTRACT.md`. Do not process the delimiter lines.
+
+---
+
 ## Rules for every HANDOFF
 
 1. Start with `SDLC-TASK for <agent-name>:` — this triggers the agent's Bounded Task Mode
@@ -23,17 +48,23 @@ Always reference `agents/shared/BOUNDED_TASK_CONTRACT.md` in the CONTEXT block.
 
 ## Template 1: Standard HANDOFF (most common)
 
-```
----
-  HANDOFF -> /<skill> (<agent-name>)
----
-Open a new OpenCode conversation and paste this EXACT prompt to /<skill>:
+Emit this block verbatim. The `════` delimiters tell the user exactly what to copy.
 
+```
+════════════════════════════════════════════════════════════
+HANDOFF #N → <agent-name>  |  open new session → /<skill>
+USER: open a new session, invoke /<skill>, paste EVERYTHING below this line
+════════════════════════════════════════════════════════════
 SDLC-TASK for <agent-name>:
+
+ROLE: You are a [domain expert role — e.g. "senior database architect"].
+Use domain-precise vocabulary. Never use vague qualitative descriptions where
+a quantitative one exists (e.g. "P95 < 200ms" not "fast").
 
 CONTEXT (read these before starting):
 - agents/shared/BOUNDED_TASK_CONTRACT.md       -- the six rules that govern this HANDOFF
 - docs/work/context-for-<agent>.md             -- full context packet for this task
+
 - <file 1>                                     -- <what it contains relevant to this task>
 - <file 2>                                     -- <what it contains relevant to this task>
 
@@ -47,17 +78,24 @@ PRODUCE exactly these files (nothing else):
 - <output file 1>                              -- <what it should contain>
 - <output file 2>                              -- <what it should contain>
 
+VERIFY before completing: Confirm your output explicitly covers:
+- <required topic 1>
+- <required topic 2>
+- <required topic 3>
+If any are missing, add them before printing the completion phrase.
+
 Include a Completion Manifest at <manifest-path> with required sections:
-- Files produced
-- Decisions
-- Known issues / deferred
-- Verify result
+- Files produced (path, content summary, line count)
+- Decisions made (decision + why)
+- Known issues / deferred (issue + which agent should address it)
+- Verify result (what you checked, outcome)
 
 When all files are written, print exactly:
 "<agent> done -- <one sentence describing what was produced>"
 Then stop. Do not ask for follow-up. Do not run additional phases.
-
----
+════════════════════════════════════════════════════════════
+END HANDOFF #N
+════════════════════════════════════════════════════════════
 ```
 
 ## Template 2: Remediation HANDOFF (after a review)
