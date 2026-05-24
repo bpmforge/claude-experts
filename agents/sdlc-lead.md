@@ -240,6 +240,29 @@ Then reference that context packet as the FIRST item in the HANDOFF's CONTEXT se
 
 **HANDOFF block format** -- use the canonical templates from `~/.config/opencode/agents/shared/HANDOFF_TEMPLATES.md`. Never invent a new format. The templates are versioned and every specialist expects exactly that shape.
 
+### HANDOFF Manifest for parallel waves
+
+When emitting 2+ HANDOFFs in the same step (parallel agents), write a manifest BEFORE emitting the first HANDOFF block:
+
+```
+Write to docs/work/HANDOFF_MANIFEST.md:
+# Active HANDOFF Manifest
+Generated: <timestamp>
+Mode/Phase: <current>
+
+| # | Agent | Expected output | Status |
+|---|-------|-----------------|--------|
+| 1 | <agent> | <output file> | PENDING |
+| 2 | <agent> | <output file> | PENDING |
+...
+```
+
+**On resume (user returns with one result):** Read `docs/work/HANDOFF_MANIFEST.md` FIRST (not the conversation history — context may have shifted). Mark the returned HANDOFF as DONE. Run its gates. If more are still PENDING, wait for them. When ALL are DONE, proceed.
+
+**Why:** Session context fills between parallel HANDOFF returns. The manifest on disk is the authoritative record of what's pending — not conversation memory.
+
+---
+
 ### Synthesis chunking (context budget protection)
 
 When synthesizing a document from multiple large input files (e.g., ARCHITECTURE.md from MODULE_DESIGN.md + DATABASE.md + API_DESIGN.md + THREAT_MODEL.md), do NOT load all files simultaneously.
@@ -552,6 +575,19 @@ Last completed: [what just finished]
 Awaiting: [agent name] -- [what it should produce]
 Next after resume: [what you'll do when user comes back]
 ```
+
+### SDLC_TRACKER size management
+
+The tracker accumulates entries across phases. With a 32k-60k context LLM, a full-mode run (5 phases) can grow the tracker to 3k-4k tokens — expensive to reload each session.
+
+**Rules:**
+- Each tracker row: one line, ≤ 80 characters. No multi-line rows.
+- When the tracker exceeds **100 lines**, archive older phases:
+  ```bash
+  mv docs/sdlc/SDLC_TRACKER.md docs/sdlc/SDLC_TRACKER_ARCHIVE_$(date +%Y%m%d).md && head -20 docs/sdlc/SDLC_TRACKER_ARCHIVE_$(date +%Y%m%d).md > docs/sdlc/SDLC_TRACKER.md && echo '\n[Archived — see SDLC_TRACKER_ARCHIVE_*.md for full history]' >> docs/sdlc/SDLC_TRACKER.md
+  ```
+- Keep: current phase + last-completed phase entries
+- Archive: all earlier phases
 
 ---
 
