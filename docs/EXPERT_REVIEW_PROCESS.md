@@ -125,6 +125,47 @@ What they checked:
 
 ---
 
+## Phase 2b: Challenger Protocol
+
+**Goal:** Pressure-test the expert findings before committing to a remediation plan. Catch overconfident assessments, unstated assumptions, and missing failure modes before they become expensive rework.
+
+**When to run it:** After Phase 2 (all findings are in), before Phase 3 (before the plan is written). Also run it after Phase 3 to challenge the remediation plan itself.
+
+**How it works:**
+
+The `challenger` agent reads the Phase 2 findings and generates 5–8 adversarial challenges graded by severity:
+
+| Severity | Meaning |
+|----------|---------|
+| FATAL | The finding or proposed fix is provably wrong — proceeding will cause harm |
+| MAJOR | A significant assumption is unstated or likely false |
+| MINOR | Incomplete analysis — a reasonable counter-case was not considered |
+| NITPICK | Style / framing issue — doesn't affect correctness |
+
+Each challenge must include: the specific claim being challenged, the counter-evidence or missing case, and what would have to be true for the original claim to hold.
+
+**Rebuttal cycle:**
+
+The specialist (or sdlc-lead) must respond to each challenge with one of:
+- **DEFENDED** — the challenge was answered; original finding stands with clarification
+- **CONCEDED** — the finding was wrong or overstated; must be revised before proceeding
+- **DEFERRED** — acknowledged limitation; noted as a risk, not blocking
+
+FATAL and MAJOR challenges that are not DEFENDED block the gate. CONCEDED items become mandatory revision tasks.
+
+**Output:** `docs/work/challenger/challenge-<phase>.md`
+
+**Practical use:**
+
+In the ThreatForge review, running the Challenger after the security audit caught:
+- A MAJOR challenge on a "CRITICAL" auth finding — the actual risk was lower because a compensating control in the nginx layer was missed
+- A FATAL challenge on a proposed DB index fix — it would have caused a write-lock regression on a high-traffic table
+- Three MINOR challenges that led to more precise remediation targets (file:line instead of "in this module")
+
+**Skip condition:** `/challenge --quick` skips the rebuttal cycle and produces the challenge list only — useful for low-stakes review passes where you want the adversarial scan but don't have time for the full cycle.
+
+---
+
 ## Phase 3: Prioritize & Plan
 
 **Goal:** Turn 20+ findings into an actionable, ordered plan.
