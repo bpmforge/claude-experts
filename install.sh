@@ -68,7 +68,30 @@ for agent in "$SCRIPT_DIR/agents/"*.md; do
   ln -sf "$agent" "$CLAUDE_HOME/agents/$(basename "$agent")"
   count=$((count + 1))
 done
-echo "  $count agents installed"
+
+# Symlink micro-agent subdirectories (security/, code-review/, performance/, sdlc/, test/)
+for subdir in security code-review performance sdlc test; do
+  if [ -d "$SCRIPT_DIR/agents/$subdir" ]; then
+    mkdir -p "$CLAUDE_HOME/agents/$subdir"
+    for f in "$SCRIPT_DIR/agents/$subdir/"*.md; do
+      [ -f "$f" ] || continue
+      ln -sf "$f" "$CLAUDE_HOME/agents/$subdir/$(basename "$f")"
+      count=$((count + 1))
+    done
+    # Recurse one level (e.g. sdlc/onboard/)
+    for nested in "$SCRIPT_DIR/agents/$subdir/"*/; do
+      [ -d "$nested" ] || continue
+      nested_name=$(basename "$nested")
+      mkdir -p "$CLAUDE_HOME/agents/$subdir/$nested_name"
+      for f in "$nested"*.md; do
+        [ -f "$f" ] || continue
+        ln -sf "$f" "$CLAUDE_HOME/agents/$subdir/$nested_name/$(basename "$f")"
+        count=$((count + 1))
+      done
+    done
+  fi
+done
+echo "  $count agents installed (including micro-agent clusters)"
 
 # ─── 2. Symlink skills ───
 echo "Installing skills..."
