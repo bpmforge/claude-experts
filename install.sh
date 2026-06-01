@@ -68,7 +68,30 @@ for agent in "$SCRIPT_DIR/agents/"*.md; do
   ln -sf "$agent" "$CLAUDE_HOME/agents/$(basename "$agent")"
   count=$((count + 1))
 done
-echo "  $count agents installed"
+
+# Symlink micro-agent subdirectories (security/, code-review/, performance/, sdlc/, test/)
+for subdir in security code-review performance sdlc test; do
+  if [ -d "$SCRIPT_DIR/agents/$subdir" ]; then
+    mkdir -p "$CLAUDE_HOME/agents/$subdir"
+    for f in "$SCRIPT_DIR/agents/$subdir/"*.md; do
+      [ -f "$f" ] || continue
+      ln -sf "$f" "$CLAUDE_HOME/agents/$subdir/$(basename "$f")"
+      count=$((count + 1))
+    done
+    # Recurse one level (e.g. sdlc/onboard/)
+    for nested in "$SCRIPT_DIR/agents/$subdir/"*/; do
+      [ -d "$nested" ] || continue
+      nested_name=$(basename "$nested")
+      mkdir -p "$CLAUDE_HOME/agents/$subdir/$nested_name"
+      for f in "$nested"*.md; do
+        [ -f "$f" ] || continue
+        ln -sf "$f" "$CLAUDE_HOME/agents/$subdir/$nested_name/$(basename "$f")"
+        count=$((count + 1))
+      done
+    done
+  fi
+done
+echo "  $count agents installed (including micro-agent clusters)"
 
 # ─── 2. Symlink skills ───
 echo "Installing skills..."
@@ -193,6 +216,58 @@ fi
 
 # ─── 7. Store install path ───
 echo "$SCRIPT_DIR" > "$CLAUDE_HOME/.experts-install-path"
+
+# ─── 8. claude-memory MCP ───
+echo ""
+echo "Setting up claude-memory MCP (cross-session project memory)..."
+
+MEMORY_SERVER="${CLAUDE_MEMORY_PATH:-$HOME/Code/claude-memory/mcp/memory-server/dist/index.js}"
+
+if [ ! -f "$MEMORY_SERVER" ]; then
+  echo "  ⚠️  claude-memory server not found at $MEMORY_SERVER"
+  echo "     Clone it: git clone https://github.com/bpmforge/claude-memory.git ~/Code/claude-memory"
+  echo "     Build it: cd ~/Code/claude-memory && npm install && npm run build"
+  echo "     Or set CLAUDE_MEMORY_PATH=/path/to/dist/index.js and re-run install.sh"
+elif command -v claude &>/dev/null; then
+  if claude mcp list 2>/dev/null | grep -q "^memory"; then
+    echo "  claude-memory MCP already registered"
+  else
+    claude mcp add memory node "$MEMORY_SERVER" 2>&1 | head -3
+    echo "  Registered claude-memory MCP (user-level)"
+  fi
+else
+  echo "  Claude Code CLI not on PATH — to register the memory MCP run:"
+  echo "    claude mcp add memory node $MEMORY_SERVER"
+fi
+
+# ─── 9. playwright-mcp (LLM-agnostic browser automation + screenshots) ───
+echo ""
+echo "Setting up playwright-mcp (browser automation, screenshots, E2E testing)..."
+
+INSTALL_PLAYWRIGHT_MCP=true
+for arg in "$@"; do
+  [ "$arg" = "--no-playwright-mcp" ] && INSTALL_PLAYWRIGHT_MCP=false
+done
+
+if [ "$INSTALL_PLAYWRIGHT_MCP" = true ]; then
+  if ! command -v node &>/dev/null; then
+    echo "  ⚠️  node not found — skipping playwright-mcp"
+  elif command -v claude &>/dev/null; then
+    if claude mcp list 2>/dev/null | grep -q "^playwright[[:space:]]"; then
+      echo "  playwright-mcp already registered"
+    else
+      claude mcp add playwright -- npx -y @playwright/mcp@latest 2>&1 | head -3
+      echo "  Registered playwright-mcp (user-level)"
+      echo "  First use will auto-install Chromium (~170MB). To pre-install:"
+      echo "    npx playwright install chromium"
+    fi
+  else
+    echo "  Claude Code CLI not on PATH — to register playwright-mcp run:"
+    echo "    claude mcp add playwright -- npx -y @playwright/mcp@latest"
+  fi
+else
+  echo "  Skipping playwright-mcp (--no-playwright-mcp set)"
+fi
 
 # ─── 8. playwright-search MCP setup ───
 if [ "$INSTALL_PWS" = true ]; then

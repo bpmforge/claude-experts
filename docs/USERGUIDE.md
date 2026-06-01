@@ -163,6 +163,31 @@ Native Claude Code `WebSearch` and `WebFetch` work fine, but the project prefers
 
 Full surface at `~/.claude/agents/shared/RESEARCH_TOOLS.md`.
 
+### Browser automation backbone
+
+For navigating to a running app, taking screenshots, and verifying UI:
+
+1. `browser_navigate(url)` + `browser_screenshot()` — navigate and capture. Works headless and in CI.
+2. `browser_snapshot()` — accessibility tree dump. No vision model required. Use to verify structure without reading pixels.
+3. `browser_fill` / `browser_click` / `browser_wait_for` — form testing and interaction flows.
+4. `playwright-mcp` replaces `claude-in-chrome` for all automated/cross-model use cases.
+
+Full protocol at `~/.claude/agents/shared/BROWSER_TESTING.md`. Configuration at `docs/MCP_GUIDE.md`.
+
+### Memory & code search
+
+Cross-session tools that persist beyond the context window:
+
+- `session_restore()` — load prior project decisions/constraints on session start
+- `memory_store(...)` — save a decision, pattern, or bug fix for future sessions
+- `session_save(...)` — persist session summary on session end
+- `code_search("query")` — semantic search over the codebase
+- `code_symbols(kind?, name_filter?)` — browse what exists (functions, classes, interfaces)
+- `code_outline("file")` — structural outline of a file
+- `code_references("SymbolName")` — find usages
+
+Full protocols at `~/.claude/agents/shared/MEMORY_PRIMER.md` and `docs/MCP_GUIDE.md`.
+
 ---
 
 ## Typical workflows
@@ -408,6 +433,23 @@ Modes: `--strategy`, `--unit`, `--e2e`, `--coverage`
 ```
 
 Reference: `references/playwright-config.md`. Output: `docs/test/`.
+
+### `/ui-verify`
+
+Live browser verification using `playwright-mcp`. Navigates your running app, takes screenshots, reads accessibility snapshots, and verifies flows. Works with any LLM — no vision model required.
+
+```
+/ui-verify http://localhost:3000                   # smoke pass — main routes, screenshots
+/ui-verify http://localhost:3000 --use-cases       # verify P0 use cases from USE_CASES.md
+/ui-verify http://localhost:3000 --flow "login"    # single flow end-to-end
+/ui-verify http://localhost:3000 --regression      # post-change regression check
+```
+
+**Distinct from `/test-expert --e2e`:** test-expert writes `.spec.ts` files. `/ui-verify` runs the browser NOW against your running server and tells you what it sees — immediate visual feedback, no test framework needed.
+
+**Requires:** `playwright-mcp` registered. Check: `claude mcp list | grep playwright`.
+
+Output: `docs/test/UI_VERIFICATION_REPORT.md` — per-flow PASS/FAIL/WARN table, step observations, accessibility findings.
 
 ### `/perf`
 

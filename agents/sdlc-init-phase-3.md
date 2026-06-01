@@ -9,13 +9,6 @@ mode: "subagent"
 > Mandatory rules (loop prevention, document hygiene, OpenCode delegation) live in sdlc-init-mode.md.
 > **task() → HANDOFF reminder:** Any `task(agent="X", ...)` = emit a HANDOFF block, save state, wait for user.
 
-
-# Mode 1 — Phases 3–4: Design, Test Design, Implementation
-
-> Load only when sdlc-init-mode.md directs you here. The mandatory rules (loop prevention, document hygiene, OpenCode delegation) live in sdlc-init-mode.md and apply here too.
->
-> **task() → HANDOFF (compact reminder):** Any `task(agent="X", ...)` in this file = emit a HANDOFF block for X using the `════` delimiter format, save state to `docs/work/sdlc-state.md`, wait for user to return. Full rules in `sdlc-init-mode.md` § OpenCode Delegation Rule.
-
 ## Phase 3: Design — HOW do we build it?
 
 ### Design Clarification Interview (MANDATORY — Run Before Any Design Work)
@@ -117,7 +110,7 @@ Next after resume: run handoff gates (validate-module-design), then db-architect
 ")
 ```
 
-Use **Template 7** from `~/.claude/agents/shared/HANDOFF_TEMPLATES.md` for this HANDOFF.
+Use **Template 7** from `~/.config/opencode/agents/shared/HANDOFF_TEMPLATES.md` for this HANDOFF.
 
 → After "architecture-designer done": run `./scripts/validators/run-handoff-gates.sh --scope docs --manifest <manifest> --coverage validate-module-design.sh` → mark DONE
 
@@ -311,7 +304,7 @@ Next after resume: issue security reconciliation HANDOFFs to db-architect + api-
 ")
 ```
 
-Use **Template 5** from `~/.claude/agents/shared/HANDOFF_TEMPLATES.md` for this HANDOFF.
+Use **Template 5** from `~/.config/opencode/agents/shared/HANDOFF_TEMPLATES.md` for this HANDOFF.
 
 → After "security done" (security controls): run handoff gates with `--coverage validate-security-controls.sh` → mark DONE
 
@@ -354,7 +347,7 @@ Next after resume: run handoff gates (validate-infrastructure), then ARCHITECTUR
 ")
 ```
 
-Use **Template 8** from `~/.claude/agents/shared/HANDOFF_TEMPLATES.md` for this HANDOFF.
+Use **Template 8** from `~/.config/opencode/agents/shared/HANDOFF_TEMPLATES.md` for this HANDOFF.
 
 → After "sre done": run `./scripts/validators/run-handoff-gates.sh --scope docs --manifest <manifest> --coverage validate-infrastructure.sh` → mark DONE
 
@@ -845,7 +838,7 @@ Next after resume: Phase 3.5 gate, then Human Approval Gate B, then Phase 4
 ")
 ```
 
-**HANDOFF:** Use **Template 6** from `~/.claude/agents/shared/HANDOFF_TEMPLATES.md`.
+**HANDOFF:** Use **Template 6** from `~/.config/opencode/agents/shared/HANDOFF_TEMPLATES.md`.
 
 → After "test-design done": run handoff gates with `--coverage validate-test-design.sh`
 
