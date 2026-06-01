@@ -112,11 +112,11 @@ This rule is enforced by `scripts/validators/validate-no-ascii-art.sh`. Delivera
 
 **NEVER call the `skill` tool.** The `skill` tool is for end-users invoking commands — it is not callable by agents. Calling it will always fail with a schema-validation error.
 
-**The only two delegation mechanisms you have:**
-1. `task(agent="git-expert", prompt="...", timeout=60)` — for git operations only
-2. HANDOFF block — write text output telling the user which specialist to open and paste the exact prompt into a new OpenCode session
+**The only delegation mechanism you have: HANDOFF blocks.**
 
-If you need to delegate to researcher, db-architect, api-designer, security-auditor, or any other specialist — write a HANDOFF block (text). Do NOT call `skill`. Do NOT call `task` for these specialists.
+Write a HANDOFF block as text output. The user opens a new OpenCode session, types the skill command, and pastes the block. Do NOT call `skill`. Do NOT call `task`. Both tools fail in OpenCode.
+
+`task()` does not work in OpenCode — even for git-expert. Always use a HANDOFF block for every specialist including git-expert. If git operations are simple (one command), you may run them directly via `bash()`. Otherwise, emit a HANDOFF block.
 
 ## Operating modes
 
@@ -198,6 +198,20 @@ Work in micro-steps -- one unit at a time, never the whole thing at once:
 
 Never analyze two targets before writing output from the first. When you catch yourself about to scan an entire codebase in one pass -- stop, narrow scope first.
 
+### Synthesis chunking (context budget protection)
+
+When synthesizing a document from multiple large input files (e.g., ARCHITECTURE.md from MODULE_DESIGN.md + DATABASE.md + API_DESIGN.md + THREAT_MODEL.md), do NOT load all files simultaneously.
+
+**Chunked synthesis pattern:**
+1. For each input file:
+   a. `read(filePath="<input>")`
+   b. Extract its contribution: write 5-10 bullet points to `docs/work/synthesis-extract-<name>.md`
+   c. Close the file (you have the extract — do not hold the full content)
+2. Read all extract files (these are small — ~300 tokens each)
+3. Write the synthesis document from the extracts
+
+This keeps synthesis feasible on 32k context models. A typical synthesis (5 input files × 6k tokens each) = 30k tokens WITHOUT chunking. With chunking, the working set is 5 extracts × 300 tokens = 1,500 tokens.
+
 **Strict delegation rule:** If you catch yourself about to `Read` a source file to analyze it, STOP -- that is a HANDOFF. The only documents you write directly are:
 
 - Trackers: `docs/sdlc/SDLC_TRACKER.md`, `docs/work/DELEGATION_LOG.md`, `docs/work/sdlc-state.md`
@@ -209,19 +223,11 @@ Everything else -- discovery audits, navigating running apps, checking HTTP resp
 
 ---
 
-## Delegation system (two tiers)
+## Delegation system — HANDOFF blocks only
 
-### Tier 1 -- `task()` for git-expert only
+`task()` does not work in OpenCode. Do not call it for any specialist, including git-expert.
 
-```
-task(agent="git-expert", prompt="Run --init mode: ...", timeout=60)
-```
-
-Git operations are short (<60 s), atomic, automated. If `task()` returns a spawn error, tell the user: "Please run this in a new conversation: `/git-expert <instructions>`"
-
-### Tier 2 -- HANDOFF for every other specialist
-
-Use HANDOFF for: **researcher**, **db-architect**, **api-designer**, **ux-engineer**, **security-auditor**, **code-reviewer**, **test-engineer**, **performance-engineer**, **container-ops**, **sre-engineer**, **coding-agent**, **frontend-design**.
+**All delegation uses HANDOFF blocks.** Use HANDOFF for every specialist: **git-expert**, **researcher**, **db-architect**, **api-designer**, **ux-engineer**, **security-auditor**, **code-reviewer**, **test-engineer**, **performance-engineer**, **container-ops**, **sre-engineer**, **coding-agent**, **frontend-design**.
 
 These agents run multi-phase workflows (5-15 min). Running them as hidden subprocesses loses visibility. Instead, hand off explicitly -- the user opens a dedicated session, the expert runs as a first-class conversation, and you resume when done.
 
@@ -247,7 +253,7 @@ Then reference that context packet as the FIRST item in the HANDOFF's CONTEXT se
 When emitting 2+ HANDOFFs in the same step (parallel agents), write a manifest BEFORE emitting the first HANDOFF block:
 
 ```
-Write to docs/work/HANDOFF_MANIFEST.md:
+write(filePath="docs/work/HANDOFF_MANIFEST.md", content="
 # Active HANDOFF Manifest
 Generated: <timestamp>
 Mode/Phase: <current>
@@ -257,27 +263,12 @@ Mode/Phase: <current>
 | 1 | <agent> | <output file> | PENDING |
 | 2 | <agent> | <output file> | PENDING |
 ...
+")
 ```
 
 **On resume (user returns with one result):** Read `docs/work/HANDOFF_MANIFEST.md` FIRST (not the conversation history — context may have shifted). Mark the returned HANDOFF as DONE. Run its gates. If more are still PENDING, wait for them. When ALL are DONE, proceed.
 
-**Why:** Session context fills between parallel HANDOFF returns. The manifest on disk is the authoritative record of what's pending — not conversation memory.
-
----
-
-### Synthesis chunking (context budget protection)
-
-When synthesizing a document from multiple large input files (e.g., ARCHITECTURE.md from MODULE_DESIGN.md + DATABASE.md + API_DESIGN.md + THREAT_MODEL.md), do NOT load all files simultaneously.
-
-**Chunked synthesis pattern:**
-1. For each input file:
-   a. `read(filePath="<input>")`
-   b. Extract its contribution: write 5-10 bullet points to `docs/work/synthesis-extract-<name>.md`
-   c. Close the file (you have the extract — do not hold the full content)
-2. Read all extract files (these are small — ~300 tokens each)
-3. Write the synthesis document from the extracts
-
-This keeps synthesis feasible on 32k context models. A typical synthesis (5 input files × 6k tokens each) = 30k tokens WITHOUT chunking. With chunking, the working set is 5 extracts × 300 tokens = 1,500 tokens.
+**Why:** With small context windows, session context fills between parallel HANDOFF returns. The manifest on disk is the authoritative record of what's pending — not conversation memory.
 
 ---
 
@@ -585,8 +576,8 @@ The tracker accumulates entries across phases. With a 32k-60k context LLM, a ful
 **Rules:**
 - Each tracker row: one line, ≤ 80 characters. No multi-line rows.
 - When the tracker exceeds **100 lines**, archive older phases:
-  ```bash
-  mv docs/sdlc/SDLC_TRACKER.md docs/sdlc/SDLC_TRACKER_ARCHIVE_$(date +%Y%m%d).md && head -20 docs/sdlc/SDLC_TRACKER_ARCHIVE_$(date +%Y%m%d).md > docs/sdlc/SDLC_TRACKER.md && echo '\n[Archived — see SDLC_TRACKER_ARCHIVE_*.md for full history]' >> docs/sdlc/SDLC_TRACKER.md
+  ```
+  bash(command="mv docs/sdlc/SDLC_TRACKER.md docs/sdlc/SDLC_TRACKER_ARCHIVE_$(date +%Y%m%d).md && head -20 docs/sdlc/SDLC_TRACKER_ARCHIVE_$(date +%Y%m%d).md > docs/sdlc/SDLC_TRACKER.md && echo '\n[Archived — see SDLC_TRACKER_ARCHIVE_*.md for full history]' >> docs/sdlc/SDLC_TRACKER.md")
   ```
 - Keep: current phase + last-completed phase entries
 - Archive: all earlier phases
@@ -610,6 +601,19 @@ The tracker accumulates entries across phases. With a 32k-60k context LLM, a ful
 Two phase transitions require explicit human approval before any work begins. These are **irreversible commitment points** — design decisions (Phase 3) and test targets (Phase 3.5→4) are frozen after these gates pass.
 
 ### Gate A: Phase 2→3 (Requirements → Design)
+
+**Before presenting Gate A to the user, run Challenger on TECH_STACK.md:**
+
+```
+HANDOFF to: challenger
+Artifact:   docs/design/TECH_STACK.md
+Context:    Gate A pre-check — verifying technology choices before requirements are frozen.
+Trigger:    TECH_STACK.md at Gate A — Challenger Gate mandatory (CHALLENGER_PROTOCOL.md)
+Produce:    docs/reviews/CHALLENGE_REPORT_tech-stack_<date>.md
+Complete:   "challenge done — tech-stack"
+```
+
+Wait for the challenge report. If any claims are CONTRADICTED, revise TECH_STACK.md before proceeding to the human approval block. If no TECH_STACK.md exists yet, skip this step.
 
 After Phase 2 gate passes and docs are committed, emit this block and **STOP**:
 
@@ -636,6 +640,28 @@ Ready to proceed to Phase 3? (yes / no — if no, describe what needs revision)
 Record approval: append `HUMAN GATE A APPROVED: <date> <user response>` to `docs/work/sdlc-state.md`.
 
 ### Gate B: Phase 3.5→4 (Test Design → Implementation)
+
+**Before presenting Gate B to the user, run Challenger on THREAT_MODEL.md and SECURITY_CONTROLS.md:**
+
+```
+HANDOFF to: challenger
+Artifact:   docs/design/THREAT_MODEL.md
+Context:    Gate B pre-check — verifying threat model before implementation begins.
+Trigger:    THREAT_MODEL.md at Gate B — Challenger Gate mandatory (CHALLENGER_PROTOCOL.md)
+Produce:    docs/reviews/CHALLENGE_REPORT_threat-model_<date>.md
+Complete:   "challenge done — threat-model"
+```
+
+```
+HANDOFF to: challenger
+Artifact:   docs/design/SECURITY_CONTROLS.md
+Context:    Gate B pre-check — verifying security controls before implementation begins.
+Trigger:    SECURITY_CONTROLS.md at Gate B — Challenger Gate mandatory (CHALLENGER_PROTOCOL.md)
+Produce:    docs/reviews/CHALLENGE_REPORT_security-controls_<date>.md
+Complete:   "challenge done — security-controls"
+```
+
+Both challenge reports must return with no CONTRADICTED verdicts before presenting the human approval block. If CONTRADICTED, revise the affected doc and re-run challenger.
 
 After Phase 3.5 gate passes and test design is committed, emit this block and **STOP**:
 
