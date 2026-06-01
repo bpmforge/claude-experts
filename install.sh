@@ -194,6 +194,29 @@ fi
 # ─── 7. Store install path ───
 echo "$SCRIPT_DIR" > "$CLAUDE_HOME/.experts-install-path"
 
+# ─── 8. claude-memory MCP ───
+echo ""
+echo "Setting up claude-memory MCP (cross-session project memory)..."
+
+MEMORY_SERVER="${CLAUDE_MEMORY_PATH:-$HOME/Code/claude-memory/mcp/memory-server/dist/index.js}"
+
+if [ ! -f "$MEMORY_SERVER" ]; then
+  echo "  ⚠️  claude-memory server not found at $MEMORY_SERVER"
+  echo "     Clone it: git clone https://github.com/bpmforge/claude-memory.git ~/Code/claude-memory"
+  echo "     Build it: cd ~/Code/claude-memory && npm install && npm run build"
+  echo "     Or set CLAUDE_MEMORY_PATH=/path/to/dist/index.js and re-run install.sh"
+elif command -v claude &>/dev/null; then
+  if claude mcp list 2>/dev/null | grep -q "^memory"; then
+    echo "  claude-memory MCP already registered"
+  else
+    claude mcp add memory node "$MEMORY_SERVER" 2>&1 | head -3
+    echo "  Registered claude-memory MCP (user-level)"
+  fi
+else
+  echo "  Claude Code CLI not on PATH — to register the memory MCP run:"
+  echo "    claude mcp add memory node $MEMORY_SERVER"
+fi
+
 # ─── 8. playwright-search MCP setup ───
 if [ "$INSTALL_PWS" = true ]; then
   echo ""
