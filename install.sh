@@ -217,6 +217,35 @@ else
   echo "    claude mcp add memory node $MEMORY_SERVER"
 fi
 
+# ─── 9. playwright-mcp (LLM-agnostic browser automation + screenshots) ───
+echo ""
+echo "Setting up playwright-mcp (browser automation, screenshots, E2E testing)..."
+
+INSTALL_PLAYWRIGHT_MCP=true
+for arg in "$@"; do
+  [ "$arg" = "--no-playwright-mcp" ] && INSTALL_PLAYWRIGHT_MCP=false
+done
+
+if [ "$INSTALL_PLAYWRIGHT_MCP" = true ]; then
+  if ! command -v node &>/dev/null; then
+    echo "  ⚠️  node not found — skipping playwright-mcp"
+  elif command -v claude &>/dev/null; then
+    if claude mcp list 2>/dev/null | grep -q "^playwright[[:space:]]"; then
+      echo "  playwright-mcp already registered"
+    else
+      claude mcp add playwright -- npx -y @playwright/mcp@latest 2>&1 | head -3
+      echo "  Registered playwright-mcp (user-level)"
+      echo "  First use will auto-install Chromium (~170MB). To pre-install:"
+      echo "    npx playwright install chromium"
+    fi
+  else
+    echo "  Claude Code CLI not on PATH — to register playwright-mcp run:"
+    echo "    claude mcp add playwright -- npx -y @playwright/mcp@latest"
+  fi
+else
+  echo "  Skipping playwright-mcp (--no-playwright-mcp set)"
+fi
+
 # ─── 8. playwright-search MCP setup ───
 if [ "$INSTALL_PWS" = true ]; then
   echo ""

@@ -163,6 +163,31 @@ Native Claude Code `WebSearch` and `WebFetch` work fine, but the project prefers
 
 Full surface at `~/.claude/agents/shared/RESEARCH_TOOLS.md`.
 
+### Browser automation backbone
+
+For navigating to a running app, taking screenshots, and verifying UI:
+
+1. `browser_navigate(url)` + `browser_screenshot()` — navigate and capture. Works headless and in CI.
+2. `browser_snapshot()` — accessibility tree dump. No vision model required. Use to verify structure without reading pixels.
+3. `browser_fill` / `browser_click` / `browser_wait_for` — form testing and interaction flows.
+4. `playwright-mcp` replaces `claude-in-chrome` for all automated/cross-model use cases.
+
+Full protocol at `~/.claude/agents/shared/BROWSER_TESTING.md`. Configuration at `docs/MCP_GUIDE.md`.
+
+### Memory & code search
+
+Cross-session tools that persist beyond the context window:
+
+- `session_restore()` — load prior project decisions/constraints on session start
+- `memory_store(...)` — save a decision, pattern, or bug fix for future sessions
+- `session_save(...)` — persist session summary on session end
+- `code_search("query")` — semantic search over the codebase
+- `code_symbols(kind?, name_filter?)` — browse what exists (functions, classes, interfaces)
+- `code_outline("file")` — structural outline of a file
+- `code_references("SymbolName")` — find usages
+
+Full protocols at `~/.claude/agents/shared/MEMORY_PRIMER.md` and `docs/MCP_GUIDE.md`.
+
 ---
 
 ## Typical workflows
