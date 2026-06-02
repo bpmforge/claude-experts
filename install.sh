@@ -217,20 +217,20 @@ fi
 # ─── 7. Store install path ───
 echo "$SCRIPT_DIR" > "$CLAUDE_HOME/.experts-install-path"
 
-# ─── 8. claude-memory MCP ───
+# ─── 8. bpm-memory-mcp MCP ───
 echo ""
-echo "Setting up claude-memory MCP (cross-session project memory)..."
+echo "Setting up bpm-memory-mcp MCP (cross-session project memory)..."
 
-MEMORY_DIR="${CLAUDE_MEMORY_DIR:-$HOME/Code/claude-memory}"
+MEMORY_DIR="${CLAUDE_MEMORY_DIR:-$HOME/Code/bpm-memory-mcp}"
 MEMORY_SERVER="${CLAUDE_MEMORY_PATH:-$MEMORY_DIR/mcp/memory-server/dist/index.js}"
-MEMORY_REPO="https://github.com/bpmforge/claude-memory.git"
+MEMORY_REPO="https://github.com/bpmforge/bpm-memory-mcp.git"
 
 if ! command -v node &>/dev/null; then
-  echo "  ⚠️  node not found — skipping claude-memory"
+  echo "  ⚠️  node not found — skipping bpm-memory-mcp"
 else
   # Clone if not present
   if [ ! -d "$MEMORY_DIR/.git" ]; then
-    echo "  Cloning claude-memory → $MEMORY_DIR ..."
+    echo "  Cloning bpm-memory-mcp → $MEMORY_DIR ..."
     mkdir -p "$(dirname "$MEMORY_DIR")"
     if git clone --quiet --depth 1 "$MEMORY_REPO" "$MEMORY_DIR"; then
       echo "    cloned ✓"
@@ -239,12 +239,12 @@ else
       MEMORY_SERVER=""
     fi
   else
-    (cd "$MEMORY_DIR" && git pull --ff-only --quiet 2>/dev/null) && echo "  claude-memory up to date" || true
+    (cd "$MEMORY_DIR" && git pull --ff-only --quiet 2>/dev/null) && echo "  bpm-memory-mcp up to date" || true
   fi
 
   # Build if binary missing or source is newer
   if [ -n "$MEMORY_SERVER" ] && { [ ! -f "$MEMORY_SERVER" ] || [ "$MEMORY_DIR/mcp/memory-server/src/index.ts" -nt "$MEMORY_SERVER" ]; }; then
-    echo "  Building claude-memory..."
+    echo "  Building bpm-memory-mcp..."
     (cd "$MEMORY_DIR" && npm install --silent && npm run build --silent) 2>&1 | tail -3
     if [ -f "$MEMORY_SERVER" ]; then
       echo "    build ✓"
@@ -258,10 +258,10 @@ else
   if [ -n "$MEMORY_SERVER" ] && [ -f "$MEMORY_SERVER" ]; then
     if command -v claude &>/dev/null; then
       if claude mcp list 2>/dev/null | grep -q "^memory"; then
-        echo "  claude-memory MCP already registered"
+        echo "  bpm-memory-mcp MCP already registered"
       else
         claude mcp add memory node "$MEMORY_SERVER" 2>&1 | head -3
-        echo "  Registered claude-memory MCP (user-level)"
+        echo "  Registered bpm-memory-mcp MCP (user-level)"
       fi
     else
       echo "  Claude Code CLI not on PATH — to register run:"
@@ -440,7 +440,7 @@ echo "  ~/.claude/hooks/*              (automation scripts)"
 echo "  ~/.claude/CLAUDE.md            (updated with expert docs)"
 echo ""
 echo "MCPs registered:"
-[ -f "${MEMORY_SERVER:-}" ]     && echo "  memory          — cross-session project memory  (claude-memory)"
+[ -f "${MEMORY_SERVER:-}" ]     && echo "  memory          — cross-session project memory  (bpm-memory-mcp)"
 [ -f "${CODE_SEARCH_BIN:-}" ]   && echo "  code-search     — semantic search + symbol index (bpm-code-search-mcp)"
 [ "$INSTALL_PLAYWRIGHT_MCP" = true ] && echo "  playwright      — browser automation + screenshots (playwright-mcp)"
 [ "$INSTALL_PWS" = true ] && [ -f "$PWS_DIR/dist/mcp.js" ] \

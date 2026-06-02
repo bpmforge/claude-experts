@@ -12,7 +12,7 @@ cd claude-experts
 ./install.sh
 ```
 
-`install.sh` clones and builds all MCPs automatically (claude-memory, bpm-code-search-mcp, playwright-search) and registers them with Claude Code. Pass `--no-playwright-search` or `--no-playwright-mcp` to skip individual MCPs. Requires macOS, Linux, or WSL2.
+`install.sh` clones and builds all MCPs automatically (bpm-memory-mcp, bpm-code-search-mcp, playwright-search) and registers them with Claude Code. Pass `--no-playwright-search` or `--no-playwright-mcp` to skip individual MCPs. Requires macOS, Linux, or WSL2.
 
 ## First command
 
