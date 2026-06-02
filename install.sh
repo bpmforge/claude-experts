@@ -221,23 +221,53 @@ echo "$SCRIPT_DIR" > "$CLAUDE_HOME/.experts-install-path"
 echo ""
 echo "Setting up claude-memory MCP (cross-session project memory)..."
 
-MEMORY_SERVER="${CLAUDE_MEMORY_PATH:-$HOME/Code/claude-memory/mcp/memory-server/dist/index.js}"
+MEMORY_DIR="${CLAUDE_MEMORY_DIR:-$HOME/Code/claude-memory}"
+MEMORY_SERVER="${CLAUDE_MEMORY_PATH:-$MEMORY_DIR/mcp/memory-server/dist/index.js}"
+MEMORY_REPO="https://github.com/bpmforge/claude-memory.git"
 
-if [ ! -f "$MEMORY_SERVER" ]; then
-  echo "  ⚠️  claude-memory server not found at $MEMORY_SERVER"
-  echo "     Clone it: git clone https://github.com/bpmforge/claude-memory.git ~/Code/claude-memory"
-  echo "     Build it: cd ~/Code/claude-memory && npm install && npm run build"
-  echo "     Or set CLAUDE_MEMORY_PATH=/path/to/dist/index.js and re-run install.sh"
-elif command -v claude &>/dev/null; then
-  if claude mcp list 2>/dev/null | grep -q "^memory"; then
-    echo "  claude-memory MCP already registered"
-  else
-    claude mcp add memory node "$MEMORY_SERVER" 2>&1 | head -3
-    echo "  Registered claude-memory MCP (user-level)"
-  fi
+if ! command -v node &>/dev/null; then
+  echo "  ⚠️  node not found — skipping claude-memory"
 else
-  echo "  Claude Code CLI not on PATH — to register the memory MCP run:"
-  echo "    claude mcp add memory node $MEMORY_SERVER"
+  # Clone if not present
+  if [ ! -d "$MEMORY_DIR/.git" ]; then
+    echo "  Cloning claude-memory → $MEMORY_DIR ..."
+    mkdir -p "$(dirname "$MEMORY_DIR")"
+    if git clone --quiet --depth 1 "$MEMORY_REPO" "$MEMORY_DIR"; then
+      echo "    cloned ✓"
+    else
+      echo "    ⚠️  clone failed — check network. Memory MCP will be skipped."
+      MEMORY_SERVER=""
+    fi
+  else
+    (cd "$MEMORY_DIR" && git pull --ff-only --quiet 2>/dev/null) && echo "  claude-memory up to date" || true
+  fi
+
+  # Build if binary missing or source is newer
+  if [ -n "$MEMORY_SERVER" ] && { [ ! -f "$MEMORY_SERVER" ] || [ "$MEMORY_DIR/mcp/memory-server/src/index.ts" -nt "$MEMORY_SERVER" ]; }; then
+    echo "  Building claude-memory..."
+    (cd "$MEMORY_DIR" && npm install --silent && npm run build --silent) 2>&1 | tail -3
+    if [ -f "$MEMORY_SERVER" ]; then
+      echo "    build ✓"
+    else
+      echo "    ⚠️  build failed — run manually: cd $MEMORY_DIR && npm install && npm run build"
+      MEMORY_SERVER=""
+    fi
+  fi
+
+  # Register with Claude Code
+  if [ -n "$MEMORY_SERVER" ] && [ -f "$MEMORY_SERVER" ]; then
+    if command -v claude &>/dev/null; then
+      if claude mcp list 2>/dev/null | grep -q "^memory"; then
+        echo "  claude-memory MCP already registered"
+      else
+        claude mcp add memory node "$MEMORY_SERVER" 2>&1 | head -3
+        echo "  Registered claude-memory MCP (user-level)"
+      fi
+    else
+      echo "  Claude Code CLI not on PATH — to register run:"
+      echo "    claude mcp add memory node $MEMORY_SERVER"
+    fi
+  fi
 fi
 
 # ─── 9. playwright-mcp (LLM-agnostic browser automation + screenshots) ───
@@ -267,6 +297,59 @@ if [ "$INSTALL_PLAYWRIGHT_MCP" = true ]; then
   fi
 else
   echo "  Skipping playwright-mcp (--no-playwright-mcp set)"
+fi
+
+# ─── 10. bpm-code-search-mcp ───
+echo ""
+echo "Setting up bpm-code-search-mcp (semantic code search + symbol index)..."
+
+CODE_SEARCH_DIR="${BPM_CODE_SEARCH_DIR:-$HOME/Code/bpm-code-search-mcp}"
+CODE_SEARCH_BIN="$CODE_SEARCH_DIR/dist/index.js"
+CODE_SEARCH_REPO="https://github.com/bpmforge/bpm-code-search-mcp.git"
+
+if ! command -v node &>/dev/null; then
+  echo "  ⚠️  node not found — skipping bpm-code-search-mcp"
+else
+  # Clone if not present
+  if [ ! -d "$CODE_SEARCH_DIR/.git" ]; then
+    echo "  Cloning bpm-code-search-mcp → $CODE_SEARCH_DIR ..."
+    mkdir -p "$(dirname "$CODE_SEARCH_DIR")"
+    if git clone --quiet --depth 1 "$CODE_SEARCH_REPO" "$CODE_SEARCH_DIR"; then
+      echo "    cloned ✓"
+    else
+      echo "    ⚠️  clone failed — check network. Code search MCP will be skipped."
+      CODE_SEARCH_BIN=""
+    fi
+  else
+    (cd "$CODE_SEARCH_DIR" && git pull --ff-only --quiet 2>/dev/null) && echo "  bpm-code-search-mcp up to date" || true
+  fi
+
+  # Build if binary missing or source is newer
+  if [ -n "$CODE_SEARCH_BIN" ] && { [ ! -f "$CODE_SEARCH_BIN" ] || [ "$CODE_SEARCH_DIR/src/index.ts" -nt "$CODE_SEARCH_BIN" ]; }; then
+    echo "  Building bpm-code-search-mcp..."
+    (cd "$CODE_SEARCH_DIR" && npm install --silent && npm run build --silent) 2>&1 | tail -3
+    if [ -f "$CODE_SEARCH_BIN" ]; then
+      echo "    build ✓"
+    else
+      echo "    ⚠️  build failed — run manually: cd $CODE_SEARCH_DIR && npm install && npm run build"
+      CODE_SEARCH_BIN=""
+    fi
+  fi
+
+  # Register with Claude Code
+  if [ -n "$CODE_SEARCH_BIN" ] && [ -f "$CODE_SEARCH_BIN" ]; then
+    if command -v claude &>/dev/null; then
+      if claude mcp list 2>/dev/null | grep -q "^code-search"; then
+        echo "  bpm-code-search-mcp already registered"
+      else
+        claude mcp add code-search node "$CODE_SEARCH_BIN" 2>&1 | head -3
+        echo "  Registered bpm-code-search-mcp (user-level)"
+      fi
+    else
+      echo "  Claude Code CLI not on PATH — to register run:"
+      echo "    claude mcp add code-search node $CODE_SEARCH_BIN"
+    fi
+  fi
 fi
 
 # ─── 8. playwright-search MCP setup ───
@@ -349,15 +432,19 @@ echo ""
 echo "Installation complete!"
 echo ""
 echo "Files installed:"
-echo "  ~/.claude/agents/*.md          (agents + references)"
-echo "  ~/.claude/skills/*/SKILL.md    (skill triggers)"
+echo "  ~/.claude/agents/              (47 agents + references + micro-agent clusters)"
+echo "  ~/.claude/skills/*/SKILL.md    (25 skill triggers)"
 echo "  ~/.claude/scripts/*.sh         (audit + utility scripts)"
-echo "  ~/.claude/.semgrep/            (186 custom rules, 11 languages)"
-if [ "$INSTALL_PWS" = true ] && [ -f "$PWS_DIR/dist/mcp.js" ]; then
-  echo "  $PWS_DIR/    (playwright-search MCP — web research tools)"
-fi
+echo "  ~/.claude/.semgrep/            (custom rules, 11 languages)"
 echo "  ~/.claude/hooks/*              (automation scripts)"
 echo "  ~/.claude/CLAUDE.md            (updated with expert docs)"
+echo ""
+echo "MCPs registered:"
+[ -f "${MEMORY_SERVER:-}" ]     && echo "  memory          — cross-session project memory  (claude-memory)"
+[ -f "${CODE_SEARCH_BIN:-}" ]   && echo "  code-search     — semantic search + symbol index (bpm-code-search-mcp)"
+[ "$INSTALL_PLAYWRIGHT_MCP" = true ] && echo "  playwright      — browser automation + screenshots (playwright-mcp)"
+[ "$INSTALL_PWS" = true ] && [ -f "$PWS_DIR/dist/mcp.js" ] \
+                            && echo "  playwright-search — web research + page extraction"
 echo ""
 echo "All expert commands are now available in Claude Code sessions."
 echo ""
