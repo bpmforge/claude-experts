@@ -48,6 +48,7 @@ Or plain English — the SDLC lead detects intent and routes automatically:
 
 ## Docs
 
+- [docs/SETUP.md](docs/SETUP.md) — **start here**: prerequisites, embedding models, env vars, troubleshooting
 - [docs/USERGUIDE.md](docs/USERGUIDE.md) — how to invoke each expert
 - [docs/FEATURES.md](docs/FEATURES.md) — full agent, skill, validator, and protocol catalog
 - [docs/MCP_GUIDE.md](docs/MCP_GUIDE.md) — MCP configuration and usage
