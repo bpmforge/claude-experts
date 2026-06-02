@@ -35,20 +35,63 @@ fi
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 CLAUDE_HOME="$HOME/.claude"
 INSTALL_PWS=true
+INSTALL_PLAYWRIGHT_MCP=true
+INSTALL_MEMORY=true
+INSTALL_CODE_SEARCH=true
+INTERACTIVE=false
 
 for arg in "$@"; do
   case $arg in
     --no-playwright-search) INSTALL_PWS=false ;;
+    --no-playwright-mcp)    INSTALL_PLAYWRIGHT_MCP=false ;;
+    --no-memory)            INSTALL_MEMORY=false ;;
+    --no-code-search)       INSTALL_CODE_SEARCH=false ;;
+    --yes|-y)               INTERACTIVE=false ;;  # accept all defaults non-interactively
     --help|-h)
       echo "claude-experts — Installation"
       echo ""
       echo "Usage:"
-      echo "  ./install.sh                       Install + (by default) set up the playwright-search MCP"
-      echo "  ./install.sh --no-playwright-search  Skip the playwright-search MCP install"
+      echo "  ./install.sh                 Interactive — prompts for optional MCPs"
+      echo "  ./install.sh --yes           Accept all defaults (non-interactive)"
+      echo "  ./install.sh --no-memory     Skip bpm-memory-mcp"
+      echo "  ./install.sh --no-code-search  Skip bpm-code-search-mcp"
+      echo "  ./install.sh --no-playwright-search  Skip playwright-search"
+      echo "  ./install.sh --no-playwright-mcp     Skip playwright-mcp"
       exit 0
       ;;
   esac
 done
+
+# ─── Interactive prompts (when run with no flags from a terminal) ───
+if [ $# -eq 0 ] && [ -t 0 ]; then
+  echo ""
+  echo "claude-experts v1.0.0 — Installation"
+  echo "====================================="
+  echo ""
+  echo "Core install (always): agents, skills, shared protocols, hooks, scripts, semgrep rules"
+  echo ""
+  echo "Optional MCPs:"
+  echo ""
+
+  prompt_yn() {
+    local msg="$1" default="$2" varname="$3"
+    local yn
+    printf "  %s [%s]: " "$msg" "$default"
+    read -r yn </dev/tty
+    yn="${yn:-$default}"
+    case "$yn" in
+      [Yy]*) eval "$varname=true" ;;
+      [Nn]*) eval "$varname=false" ;;
+      *)     eval "$varname=$( [ "$default" = "Y" ] && echo true || echo false )" ;;
+    esac
+  }
+
+  prompt_yn "Install bpm-memory-mcp (cross-session project memory)?" "Y" INSTALL_MEMORY
+  prompt_yn "Install bpm-code-search-mcp (semantic code search + symbol index)?" "Y" INSTALL_CODE_SEARCH
+  prompt_yn "Install playwright-mcp (browser automation + screenshots)?" "Y" INSTALL_PLAYWRIGHT_MCP
+  prompt_yn "Install playwright-search (web research MCP)?" "Y" INSTALL_PWS
+  echo ""
+fi
 
 echo ""
 echo "Installing claude-experts..."
@@ -218,6 +261,7 @@ fi
 echo "$SCRIPT_DIR" > "$CLAUDE_HOME/.experts-install-path"
 
 # ─── 8. bpm-memory-mcp MCP ───
+if [ "$INSTALL_MEMORY" = true ]; then
 echo ""
 echo "Setting up bpm-memory-mcp MCP (cross-session project memory)..."
 
@@ -269,6 +313,7 @@ else
     fi
   fi
 fi
+fi  # INSTALL_MEMORY
 
 # ─── 9. playwright-mcp (LLM-agnostic browser automation + screenshots) ───
 echo ""
@@ -300,6 +345,7 @@ else
 fi
 
 # ─── 10. bpm-code-search-mcp ───
+if [ "$INSTALL_CODE_SEARCH" = true ]; then
 echo ""
 echo "Setting up bpm-code-search-mcp (semantic code search + symbol index)..."
 
@@ -351,6 +397,7 @@ else
     fi
   fi
 fi
+fi  # INSTALL_CODE_SEARCH
 
 # ─── 8. playwright-search MCP setup ───
 if [ "$INSTALL_PWS" = true ]; then
