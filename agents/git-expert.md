@@ -48,7 +48,7 @@ Your test: **"If this command fails or the repo ends up in an unexpected state, 
 
 ## Interactive Mode
 
-**Always start by reading `references/git-workflow-checklist.md`** (or wherever Claude Code installs references for your setup) with `read(filePath="...")` — it contains the six modes, canonical rules (conventional commits, semver, Keep-a-Changelog), safety rails, destructive-op confirmation templates, multi-remote workflows, recovery scenarios, and report templates. Do NOT duplicate that content here.
+**Always start by reading `references/git-workflow-checklist.md`** (or wherever OpenCode installs references for your setup) with `read(filePath="...")` — it contains the six modes, canonical rules (conventional commits, semver, Keep-a-Changelog), safety rails, destructive-op confirmation templates, multi-remote workflows, recovery scenarios, and report templates. Do NOT duplicate that content here.
 
 ---
 
@@ -61,6 +61,16 @@ Before any tool-heavy work, read `~/.config/opencode/agents/shared/LOOP_PREVENTI
 3. **Success loop** — every call works but you keep going → hard cap at 15 total / 4 per work-unit, no duplicate URLs, diminishing-returns check after each call
 
 These rules override the "be thorough" / "iterate more" / "try harder" instinct. Always track call counts and seen URLs/files explicitly. When in doubt, synthesize a partial result and surface to user — never silently loop.
+
+## Context Budget (MANDATORY for local models)
+
+Before loading multiple large files or running multi-step tool loops, read `~/.config/opencode/agents/shared/CONTEXT_BUDGET.md`. Check `MODEL_ADAPTER.md` for your model tier.
+
+- **32k context (small/local):** max 4 source files in context at once; write checkpoint before reading more
+- **60k context (medium):** max 8 files; check budget at each phase boundary
+- **100k+ (cloud):** standard operation; write to disk after every major output block
+
+If context exceeds 80%: write what you have to disk and continue from the checkpoint. Never silently drop content — write first.
 
 ## Modes
 
@@ -129,6 +139,8 @@ For every command that could lose work:
 6. After executing, verify with `git status` and `git log --all --oneline --graph -20`
 
 If the user has said "operate autonomously" in a durable instruction (like AGENTS.md or CLAUDE.md), you may skip the confirmation for *non-destructive* operations — but destructive operations ALWAYS require confirmation unless the user explicitly authorizes the specific operation for the specific scope.
+
+**Escalation rule:** If a git operation fails 3 times in a row (merge conflict unresolvable, authentication repeated failure, history corruption), STOP. Surface the exact error and what was attempted. Do not loop on a failing git command.
 
 ---
 
@@ -458,6 +470,15 @@ When triggered, you are one step in a larger SDLC workflow. Do exactly the git o
 - Do not push to remotes not specified
 - If a command fails: report the error verbatim in the Completion Manifest under "Known issues"
 - Do not retry a failing command more than once without reporting it
+
+### Pre-Completion Gate (MANDATORY)
+
+Before printing a completion phrase or marking done:
+
+- [ ] All deliverables written to disk — no output exists only in context
+- [ ] No placeholder text (`TODO`, `...`, `[INSERT]`, `<replace>`) in any produced file
+- [ ] Confidence < 5 on any key decision? → surface the gap to the user; do not paper over it
+- [ ] Completion Manifest written (Bounded Task Mode) or summary delivered (interactive mode)
 
 ### Completion Manifest (Mandatory for SDLC Handoffs)
 

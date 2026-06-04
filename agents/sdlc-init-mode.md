@@ -13,6 +13,14 @@ This file contains the Mode 1 workflow. The spine, shared protocols (delegation,
 
 Build from scratch with proper engineering artifacts at every phase.
 
+## Loop Prevention (MANDATORY)
+
+Read `~/.config/opencode/agents/shared/LOOP_PREVENTION.md`. Hard cap: 30 tool calls total for this orchestration session. At each phase boundary, evaluate: "Have I made meaningful progress? Or am I cycling?" Stop and checkpoint rather than loop.
+
+## Context Budget (MANDATORY for local models)
+
+Read `~/.config/opencode/agents/shared/CONTEXT_BUDGET.md` before loading multiple documents. For 32k-context local models: load phase docs one at a time, write deliverables to disk before loading the next input. Never hold more than 4 large files in context simultaneously.
+
 ## Loop prevention (MANDATORY — rules are here, no file read required)
 
 **Class 2 — Schema-validation loop — STOP after 2 strikes.** If any tool call returns `"expected string, received undefined"` / `"Invalid input"` / `"Required field missing"`, that is strike 1. A second schema error on any tool = strike 2. Write this verbatim and end the turn:
@@ -24,7 +32,12 @@ Build from scratch with proper engineering artifacts at every phase.
 Stopping per 2-strikes rule.
 ```
 
-Other caps: failure loop → 3 strikes; success loop → quality-based stopping (see LOOP_PREVENTION.md).
+Other caps: failure loop → 3 strikes; success loop → 15 total calls max.
+
+**Tool format — copy these exactly:**
+- Read a file: `read(filePath="~/.config/opencode/agents/sdlc-init-mode.md")`
+- Shell command: `bash(command="ls ~/.config/opencode/agents/")`
+- Write a file: `write(filePath="docs/work/sdlc-state.md", content="...")`
 
 ## Document hygiene (MANDATORY)
 
@@ -41,20 +54,18 @@ This rule is enforced by `scripts/validators/validate-no-ascii-art.sh`. Delivera
 
 - **Book format (MANDATORY):** Any deliverable expected to exceed 300 lines MUST be structured as a multi-chapter book. Read `agents/shared/BOOK_PROTOCOL.md` for the directory structure, README template, chapter nav-bar format, and validation commands. Run `validate-book-structure.sh` and `validate-mermaid.sh` on every book before marking the deliverable DONE.
 
-## Claude Code Delegation Rule (MANDATORY — read before any delegation step)
+## OpenCode Delegation Rule (MANDATORY — read before any delegation step)
 
-> `task(agent="git-expert", prompt="...", timeout=60)` is available for git operations. For all other specialists, use HANDOFF blocks.
->
-> This file uses `task(agent="X", ...)` as shorthand notation to describe what to delegate and to which specialist. When you encounter `task(agent="X", ...)` for any specialist OTHER than git-expert:
+> **`task()` does not work in OpenCode.** This file uses `task(agent="X", ...)` as shorthand notation to describe what to delegate and to which specialist. When you encounter any `task(agent="X", ...)` call in this file, **do not call `task()`.** Instead:
 >
 > 1. Save state to `docs/work/sdlc-state.md`
 > 2. Write a context packet to `docs/work/context-for-<agent>.md`
 > 3. Emit a HANDOFF block using the `════` delimiter format from `agents/shared/HANDOFF_TEMPLATES.md`
 > 4. Wait for the user to return and say "<agent> done" before proceeding
 >
-> **Translation rule (apply to every non-git `task()` call you read):**
+> **Translation rule (apply to every `task()` call you read):**
 > ```
-> task(agent="X", prompt="...", timeout=N)   [where X ≠ git-expert]
+> task(agent="X", prompt="...", timeout=N)
 >       ↓  becomes
 > [Save state] → [Write context packet] → [Emit HANDOFF block for X] → [Wait for user]
 > ```
@@ -81,7 +92,7 @@ This rule is enforced by `scripts/validators/validate-no-ascii-art.sh`. Delivera
 
 **How to use:**
 1. Check `docs/work/sdlc-state.md` to determine current phase
-2. Load the corresponding file using the Read tool: `~/.claude/agents/sdlc-init-phases-X.md`
+2. Load the corresponding file using: `read(filePath="~/.config/opencode/agents/sdlc-init-phases-X.md")`
 3. Execute the steps in that file
 4. When advancing to a new phase file, you may unload the previous one (do not hold all phase files simultaneously)
 

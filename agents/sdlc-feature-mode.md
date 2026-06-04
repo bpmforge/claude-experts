@@ -13,6 +13,14 @@ This file contains the Mode 3 workflow. The spine, shared protocols, discovery i
 
 Add a feature to an existing system without breaking it.
 
+## Loop Prevention (MANDATORY)
+
+Read `~/.config/opencode/agents/shared/LOOP_PREVENTION.md`. Hard cap: 30 tool calls total for this orchestration session. At each phase boundary, evaluate: "Have I made meaningful progress? Or am I cycling?" Stop and checkpoint rather than loop.
+
+## Context Budget (MANDATORY for local models)
+
+Read `~/.config/opencode/agents/shared/CONTEXT_BUDGET.md` before loading multiple documents. For 32k-context local models: load phase docs one at a time, write deliverables to disk before loading the next input. Never hold more than 4 large files in context simultaneously.
+
 ## Loop prevention (MANDATORY — rules are here, no file read required)
 
 **Class 2 — Schema-validation loop — STOP after 2 strikes.** If any tool call returns `"expected string, received undefined"` / `"Invalid input"` / `"Required field missing"`, that is strike 1. A second schema error on any tool = strike 2. Write this verbatim and end the turn:
@@ -35,14 +43,54 @@ Other caps: failure loop → 3 strikes; success loop → 15 total calls max.
 
 When you produce any markdown deliverable (VISION, ARCHITECTURE, USE_CASES, ONBOARDING, HEALTH_ASSESSMENT, audit reports, etc.):
 
-- ALL diagrams MUST use Mermaid syntax — NEVER ASCII art or Unicode box-drawing characters (`═`, `║`, `┌`, `└`, `─`, `┐`, `┘`).
+- ALL diagrams MUST use Mermaid syntax — NEVER ASCII art or Unicode box-drawing characters (`║`, `┌`, `└`, `─`, `┐`, `┘`). **Exception:** the HANDOFF delimiter `════` (four `═` characters) IS allowed — it is required for HANDOFF blocks.
 - Use markdown horizontal rules (`---`) or fenced code blocks for visual separation. Do not draw banner lines with repeated `=` or `═` characters.
 - Headings (`#`, `##`, `###`) are the only allowed visual structure outside Mermaid blocks.
 - If you find yourself drawing a chart with text characters, stop — render it as a Mermaid `graph`, `sequenceDiagram`, `erDiagram`, `stateDiagram-v2`, `classDiagram`, or `flowchart` instead.
 
 This rule is enforced by `scripts/validators/validate-no-ascii-art.sh`. Deliverables that violate it fail the phase gate.
 
+---
+
 - **Book format (MANDATORY):** Any deliverable expected to exceed 300 lines MUST be structured as a multi-chapter book. Read `agents/shared/BOOK_PROTOCOL.md` for the directory structure, README template, chapter nav-bar format, and validation commands. Run `validate-book-structure.sh` and `validate-mermaid.sh` on every book before marking the deliverable DONE.
+
+## OpenCode Delegation Rule (MANDATORY — read before any delegation step)
+
+> **`task()` does not work in OpenCode.** This file uses `task(agent="X", ...)` as shorthand notation to describe what to delegate and to which specialist. When you encounter any `task(agent="X", ...)` call in this file, **do not call `task()`.** Instead:
+>
+> 1. Save state to `docs/work/sdlc-state.md`
+> 2. Write a context packet to `docs/work/context-for-<agent>.md`
+> 3. Emit a HANDOFF block using the `════` delimiter format from `agents/shared/HANDOFF_TEMPLATES.md`
+> 4. Wait for the user to return and say "<agent> done" before proceeding
+>
+> **Translation rule (apply to every `task()` call you read):**
+> ```
+> task(agent="X", prompt="...", timeout=N)
+>       ↓  becomes
+> [Save state] → [Write context packet] → [Emit HANDOFF block for X] → [Wait for user]
+> ```
+>
+> The task prompt text becomes the `YOUR TASK:` section of the HANDOFF block. Use Template 1 from `agents/shared/HANDOFF_TEMPLATES.md` for the full block format, including the `════` delimiters, ROLE line, CONTEXT section, WRITE-SCOPE, PRODUCE list, VERIFY checklist, Completion Manifest, and completion phrase.
+>
+> **Parallel HANDOFFs** (when the mode file shows multiple `task()` calls in the same step): emit all HANDOFF blocks in one message. The user opens N sessions simultaneously. Wait for ALL to return "done" before proceeding.
+
+---
+
+## Phase Roadmap (quick reference — read this, load deeper sections on demand)
+
+| Step | What happens | Key HANDOFF | Output |
+|------|-------------|-------------|--------|
+| 1 | Impact analysis + design | researcher, architecture-designer (if needed) | FEATURE_CONTEXT.md, impact assessment |
+| 2 | Implementation | coding-agent (1-4 per wave) | src/** |
+| 3 | Review + security | code-reviewer, security-auditor | FIX_BACKLOG_*.md |
+| 4 | Verify | code-reviewer (re-verify) | VERIFY_*.md |
+| 5 | Document | coding-agent (docs update) | Updated ARCHITECTURE.md, API docs |
+| 6 | Runtime gate | validators (local) | RUNTIME_*.md |
+| 7 | Merge | git-expert | PR merged to main |
+
+**Load deeper sections as you reach each step. Do not read the whole file upfront.**
+
+---
 
 ## Step 0: Initialize SDLC_TRACKER for Mode 3
 

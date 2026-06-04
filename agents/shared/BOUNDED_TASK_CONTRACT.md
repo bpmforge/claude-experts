@@ -67,16 +67,18 @@ Before the completion phrase, output a Completion Manifest:
 ## Known issues / deferred
 - [Issue] — [why deferred, which agent should address it]
 
+## Model tier: [small|medium|large] — [estimated context used: low|medium|high]
+
 ## Ready for: [next agent name, or "SDLC lead resume"]
 ```
 
-All six sections are required. "None" is a valid value for sections with nothing to report.
+All seven sections are required. "None" is a valid value for sections with nothing to report.
 
 ---
 
 ## Why these rules exist
 
-All cross-agent coordination in this system is via explicit HANDOFF blocks. In OpenCode, the user copies blocks into new sessions manually. In Claude Code, the Agent tool handles this programmatically. Either way:
+OpenCode does not support programmatic task spawning between agents. All cross-agent coordination in this system is via explicit HANDOFF blocks that the user copies into a new session. This means:
 
 - The orchestrator (sdlc-lead) cannot see what a specialist is doing while it runs
 - There is no shared context between sessions — every specialist starts fresh
@@ -84,3 +86,15 @@ All cross-agent coordination in this system is via explicit HANDOFF blocks. In O
 - Gate validators run after the specialist is done; they cannot catch scope violations mid-flight
 
 These rules keep the system predictable: the orchestrator knows exactly what changed, where, and why. Specialists that violate the contract produce output the orchestrator cannot safely incorporate.
+
+---
+
+## Rule 7 — Minimum Viable Output for short deliverables
+
+Agents producing deliverables under 300 lines (micro-agents, scanners, verifiers) must still include:
+
+1. **Executive summary** — 2-4 sentences: what was checked, what was found, overall verdict
+2. **Findings table** — even if empty: `| Finding | Severity | File | Status |` with at least one row (or "None found" if clean)
+3. **Confidence score** — overall confidence 1-10 with a one-line reason
+
+A 3-line output that says "no issues found" with no confidence score, no scope statement, and no findings table is not a valid deliverable — a coordinator cannot tell if the agent ran correctly or just gave up.
