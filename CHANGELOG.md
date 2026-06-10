@@ -2,6 +2,12 @@
 
 All notable changes to this project are documented here. Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and versioning follows [Semantic Versioning](https://semver.org/).
 
+## [1.2.0] — 2026-06-10
+
+### Changed
+- **agents/, references/, validators, compact variants, and shared tooling are now GENERATED** from the canonical source in bpm-opencode-experts (`npm run build:claude` there). `GENERATED_FILES.txt` lists every generated file; `CLAUDE.md` documents per-repo ownership. This replaces the manual dual-repo sync rule with a verifiable drift gate (`build:claude:check`). The generation converged remaining prose divergence to canonical text; `agents/shared/EXECUTOR_SELECTION.md` and `RESEARCH_TOOLS.md` are Claude-flavored per-target overrides.
+- New: `scripts/run-plan.mjs` — DAG runner for task-decomposer plans (see sibling CHANGELOG for details; on Claude Code use `--cmd` with a headless `claude -p`-based template, or execute plans via the Task tool).
+
 ## [1.1.0] — 2026-06-10
 
 Mirrors bpm-opencode-experts v1.1.0 (expert hardening R1–R11 + distribution hardening), adapted for the Claude Code runtime. See the sibling repo's CHANGELOG for the full R1–R11 detail.

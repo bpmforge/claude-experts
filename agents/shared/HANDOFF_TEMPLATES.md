@@ -29,26 +29,29 @@ END HANDOFF #N
 ════════════════════════════════════════════════════════════
 ```
 
-**Why delimiters matter:** When using local LLMs or handing off in complex multi-step sessions, models can lose track of which text is the HANDOFF body vs. surrounding commentary. The `════` border makes the copy region unambiguous. Online models (Claude, GPT-4) handle ambiguity fine, but the consistency helps all models.
+**Why delimiters matter:** Local LLMs (qwen, gemma, etc.) have smaller context windows and sometimes confuse which text is the HANDOFF body vs. the surrounding orchestrator commentary. The `════` border makes the copy region unambiguous regardless of the model. Online models (Claude, GPT-4) do fine without it, but the format is cheap and the consistency helps all models.
 
-**sdlc-lead output rule:** Print the delimiter header, the HANDOFF body, then the delimiter footer. Never add commentary inside the delimited region — explanation goes ABOVE the opening delimiter.
+**sdlc-lead output rule:** When emitting a HANDOFF block, print the delimiter header first, then the HANDOFF body, then the delimiter footer. Never add commentary or instructions inside the delimited region. Explanation to the user goes ABOVE the opening delimiter.
 
-**Receiving agent rule:** When your prompt starts with `SDLC-TASK for` — follow the six rules in `agents/shared/BOUNDED_TASK_CONTRACT.md`. Do not process the delimiter lines.
+**Receiving agent rule:** When your prompt starts with `SDLC-TASK for` — you are inside a HANDOFF block. Follow the six rules in `agents/shared/BOUNDED_TASK_CONTRACT.md`. Do not look for or process the delimiter lines.
 
 ---
 
 ## Rules for every HANDOFF
 
-1. Start with `SDLC-TASK for <agent-name>:` — this triggers the agent's Bounded Task Mode
-2. List the exact files to READ for context (name them — do not say "look at the project")
-3. Describe the task in 2-4 sentences (what to produce, not which internal mode to run)
-4. List the exact files to PRODUCE with a one-line description of each
-5. End with the exact completion phrase the agent should print
-6. Say "Then stop" — explicitly tell the agent not to continue
+1. Open a new session, type `/[skill-command]`, paste the full HANDOFF body
+2. Start with `SDLC-TASK for <agent-name>:` — this triggers the agent's Bounded Task Mode
+3. List the exact files to READ for context (name them — do not say "look at the project")
+4. Describe the task in 2-4 sentences (what to produce, not which internal mode to run)
+5. List the exact files to PRODUCE with a one-line description of each
+6. End with the exact completion phrase the agent should print
+7. Say "Then stop" — explicitly tell the agent not to continue
 
 Never say "Run --design mode" or "Run --review mode" — describe the TASK, not the agent's internal flags.
 
 Always reference `agents/shared/BOUNDED_TASK_CONTRACT.md` in the CONTEXT block.
+
+**Executor rule:** the HANDOFF block is the contract; how it runs is capability-probed (`agents/shared/EXECUTOR_SELECTION.md`). With `has_task_tool=true` in `docs/work/.model-context`, dispatch the block via the Task tool; otherwise the user copies it into a new session.
 
 ---
 
@@ -59,18 +62,17 @@ Emit this block verbatim. The `════` delimiters tell the user exactly wh
 ```
 ════════════════════════════════════════════════════════════
 HANDOFF #N → <agent-name>  |  open new session → /<skill>
-USER: open a new session, invoke /<skill>, paste EVERYTHING below this line
+USER: open a new session, type /<skill>, then paste EVERYTHING below this line
 ════════════════════════════════════════════════════════════
 SDLC-TASK for <agent-name>:
 
-ROLE: You are a [domain expert role — e.g. "senior database architect"].
-Use domain-precise vocabulary. Never use vague qualitative descriptions where
-a quantitative one exists (e.g. "P95 < 200ms" not "fast").
+ROLE: You are a [domain expert role — e.g. "senior database architect", "professional research analyst"].
+Use domain-precise vocabulary throughout your output. Never use vague qualitative descriptions where
+a quantitative one exists (e.g. say "P95 < 200ms" not "fast").
 
 CONTEXT (read these before starting):
 - agents/shared/BOUNDED_TASK_CONTRACT.md       -- the six rules that govern this HANDOFF
 - docs/work/context-for-<agent>.md             -- full context packet for this task
-
 - <file 1>                                     -- <what it contains relevant to this task>
 - <file 2>                                     -- <what it contains relevant to this task>
 
@@ -587,24 +589,27 @@ Before every HANDOFF, write a `docs/work/context-for-<agent>.md` with:
 ```markdown
 # Context Packet for <agent-name>
 
-## Project (3 sentences)
+> **Size limit: 400 words / ~600 tokens.** The specialist reads ONE focused packet, then reads the listed files directly. Do NOT paste file contents into the packet — list the file paths instead.
+
+## Project (3 sentences max)
 <From DISCOVERY.md or README — what the system is, who uses it, current state>
 
-## Your task
+## Your task (2 sentences max)
 <Specific: what to produce, success criteria, line count expectations>
 
-## Files to read (priority order)
+## Files to read (3 files max, priority order)
 1. <file> -- <what's relevant for THIS task>
 2. <file> -- <what's relevant>
+3. <file> -- <what's relevant>
 
 ## Files to produce
 1. <file> -- <expected content, approximate scope>
 
-## Patterns to follow
+## Patterns to follow (2 sentences max)
 <From existing codebase: naming conventions, file structure, max line counts,
  test patterns, import rules>
 
-## What NOT to do
+## What NOT to do (2 sentences max)
 <Scope boundaries: don't refactor X, don't touch Y, don't add dependencies>
 ```
 
