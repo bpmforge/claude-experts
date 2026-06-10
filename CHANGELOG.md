@@ -2,6 +2,13 @@
 
 All notable changes to this project are documented here. Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and versioning follows [Semantic Versioning](https://semver.org/).
 
+## [1.6.0] — 2026-06-10
+
+### Added — Mermaid hardening
+- `validate-mermaid.sh`: +6 static checks (M007–M012) + authoritative `mmdc` render gate (catches any parser error when mermaid-cli installed).
+- `scripts/mermaid-fix.mjs`: mechanical autofixer (`--write`) for smart quotes, em-dashes, unquoted-special labels, `//` comments.
+- `references/mermaid-safe-syntax.md`: 7 authoring rules, wired into sdlc-lead hygiene + BOOK_PROTOCOL. `mmdc` added to check-tools.sh. Generated from canonical.
+
 ## [1.5.0] — 2026-06-10
 
 ### Added

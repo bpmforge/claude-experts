@@ -137,6 +137,7 @@ references/design-review-checklist.md
 references/engineering-artifacts.md
 references/git-workflow-checklist.md
 references/llm-routing-principles.md
+references/mermaid-safe-syntax.md
 references/owasp-checklist.md
 references/playwright-config.md
 references/report-template.md
@@ -146,6 +147,7 @@ references/semgrep-guide.md
 references/severity-matrix.md
 scripts/build-agents.mjs
 scripts/fix-verify.mjs
+scripts/mermaid-fix.mjs
 scripts/run-plan.mjs
 scripts/validators/_lib.sh
 scripts/validators/_lib_sdlc_config.sh
