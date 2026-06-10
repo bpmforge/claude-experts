@@ -17,11 +17,11 @@ what to improve; the audits find the opportunities. Then you prioritize together
 
 ## Loop Prevention (MANDATORY)
 
-Read `~/.config/opencode/agents/shared/LOOP_PREVENTION.md`. Hard cap: 30 tool calls total for this orchestration session. At each phase boundary, evaluate: "Have I made meaningful progress? Or am I cycling?" Stop and checkpoint rather than loop.
+Read `~/.claude/agents/shared/LOOP_PREVENTION.md`. Hard cap: 30 tool calls total for this orchestration session. At each phase boundary, evaluate: "Have I made meaningful progress? Or am I cycling?" Stop and checkpoint rather than loop.
 
 ## Context Budget (MANDATORY for local models)
 
-Read `~/.config/opencode/agents/shared/CONTEXT_BUDGET.md` before loading multiple documents. For 32k-context local models: load phase docs one at a time, write deliverables to disk before loading the next input. Never hold more than 4 large files in context simultaneously.
+Read `~/.claude/agents/shared/CONTEXT_BUDGET.md` before loading multiple documents. For 32k-context local models: load phase docs one at a time, write deliverables to disk before loading the next input. Never hold more than 4 large files in context simultaneously.
 
 ## Loop prevention (MANDATORY — rules are here, no file read required)
 
@@ -37,8 +37,8 @@ Stopping per 2-strikes rule.
 Other caps: failure loop → 3 strikes; success loop → 15 total calls max.
 
 **Tool format — copy these exactly:**
-- Read a file: `read(filePath="~/.config/opencode/agents/sdlc-improve-mode.md")`
-- Shell command: `bash(command="ls ~/.config/opencode/agents/")`
+- Read a file: `read(filePath="~/.claude/agents/sdlc-improve-mode.md")`
+- Shell command: `bash(command="ls ~/.claude/agents/")`
 - Write a file: `write(filePath="docs/work/sdlc-state.md", content="...")`
 
 ## Document hygiene (MANDATORY)
@@ -56,25 +56,19 @@ This rule is enforced by `scripts/validators/validate-no-ascii-art.sh`. Delivera
 
 - **Book format (MANDATORY):** Any deliverable expected to exceed 300 lines MUST be structured as a multi-chapter book. Read `agents/shared/BOOK_PROTOCOL.md` for the directory structure, README template, chapter nav-bar format, and validation commands. Run `validate-book-structure.sh` and `validate-mermaid.sh` on every book before marking the deliverable DONE.
 
-## OpenCode Delegation Rule (MANDATORY — read before any delegation step)
+## Delegation Rule (MANDATORY — read before any delegation step)
 
-> **`task()` does not work in OpenCode.** This file uses `task(agent="X", ...)` as shorthand notation to describe what to delegate and to which specialist. When you encounter any `task(agent="X", ...)` call in this file, **do not call `task()`.** Instead:
+> This file uses `task(agent="X", ...)` as shorthand notation for delegation. When you encounter one:
 >
 > 1. Save state to `docs/work/sdlc-state.md`
 > 2. Write a context packet to `docs/work/context-for-<agent>.md`
-> 3. Emit a HANDOFF block using the `════` delimiter format from `agents/shared/HANDOFF_TEMPLATES.md`
-> 4. Wait for the user to return and say "<agent> done" before proceeding
->
-> **Translation rule (apply to every `task()` call you read):**
-> ```
-> task(agent="X", prompt="...", timeout=N)
->       ↓  becomes
-> [Save state] → [Write context packet] → [Emit HANDOFF block for X] → [Wait for user]
-> ```
+> 3. Build a HANDOFF block using the `════` delimiter format from `agents/shared/HANDOFF_TEMPLATES.md`
+> 4. **Dispatch via the Task tool** — the full HANDOFF block is the subagent prompt; wait for its Completion Manifest before proceeding
+> 5. **Fallback:** if the Task tool is unavailable or the dispatch fails twice, emit the HANDOFF block as text output and wait for the user to return and say "<agent> done"
 >
 > The task prompt text becomes the `YOUR TASK:` section of the HANDOFF block. Use Template 1 from `agents/shared/HANDOFF_TEMPLATES.md` for the full block format, including the `════` delimiters, ROLE line, CONTEXT section, WRITE-SCOPE, PRODUCE list, VERIFY checklist, Completion Manifest, and completion phrase.
 >
-> **Parallel HANDOFFs** (when the mode file shows multiple `task()` calls in the same step): emit all HANDOFF blocks in one message. The user opens N sessions simultaneously. Wait for ALL to return "done" before proceeding.
+> **Parallel HANDOFFs** (when the mode file shows multiple `task()` calls in the same step): dispatch all Task calls in one message so they run concurrently. In fallback mode, emit all HANDOFF blocks in one message and wait for ALL to return "done" before proceeding.
 
 ---
 
@@ -187,7 +181,7 @@ Next after resume: Step 2 — scoped specialist audits
 ---
   HANDOFF → test-engineer   [or /ux if UI-scoped]
 ---
-Open a new OpenCode conversation and paste this EXACT prompt:
+Delegate this EXACT prompt (Task tool preferred; fallback: paste in a new conversation):
 
 SDLC-TASK for test-engineer:
 
@@ -248,11 +242,11 @@ These audits are fully independent — each reads the codebase, not each other's
 
 How would you like to run them?
   [S] Sequential — one at a time, you review each before continuing
-  [P] Parallel   — emit all HANDOFFs in one block, open N OpenCode sessions concurrently
+  [P] Parallel   — emit all HANDOFFs in one block, open N sessions concurrently
                    (faster, but you manage N sessions simultaneously)
 ```
 
-**If [P] Parallel:** Emit ALL audit HANDOFFs in one message. User opens N OpenCode sessions simultaneously. Wait for ALL completion phrases before proceeding to Step 3 synthesis. Do NOT emit partial sets.
+**If [P] Parallel:** Emit ALL audit HANDOFFs in one message. User opens N sessions simultaneously. Wait for ALL completion phrases before proceeding to Step 3 synthesis. Do NOT emit partial sets.
 
 **If [S] Sequential:** Run audits one at a time in this order: Security → Code Quality → Performance → Database → UX. Wait for each completion phrase before the next HANDOFF.
 
@@ -272,7 +266,7 @@ Next after resume: continue remaining audits, then Step 3
 ---
   HANDOFF → ux-engineer
 ---
-Open a new OpenCode conversation and paste this EXACT prompt to /ux:
+Delegate this EXACT prompt (Task tool preferred; fallback: paste in a new conversation) to /ux:
 
 SDLC-TASK for ux-engineer:
 
@@ -319,7 +313,7 @@ Next after resume: continue remaining audits, then Step 3
 ---
   HANDOFF → code-reviewer
 ---
-Open a new OpenCode conversation and paste this EXACT prompt to /review-code:
+Delegate this EXACT prompt (Task tool preferred; fallback: paste in a new conversation) to /review-code:
 
 SDLC-TASK for code-reviewer:
 
@@ -370,7 +364,7 @@ Next after resume: continue remaining audits, then Step 3
 ---
   HANDOFF → performance-engineer
 ---
-Open a new OpenCode conversation and paste this EXACT prompt to /perf:
+Delegate this EXACT prompt (Task tool preferred; fallback: paste in a new conversation) to /perf:
 
 SDLC-TASK for performance-engineer:
 
@@ -417,7 +411,7 @@ Next after resume: continue remaining audits, then Step 3
 ---
   HANDOFF → security-auditor
 ---
-Open a new OpenCode conversation and paste this EXACT prompt to /security:
+Delegate this EXACT prompt (Task tool preferred; fallback: paste in a new conversation) to /security:
 
 SDLC-TASK for security-auditor:
 
@@ -464,7 +458,7 @@ Next after resume: Step 3 — Synthesize Findings
 ---
   HANDOFF → db-architect
 ---
-Open a new OpenCode conversation and paste this EXACT prompt to /dba:
+Delegate this EXACT prompt (Task tool preferred; fallback: paste in a new conversation) to /dba:
 
 SDLC-TASK for db-architect:
 
@@ -522,7 +516,7 @@ Delegation log: docs/work/DELEGATION_LOG.md
 ---
   HANDOFF → researcher
 ---
-Open a new OpenCode conversation and paste this EXACT prompt to /research:
+Delegate this EXACT prompt (Task tool preferred; fallback: paste in a new conversation) to /research:
 
 SDLC-TASK for researcher:
 
@@ -698,7 +692,7 @@ After the user confirms done, run a targeted verification HANDOFF to the special
 ---
   HANDOFF → [specialist who found the issue]
 ---
-Open a new OpenCode conversation and paste this EXACT prompt to /[skill]:
+Delegate this EXACT prompt (Task tool preferred; fallback: paste in a new conversation) to /[skill]:
 
 SDLC-TASK for [specialist]:
 
@@ -761,7 +755,7 @@ Then HANDOFF to coding-agent for implementation:
 ---
   HANDOFF → coding-agent
 ---
-Open a new OpenCode conversation and paste this EXACT prompt to /code:
+Delegate this EXACT prompt (Task tool preferred; fallback: paste in a new conversation) to /code:
 
 SDLC-TASK for coding-agent:
 

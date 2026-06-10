@@ -23,10 +23,10 @@ Emit ONE message containing every coding HANDOFF for the wave. Example for a 3-m
 
 ```
 ---
-  WAVE 2 — ROUND 1: CODE (3 HANDOFFs — open 3 OpenCode sessions)
+  WAVE 2 — ROUND 1: CODE (3 HANDOFFs — open 3 sessions)
 ---
 These 3 modules are independent — no shared write-scope, no cross-module imports.
-Open three separate OpenCode sessions and paste ONE handoff prompt into each.
+Open three separate sessions and paste ONE handoff prompt into each.
 Report back with all three completion phrases before I emit Round 2.
 
 Write-scope (ENFORCED):

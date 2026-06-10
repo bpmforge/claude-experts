@@ -15,11 +15,11 @@ Build from scratch with proper engineering artifacts at every phase.
 
 ## Loop Prevention (MANDATORY)
 
-Read `~/.config/opencode/agents/shared/LOOP_PREVENTION.md`. Hard cap: 30 tool calls total for this orchestration session. At each phase boundary, evaluate: "Have I made meaningful progress? Or am I cycling?" Stop and checkpoint rather than loop.
+Read `~/.claude/agents/shared/LOOP_PREVENTION.md`. Hard cap: 30 tool calls total for this orchestration session. At each phase boundary, evaluate: "Have I made meaningful progress? Or am I cycling?" Stop and checkpoint rather than loop.
 
 ## Context Budget (MANDATORY for local models)
 
-Read `~/.config/opencode/agents/shared/CONTEXT_BUDGET.md` before loading multiple documents. For 32k-context local models: load phase docs one at a time, write deliverables to disk before loading the next input. Never hold more than 4 large files in context simultaneously.
+Read `~/.claude/agents/shared/CONTEXT_BUDGET.md` before loading multiple documents. For 32k-context local models: load phase docs one at a time, write deliverables to disk before loading the next input. Never hold more than 4 large files in context simultaneously.
 
 ## Loop prevention (MANDATORY — rules are here, no file read required)
 
@@ -35,8 +35,8 @@ Stopping per 2-strikes rule.
 Other caps: failure loop → 3 strikes; success loop → 15 total calls max.
 
 **Tool format — copy these exactly:**
-- Read a file: `read(filePath="~/.config/opencode/agents/sdlc-init-mode.md")`
-- Shell command: `bash(command="ls ~/.config/opencode/agents/")`
+- Read a file: `read(filePath="~/.claude/agents/sdlc-init-mode.md")`
+- Shell command: `bash(command="ls ~/.claude/agents/")`
 - Write a file: `write(filePath="docs/work/sdlc-state.md", content="...")`
 
 ## Document hygiene (MANDATORY)
@@ -54,20 +54,21 @@ This rule is enforced by `scripts/validators/validate-no-ascii-art.sh`. Delivera
 
 - **Book format (MANDATORY):** Any deliverable expected to exceed 300 lines MUST be structured as a multi-chapter book. Read `agents/shared/BOOK_PROTOCOL.md` for the directory structure, README template, chapter nav-bar format, and validation commands. Run `validate-book-structure.sh` and `validate-mermaid.sh` on every book before marking the deliverable DONE.
 
-## OpenCode Delegation Rule (MANDATORY — read before any delegation step)
+## Delegation Rule (MANDATORY — read before any delegation step)
 
-> **`task()` does not work in OpenCode.** This file uses `task(agent="X", ...)` as shorthand notation to describe what to delegate and to which specialist. When you encounter any `task(agent="X", ...)` call in this file, **do not call `task()`.** Instead:
+> This file uses `task(agent="X", ...)` as shorthand notation for delegation. When you encounter one:
 >
 > 1. Save state to `docs/work/sdlc-state.md`
 > 2. Write a context packet to `docs/work/context-for-<agent>.md`
-> 3. Emit a HANDOFF block using the `════` delimiter format from `agents/shared/HANDOFF_TEMPLATES.md`
-> 4. Wait for the user to return and say "<agent> done" before proceeding
+> 3. Build a HANDOFF block using the `════` delimiter format from `agents/shared/HANDOFF_TEMPLATES.md`
+> 4. **Dispatch via the Task tool** — the full HANDOFF block is the subagent prompt; wait for its Completion Manifest
+> 5. **Fallback:** if the Task tool is unavailable or the dispatch fails twice, emit the HANDOFF block as text and wait for the user to return and say "<agent> done"
 >
 > **Translation rule (apply to every `task()` call you read):**
 > ```
 > task(agent="X", prompt="...", timeout=N)
 >       ↓  becomes
-> [Save state] → [Write context packet] → [Emit HANDOFF block for X] → [Wait for user]
+> [Save state] → [Write context packet] → [Task-tool dispatch of HANDOFF block for X (fallback: emit as text)] → [Wait for manifest]
 > ```
 >
 > The task prompt text becomes the `YOUR TASK:` section of the HANDOFF block. Use Template 1 from `agents/shared/HANDOFF_TEMPLATES.md` for the full block format, including the `════` delimiters, ROLE line, CONTEXT section, WRITE-SCOPE, PRODUCE list, VERIFY checklist, Completion Manifest, and completion phrase.
@@ -92,7 +93,7 @@ This rule is enforced by `scripts/validators/validate-no-ascii-art.sh`. Delivera
 
 **How to use:**
 1. Check `docs/work/sdlc-state.md` to determine current phase
-2. Load the corresponding file using: `read(filePath="~/.config/opencode/agents/sdlc-init-phases-X.md")`
+2. Load the corresponding file using: `read(filePath="~/.claude/agents/sdlc-init-phases-X.md")`
 3. Execute the steps in that file
 4. When advancing to a new phase file, you may unload the previous one (do not hold all phase files simultaneously)
 

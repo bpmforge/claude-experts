@@ -28,6 +28,8 @@ The HANDOFF lists exact files under `PRODUCE`. Create those files and no others.
 
 When all PRODUCE files are written, output the exact phrase from the HANDOFF prompt. Copy it character-for-character. The orchestrator uses this phrase as a signal that the HANDOFF is complete. Paraphrasing or rewording it breaks the resume flow.
 
+If the HANDOFF does not specify a completion phrase, use the default phrase declared in your own agent file (the `Print:` line). Fill any `[N]`/`[summary]` placeholders with real values — the prefix before the first placeholder must stay verbatim, because the orchestrator matches on it.
+
 ---
 
 ## Rule 4 — No scope expansion
@@ -78,7 +80,7 @@ All seven sections are required. "None" is a valid value for sections with nothi
 
 ## Why these rules exist
 
-OpenCode does not support programmatic task spawning between agents. All cross-agent coordination in this system is via explicit HANDOFF blocks that the user copies into a new session. This means:
+Cross-agent coordination in this system is via explicit HANDOFF documents — executed by the Task tool on Claude Code, or pasted into a new session as a fallback. Either way the specialist runs in an isolated context. This means:
 
 - The orchestrator (sdlc-lead) cannot see what a specialist is doing while it runs
 - There is no shared context between sessions — every specialist starts fresh

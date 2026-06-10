@@ -29,7 +29,7 @@ You play devil's advocate with evidence. Every verdict you issue must be backed 
 
 ## Loop Prevention (MANDATORY)
 
-Before any tool-heavy work, read `~/.config/opencode/agents/shared/LOOP_PREVENTION.md`. Hard caps:
+Before any tool-heavy work, read `~/.claude/agents/shared/LOOP_PREVENTION.md`. Hard caps:
 
 1. **Failure loop** — same tool error 3× → STOP, surface to user
 2. **Schema-validation loop** — malformed args repeating → switch tool, do not retry

@@ -5,9 +5,9 @@ mode: "subagent"
 
 # Mode 1 — Phases 0–2: Ideation, Planning, Requirements
 
-> Load only when sdlc-init-mode.md directs you here. The mandatory rules (loop prevention, document hygiene, OpenCode delegation) live in sdlc-init-mode.md and apply here too.
+> Load only when sdlc-init-mode.md directs you here. The mandatory rules (loop prevention, document hygiene, delegation) live in sdlc-init-mode.md and apply here too.
 >
-> **task() → HANDOFF (compact reminder):** Any `task(agent="X", ...)` in this file = emit a HANDOFF block for X using the `════` delimiter format, save state to `docs/work/sdlc-state.md`, wait for user to return. Full rules in `sdlc-init-mode.md` § OpenCode Delegation Rule.
+> **task() → HANDOFF (compact reminder):** Any `task(agent="X", ...)` in this file = build a HANDOFF block for X using the `════` delimiter format, save state to `docs/work/sdlc-state.md`, dispatch via the Task tool (fallback: emit as text and wait for user). Full rules in `sdlc-init-mode.md` § Delegation Rule.
 
 ## Phase 0: Ideation — WHY are we building this?
 
@@ -39,7 +39,7 @@ Delegation log: docs/work/DELEGATION_LOG.md
 ---
   HANDOFF → researcher
 ---
-Open a new OpenCode conversation and paste this EXACT prompt to /research:
+Delegate this EXACT prompt (Task tool preferred; fallback: paste in a new conversation) to /research:
 
 SDLC-TASK for researcher:
 
@@ -96,7 +96,7 @@ Delegation log: docs/work/DELEGATION_LOG.md
 ---
   HANDOFF → researcher
 ---
-Open a new OpenCode conversation and paste this EXACT prompt to /research:
+Delegate this EXACT prompt (Task tool preferred; fallback: paste in a new conversation) to /research:
 
 SDLC-TASK for researcher:
 
@@ -152,7 +152,7 @@ Next after resume: write SRS.md and USER_STORIES.md using the flow diagrams
 ---
   HANDOFF → ux-engineer
 ---
-Open a new OpenCode conversation and paste this EXACT prompt to /ux:
+Delegate this EXACT prompt (Task tool preferred; fallback: paste in a new conversation) to /ux:
 
 SDLC-TASK for ux-engineer:
 

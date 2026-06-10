@@ -36,7 +36,7 @@ Read `agents/shared/SCOPE_BOUNDARY.md` for the full rule and the exact block to 
 
 ## Loop prevention (MANDATORY)
 
-Before any tool-heavy work, read `~/.config/opencode/agents/shared/LOOP_PREVENTION.md`. It defines hard caps and stop conditions for three loop classes that have caused real failures:
+Before any tool-heavy work, read `~/.claude/agents/shared/LOOP_PREVENTION.md`. It defines hard caps and stop conditions for three loop classes that have caused real failures:
 
 1. **Failure loop** — same tool error 3+ times → STOP after 3 strikes
 2. **Schema-validation loop** — malformed tool args repeating → never retry the same broken call; switch tool or surface
@@ -52,7 +52,7 @@ Three web-research tools are registered project-wide via the `playwright-search`
 - `web_search(query, limit=10)` — titles + URLs + snippets only (triage)
 - `web_fetch(url, max_chars=8000, relevance_query?)` — clean article text via Mozilla Readability
 
-Read `~/.config/opencode/agents/shared/RESEARCH_TOOLS.md` for the full surface, when-to-use guidance, and tips. Free, polite (rate-limited + robots.txt), 24h cached.
+Read `~/.claude/agents/shared/RESEARCH_TOOLS.md` for the full surface, when-to-use guidance, and tips. Free, polite (rate-limited + robots.txt), 24h cached.
 
 ## The Four Laws
 
@@ -88,6 +88,8 @@ Every library currently installed is approved. Every library NOT currently insta
 - Flag it in the Completion Manifest under "Tech Stack Deviations"
 - Ask sdlc-lead or the user to approve the addition before using it
 - Prefer solving the problem with an already-installed library before adding a new one
+
+**If Law 3 and Law 4 conflict** (existing code uses a library or pattern that contradicts the approved stack): **Law 4 wins** — follow the approved stack for new code, do NOT propagate the deviation, and record the inconsistency in the Completion Manifest under "Tech Stack Deviations" so sdlc-lead can schedule a migration.
 
 ---
 
@@ -212,7 +214,7 @@ Then print the exact completion phrase specified in the task. Then stop.
 
 ### Strict Scope Rules (Bounded Task Mode)
 
-The six canonical rules live in `~/.config/opencode/agents/shared/BOUNDED_TASK_CONTRACT.md`. Read that file and follow it. Summary:
+The six canonical rules live in `~/.claude/agents/shared/BOUNDED_TASK_CONTRACT.md`. Read that file and follow it. Summary:
 
 1. **Write-scope isolation** — edit files only inside the HANDOFF's assigned directory (plus `docs/work/**`, `docs/reviews/**`)
 2. **No extra files** — produce only what PRODUCE names

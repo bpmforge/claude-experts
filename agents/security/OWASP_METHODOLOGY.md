@@ -56,7 +56,7 @@ Run these checks in order:
 bash -c "which semgrep && semgrep --version" || echo "SEMGREP_NOT_INSTALLED"
 bash -c "[ -d ~/.semgrep/rules/trailofbits ] && echo 'community-rules-cached' || echo 'community-rules-missing'"
 bash -c "[ -f .semgrep/community-rules.lock ] && scripts/update-semgrep-rules.sh --verify || echo 'no-lock-file'"
-bash -c "[ -d ~/.config/opencode/.semgrep/custom-rules ] && echo 'custom-rules-ok' || ([ -d .opencode/.semgrep/custom-rules ] && echo 'custom-rules-ok-project' || echo 'custom-rules-missing')"
+bash -c "[ -d ~/.claude/.semgrep/custom-rules ] && echo 'custom-rules-ok' || ([ -d .claude/.semgrep/custom-rules ] && echo 'custom-rules-ok-project' || echo 'custom-rules-missing')"
 ```
 
 If Semgrep is NOT installed, help the user install it (brew/pip/docker fallback). If they decline, proceed with grep-only mode and note the limitation in the report.
@@ -65,12 +65,12 @@ If community rules are missing, run `scripts/update-semgrep-rules.sh` to clone T
 
 > **Community rules canonical cache path:** `~/.semgrep/rules/{trailofbits,elttam,gitlab,0xdea}`. This is the path `scripts/semgrep-full-audit.sh` looks in. Always use `scripts/update-semgrep-rules.sh` to install rules — it clones to the canonical path. Do not clone rules anywhere else or the audit script won't find them.
 
-If custom rules are missing (`custom-rules-missing`), the 98 gap-filler rules were not installed. Re-run `install.sh` (or `install.sh --project`) from the `bpm-opencode-experts` repo. The rules are stored in the user's personal OpenCode store — **not** inside the project being audited.
+If custom rules are missing (`custom-rules-missing`), the 98 gap-filler rules were not installed. Re-run `install.sh` (or `install.sh --project`) from the `claude-experts` repo. The rules are stored in the user's personal store at `~/.claude/.semgrep/` — **not** inside the project being audited.
 
 > **Custom rules personal store paths:**
-> - **Global install:** `~/.config/opencode/.semgrep/custom-rules/` — 5 language rulesets (Kotlin, Swift, Rust, PHP, C#)
-> - **Global install:** `~/.config/opencode/.semgrep/cpp-bridge-rules/` — C/C++ bridge security rules
-> - **Project install:** `.opencode/.semgrep/custom-rules/` (inside the OpenCode project, not the audited repo)
+> - **Global install:** `~/.claude/.semgrep/custom-rules/` — 5 language rulesets (Kotlin, Swift, Rust, PHP, C#)
+> - **Global install:** `~/.claude/.semgrep/cpp-bridge-rules/` — C/C++ bridge security rules
+> - **Project install:** `.claude/.semgrep/custom-rules/` (inside the project running the audit, not the audited repo)
 >
 > `scripts/semgrep-full-audit.sh` resolves these automatically relative to its own install location — you never need to pass the path manually. If the script reports `Custom: 0 language gap-filler ruleset(s) loaded`, the personal store is missing or empty.
 
@@ -115,7 +115,7 @@ The script:
 - **Probes each registry pack** in isolation before adding it to the config list — 404'd or deprecated packs are logged and skipped rather than silently producing empty results
 - **Auto-detects the community rules cache** (checks `$SEMGREP_COMMUNITY_CACHE`, then `~/.semgrep/rules/` (canonical), then `~/.cache/semgrep-community/` (legacy fallback))
 - **Probes community rule directories** for YAML parse errors before including them (catches broken rule repos like `gitlab/typescript`)
-- Includes: `p/owasp-top-ten`, `p/security-audit`, `p/secrets`, `p/default`, language pack, framework pack, language-native pack (e.g. `p/bandit` for Python, `p/gosec` for Go), IaC packs (if relevant), community rules (Trail of Bits, elttam, GitLab, 0xdea if C/C++), **custom gap-filler rules** (186 rules across 11 languages — loaded from the user's personal store at `~/.config/opencode/.semgrep/custom-rules/` (global) or `.opencode/.semgrep/custom-rules/` (project install), auto-selected per detected language; covers JS/TS, Python, Go, Java, Ruby, C#, Kotlin, Rust, PHP, Swift, C++), project-specific rules from `.semgrep/project-rules/` inside the audited repo
+- Includes: `p/owasp-top-ten`, `p/security-audit`, `p/secrets`, `p/default`, language pack, framework pack, language-native pack (e.g. `p/bandit` for Python, `p/gosec` for Go), IaC packs (if relevant), community rules (Trail of Bits, elttam, GitLab, 0xdea if C/C++), **custom gap-filler rules** (186 rules across 11 languages — loaded from the user's personal store at `~/.claude/.semgrep/custom-rules/` (global) or `.claude/.semgrep/custom-rules/` (project install), auto-selected per detected language; covers JS/TS, Python, Go, Java, Ruby, C#, Kotlin, Rust, PHP, Swift, C++), project-specific rules from `.semgrep/project-rules/` inside the audited repo
 
 Outputs:
 - `docs/security/semgrep-results.json` — JSON findings
@@ -370,7 +370,7 @@ the tracker is how you resume without re-doing completed work.
 
 ```bash
 # Read the OWASP tracker template, then write it to the project
-write(filePath="docs/security/OWASP_TRACKER.md", content=$(cat ~/.config/opencode/agents/templates/OWASP_TRACKER_template.md))
+write(filePath="docs/security/OWASP_TRACKER.md", content=$(cat ~/.claude/agents/templates/OWASP_TRACKER_template.md))
 ```
 
 The template at `agents/templates/OWASP_TRACKER_template.md` contains all 10 OWASP categories (A01–A10), each with the standard structure: Pass log, Confidence score, Verdict. Plus the Semgrep Triage Summary, Pass Progress table, Attack Chain Analysis, and Final Gate sections. Do not invent your own structure — use the template verbatim and update it as the audit progresses.

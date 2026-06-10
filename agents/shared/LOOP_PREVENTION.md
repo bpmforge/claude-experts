@@ -12,7 +12,7 @@ Before calling any tool, match the verb in your task to the right tool. **Most s
 
 | You want to… | Use this tool | Example |
 |--------------|---------------|---------|
-| Read a markdown reference doc, agent prompt, or any file | `read` | `read({filePath: "~/.config/opencode/agents/shared/HANDOFF_TEMPLATES.md"})` |
+| Read a markdown reference doc, agent prompt, or any file | `read` | `read({filePath: "~/.claude/agents/shared/HANDOFF_TEMPLATES.md"})` |
 | Run a slash command (e.g., `/sdlc init`, `/security`) | `skill` | `skill({name: "sdlc"})` |
 | List files matching a pattern | `glob` | `glob({pattern: "**/*.md"})` |
 | Search file contents | `grep` | `grep({pattern: "TODO", path: "src"})` |
@@ -26,7 +26,7 @@ Before calling any tool, match the verb in your task to the right tool. **Most s
 
 - `skill` is for slash commands by **name**, not for "loading" reference docs. Reference docs are files — use `read`.
 - "See `agents/shared/X.md`" / "consult X" / "per the contract in X" all mean **`read` that file**, not "load it as a skill".
-- Relative paths like `agents/shared/X.md` resolve from your install dir. If unsure, prefix with `~/.config/opencode/` (opencode) or `~/.claude/` (Claude Code) and use the absolute path. Or list the dir first via `ls`.
+- Relative paths like `agents/shared/X.md` resolve from your install dir. If unsure, prefix with `~/.claude/` and use the absolute path. Or list the dir first via `ls`.
 - A tool with required args you can't fill is the wrong tool. Pick a different one — don't pass `undefined` and hope.
 
 If after 2 tool calls you can't find the right tool for a task, **stop and surface to user** (see Class 2 rule below). Don't bluff.
@@ -95,7 +95,7 @@ After printing this template, **stop calling tools** and end the turn. The user 
 
 **Common causes of this loop, and how to spot them:**
 
-- The agent prompt referenced a path like `agents/shared/X.md` (relative) but you're not sure where it resolves. **Use the absolute path:** `~/.config/opencode/agents/shared/X.md` (opencode) or `~/.claude/agents/shared/X.md` (Claude Code). If you're not sure which, list both directories first via `ls`.
+- The agent prompt referenced a path like `agents/shared/X.md` (relative) but you're not sure where it resolves. **Use the absolute path:** `~/.claude/agents/shared/X.md`. If unsure, list the directory first via `ls`.
 - You tried to call a `skill` tool but didn't have a skill name. The `skill` tool is for invoking slash commands by name — not for loading reference docs. To read a doc, use `read` with a file path.
 - You tried to write a file but had no path. The `write` tool needs `filePath` and `content` — both required.
 - A tool's required arg is unclear from your context. Don't guess — surface to user.

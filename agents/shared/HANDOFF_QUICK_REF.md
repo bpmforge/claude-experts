@@ -56,5 +56,5 @@ END HANDOFF #N
 ```
 
 ## Full templates (load only when needed)
-`read(filePath="~/.config/opencode/agents/shared/HANDOFF_TEMPLATES.md")`
+`read(filePath="~/.claude/agents/shared/HANDOFF_TEMPLATES.md")`
 For: parallel waves (Template 4), remediation (Template 2), re-verification (Template 3), IaC (Template 9).

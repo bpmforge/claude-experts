@@ -1,6 +1,6 @@
 # Session Primer
 
-> Paste this at the START of any OpenCode session to reinforce the six core rules.
+> Paste this at the START of any session to reinforce the six core rules.
 > ~600 tokens. Works with any model — local or cloud.
 
 ---
@@ -25,7 +25,7 @@ END HANDOFF #N
 ```
 
 **Rule 3 — No task() calls.**
-`task()` does not work in OpenCode. Every delegation is a HANDOFF block you print for the user to copy into a new session.
+If your runtime has no working Task/subagent tool, every delegation is a HANDOFF block you print for the user to copy into a new session. On Claude Code, dispatch the HANDOFF block via the Task tool instead.
 
 **Rule 4 — Write to disk immediately.**
 Whenever you produce content > 200 tokens (code, a document, research findings), write it to disk with `write(filePath="...")` before continuing. Do not accumulate large outputs in context.

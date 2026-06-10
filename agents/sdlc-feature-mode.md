@@ -15,11 +15,11 @@ Add a feature to an existing system without breaking it.
 
 ## Loop Prevention (MANDATORY)
 
-Read `~/.config/opencode/agents/shared/LOOP_PREVENTION.md`. Hard cap: 30 tool calls total for this orchestration session. At each phase boundary, evaluate: "Have I made meaningful progress? Or am I cycling?" Stop and checkpoint rather than loop.
+Read `~/.claude/agents/shared/LOOP_PREVENTION.md`. Hard cap: 30 tool calls total for this orchestration session. At each phase boundary, evaluate: "Have I made meaningful progress? Or am I cycling?" Stop and checkpoint rather than loop.
 
 ## Context Budget (MANDATORY for local models)
 
-Read `~/.config/opencode/agents/shared/CONTEXT_BUDGET.md` before loading multiple documents. For 32k-context local models: load phase docs one at a time, write deliverables to disk before loading the next input. Never hold more than 4 large files in context simultaneously.
+Read `~/.claude/agents/shared/CONTEXT_BUDGET.md` before loading multiple documents. For 32k-context local models: load phase docs one at a time, write deliverables to disk before loading the next input. Never hold more than 4 large files in context simultaneously.
 
 ## Loop prevention (MANDATORY — rules are here, no file read required)
 
@@ -35,8 +35,8 @@ Stopping per 2-strikes rule.
 Other caps: failure loop → 3 strikes; success loop → 15 total calls max.
 
 **Tool format — copy these exactly:**
-- Read a file: `read(filePath="~/.config/opencode/agents/sdlc-feature-mode.md")`
-- Shell command: `bash(command="ls ~/.config/opencode/agents/")`
+- Read a file: `read(filePath="~/.claude/agents/sdlc-feature-mode.md")`
+- Shell command: `bash(command="ls ~/.claude/agents/")`
 - Write a file: `write(filePath="docs/work/sdlc-state.md", content="...")`
 
 ## Document hygiene (MANDATORY)
@@ -54,25 +54,19 @@ This rule is enforced by `scripts/validators/validate-no-ascii-art.sh`. Delivera
 
 - **Book format (MANDATORY):** Any deliverable expected to exceed 300 lines MUST be structured as a multi-chapter book. Read `agents/shared/BOOK_PROTOCOL.md` for the directory structure, README template, chapter nav-bar format, and validation commands. Run `validate-book-structure.sh` and `validate-mermaid.sh` on every book before marking the deliverable DONE.
 
-## OpenCode Delegation Rule (MANDATORY — read before any delegation step)
+## Delegation Rule (MANDATORY — read before any delegation step)
 
-> **`task()` does not work in OpenCode.** This file uses `task(agent="X", ...)` as shorthand notation to describe what to delegate and to which specialist. When you encounter any `task(agent="X", ...)` call in this file, **do not call `task()`.** Instead:
+> This file uses `task(agent="X", ...)` as shorthand notation for delegation. When you encounter one:
 >
 > 1. Save state to `docs/work/sdlc-state.md`
 > 2. Write a context packet to `docs/work/context-for-<agent>.md`
-> 3. Emit a HANDOFF block using the `════` delimiter format from `agents/shared/HANDOFF_TEMPLATES.md`
-> 4. Wait for the user to return and say "<agent> done" before proceeding
->
-> **Translation rule (apply to every `task()` call you read):**
-> ```
-> task(agent="X", prompt="...", timeout=N)
->       ↓  becomes
-> [Save state] → [Write context packet] → [Emit HANDOFF block for X] → [Wait for user]
-> ```
+> 3. Build a HANDOFF block using the `════` delimiter format from `agents/shared/HANDOFF_TEMPLATES.md`
+> 4. **Dispatch via the Task tool** — the full HANDOFF block is the subagent prompt; wait for its Completion Manifest before proceeding
+> 5. **Fallback:** if the Task tool is unavailable or the dispatch fails twice, emit the HANDOFF block as text output and wait for the user to return and say "<agent> done"
 >
 > The task prompt text becomes the `YOUR TASK:` section of the HANDOFF block. Use Template 1 from `agents/shared/HANDOFF_TEMPLATES.md` for the full block format, including the `════` delimiters, ROLE line, CONTEXT section, WRITE-SCOPE, PRODUCE list, VERIFY checklist, Completion Manifest, and completion phrase.
 >
-> **Parallel HANDOFFs** (when the mode file shows multiple `task()` calls in the same step): emit all HANDOFF blocks in one message. The user opens N sessions simultaneously. Wait for ALL to return "done" before proceeding.
+> **Parallel HANDOFFs** (when the mode file shows multiple `task()` calls in the same step): dispatch all Task calls in one message so they run concurrently. In fallback mode, emit all HANDOFF blocks in one message and wait for ALL to return "done" before proceeding.
 
 ---
 
@@ -162,7 +156,7 @@ Rules (identical to Phase 4's parallelization rules, applied at feature scope):
 - Contracts for a wave must be frozen BEFORE the wave starts (schema committed, OpenAPI section written, event shape locked) — if not, carve out an earlier wave that produces just the contract
 - Sub-components that touch `src/shared/`, root-level config, or unfrozen contracts MUST go sequential
 
-Branching: the parent branch `feat/<slug>` is cut first (Step 3.1). Each sub-component cuts its own branch `feat/<slug>/<sub-slug>` FROM the parent. Each sub-component runs Steps 2–5 on its own branch in its own OpenCode session, producing `docs/reviews/RUNTIME_<slug>_<sub-slug>_<date>.md`. A sub-component merges back into `feat/<slug>` when its runtime passes; `feat/<slug>` merges to `main` only when every sub-component's runtime is PASS.
+Branching: the parent branch `feat/<slug>` is cut first (Step 3.1). Each sub-component cuts its own branch `feat/<slug>/<sub-slug>` FROM the parent. Each sub-component runs Steps 2–5 on its own branch in its own session, producing `docs/reviews/RUNTIME_<slug>_<sub-slug>_<date>.md`. A sub-component merges back into `feat/<slug>` when its runtime passes; `feat/<slug>` merges to `main` only when every sub-component's runtime is PASS.
 
 Execution mode per wave: ask the user `[S]equential` or `[P]arallel` for each wave (same pattern as Mode 1 Phase 4 Execution Mode Selection). Record in `docs/work/sdlc-state.md`. Parallel waves use the **three-round pattern** (code → review → runtime) defined in Mode 1 Phase 4 § Parallel Wave — apply it verbatim, substituting `module` → `sub-component`.
 
@@ -219,7 +213,7 @@ Next after resume: api-designer handoff (if API changes needed)
 ---
   HANDOFF → db-architect
 ---
-Open a new OpenCode conversation and paste this EXACT prompt to /dba:
+Delegate this EXACT prompt (Task tool preferred; fallback: paste in a new conversation) to /dba:
 
 SDLC-TASK for db-architect:
 
@@ -249,7 +243,7 @@ If API changes needed:
 ---
   HANDOFF → api-designer
 ---
-Open a new OpenCode conversation and paste this EXACT prompt to /api-design:
+Delegate this EXACT prompt (Task tool preferred; fallback: paste in a new conversation) to /api-design:
 
 SDLC-TASK for api-designer:
 
@@ -279,7 +273,7 @@ If the feature touches auth, data access, or user input:
 ---
   HANDOFF → security-auditor
 ---
-Open a new OpenCode conversation and paste this EXACT prompt to /security:
+Delegate this EXACT prompt (Task tool preferred; fallback: paste in a new conversation) to /security:
 
 SDLC-TASK for security-auditor:
 
@@ -355,7 +349,7 @@ Next after resume: implementation checkpoint
 ---
   HANDOFF → test-engineer
 ---
-Open a new OpenCode conversation and paste this EXACT prompt to /test-expert:
+Delegate this EXACT prompt (Task tool preferred; fallback: paste in a new conversation) to /test-expert:
 
 SDLC-TASK for test-engineer:
 
@@ -447,11 +441,11 @@ Before emitting, evaluate the auto-trigger rules against the impact analysis:
 - **performance-engineer** — runs if the impact touches a path with an NFR target in SRS.md, DB queries (new or modified), loops over collections, caching, or background jobs.
 - **ux-engineer** — runs if any UI file is in the impact.
 
-Emit ONE message containing every triggered HANDOFF as separate blocks. User opens N OpenCode sessions concurrently. Report back with all N completion phrases before synthesis.
+Emit ONE message containing every triggered HANDOFF as separate blocks. User opens N sessions concurrently. Report back with all N completion phrases before synthesis.
 
 ```
 ---
-  PARALLEL REVIEWS — [N] HANDOFFs (open [N] OpenCode sessions)
+  PARALLEL REVIEWS — [N] HANDOFFs (open [N] sessions)
 ---
 
 ───── HANDOFF #1 → /review-code (code-reviewer) ─────

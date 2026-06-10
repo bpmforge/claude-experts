@@ -6,7 +6,7 @@ mode: "subagent"
 # Mode 1 — Phase 3 & 3.5: Design + Test Design
 
 > Load only when sdlc-init-mode.md directs you here for Phase 3 or 3.5.
-> Mandatory rules (loop prevention, document hygiene, OpenCode delegation) live in sdlc-init-mode.md.
+> Mandatory rules (loop prevention, document hygiene, delegation) live in sdlc-init-mode.md.
 > **task() → HANDOFF reminder:** Any `task(agent="X", ...)` = emit a HANDOFF block, save state, wait for user.
 
 ## Phase 3: Design — HOW do we build it?
@@ -68,7 +68,7 @@ Delegation log: docs/work/DELEGATION_LOG.md
 ---
   HANDOFF → researcher
 ---
-Open a new OpenCode conversation and paste this EXACT prompt to /research:
+Delegate this EXACT prompt (Task tool preferred; fallback: paste in a new conversation) to /research:
 
 SDLC-TASK for researcher:
 
@@ -110,7 +110,7 @@ Next after resume: run handoff gates (validate-module-design), then db-architect
 ")
 ```
 
-Use **Template 7** from `~/.config/opencode/agents/shared/HANDOFF_TEMPLATES.md` for this HANDOFF.
+Use **Template 7** from `~/.claude/agents/shared/HANDOFF_TEMPLATES.md` for this HANDOFF.
 
 → After "architecture-designer done": run `./scripts/validators/run-handoff-gates.sh --scope docs --manifest <manifest> --coverage validate-module-design.sh` → mark DONE
 
@@ -135,7 +135,7 @@ Next after resume: api-designer handoff
 ---
   HANDOFF → db-architect
 ---
-Open a new OpenCode conversation and paste this EXACT prompt to /dba:
+Delegate this EXACT prompt (Task tool preferred; fallback: paste in a new conversation) to /dba:
 
 SDLC-TASK for db-architect:
 
@@ -186,7 +186,7 @@ Next after resume: UX branch (if UI-bearing) or security-auditor handoff
 ---
   HANDOFF → api-designer
 ---
-Open a new OpenCode conversation and paste this EXACT prompt to /api-design:
+Delegate this EXACT prompt (Task tool preferred; fallback: paste in a new conversation) to /api-design:
 
 SDLC-TASK for api-designer:
 
@@ -256,7 +256,7 @@ Next after resume: SECURITY_CONTROLS HANDOFF, then security reconciliation, then
 ---
   HANDOFF → security-auditor
 ---
-Open a new OpenCode conversation and paste this EXACT prompt to /security:
+Delegate this EXACT prompt (Task tool preferred; fallback: paste in a new conversation) to /security:
 
 SDLC-TASK for security-auditor:
 
@@ -304,7 +304,7 @@ Next after resume: issue security reconciliation HANDOFFs to db-architect + api-
 ")
 ```
 
-Use **Template 5** from `~/.config/opencode/agents/shared/HANDOFF_TEMPLATES.md` for this HANDOFF.
+Use **Template 5** from `~/.claude/agents/shared/HANDOFF_TEMPLATES.md` for this HANDOFF.
 
 → After "security done" (security controls): run handoff gates with `--coverage validate-security-controls.sh` → mark DONE
 
@@ -347,7 +347,7 @@ Next after resume: run handoff gates (validate-infrastructure), then ARCHITECTUR
 ")
 ```
 
-Use **Template 8** from `~/.config/opencode/agents/shared/HANDOFF_TEMPLATES.md` for this HANDOFF.
+Use **Template 8** from `~/.claude/agents/shared/HANDOFF_TEMPLATES.md` for this HANDOFF.
 
 → After "sre done": run `./scripts/validators/run-handoff-gates.sh --scope docs --manifest <manifest> --coverage validate-infrastructure.sh` → mark DONE
 
@@ -402,7 +402,7 @@ Next after resume: security-auditor handoff
 ---
   HANDOFF → ux-engineer
 ---
-Open a new OpenCode conversation and paste this EXACT prompt to /ux:
+Delegate this EXACT prompt (Task tool preferred; fallback: paste in a new conversation) to /ux:
 
 SDLC-TASK for ux-engineer:
 
@@ -461,7 +461,7 @@ the visual design is specified but not implemented. Hand off to frontend-design:
 ---
   HANDOFF → frontend-design
 ---
-Open a new OpenCode conversation and paste this EXACT prompt to /frontend:
+Delegate this EXACT prompt (Task tool preferred; fallback: paste in a new conversation) to /frontend:
 
 SDLC-TASK for frontend-design:
 
@@ -838,7 +838,7 @@ Next after resume: Phase 3.5 gate, then Human Approval Gate B, then Phase 4
 ")
 ```
 
-**HANDOFF:** Use **Template 6** from `~/.config/opencode/agents/shared/HANDOFF_TEMPLATES.md`.
+**HANDOFF:** Use **Template 6** from `~/.claude/agents/shared/HANDOFF_TEMPLATES.md`.
 
 → After "test-design done": run handoff gates with `--coverage validate-test-design.sh`
 
