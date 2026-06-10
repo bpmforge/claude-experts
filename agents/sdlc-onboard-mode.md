@@ -43,7 +43,7 @@ ALL diagrams MUST use Mermaid syntax. NEVER ASCII art. Any deliverable over 300 
 
 ## Delegation Rule (MANDATORY)
 
-Every `task(agent="X", ...)` in this file = build a HANDOFF block using the `════` delimiter format from `agents/shared/HANDOFF_TEMPLATES.md`, then execute it: save state → write context packet → **dispatch via the Task tool with the HANDOFF block as the subagent prompt and wait for its manifest**. If the Task tool is unavailable or fails twice, emit the HANDOFF block as text and wait for the user.
+Every `task(agent="X", ...)` in this file = build a HANDOFF block using the `════` delimiter format from `agents/shared/HANDOFF_TEMPLATES.md`, then execute it per `agents/shared/EXECUTOR_SELECTION.md` (Task tool when `has_task_tool=true` in `docs/work/.model-context`; otherwise emit as text and wait for the user). Save state → write context packet → execute HANDOFF → wait for manifest.
 
 ---
 
@@ -284,7 +284,7 @@ On return: verify all 3 files exist. Tracker row 6 → `✅ DONE`.
 
 LANDSCAPE.md and HEALTH_ASSESSMENT.md are dense with factual claims — versions, counts, "no tests for X", health scores. Onboard claims are exactly the kind that get hallucinated or go stale. Challenge them before they become the project's ground truth.
 
-Emit (per the Delegation Rule — Task tool first, HANDOFF text fallback):
+Emit (per this file's Delegation Rule):
 
 ```
 HANDOFF to: challenger

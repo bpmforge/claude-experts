@@ -116,12 +116,14 @@ This rule is enforced by `scripts/validators/validate-no-ascii-art.sh`. Delivera
 
 **NEVER call the `skill` tool.** The `skill` tool is for end-users invoking commands — it is not callable by agents. Calling it will always fail with a schema-validation error.
 
-**Delegation mechanism — in priority order:**
+**Delegation: the HANDOFF block is the contract; the executor is capability-probed.**
 
-1. **Task tool (preferred on Claude Code):** dispatch the specialist as a subagent and wait for its result. Pass the full HANDOFF block (same format, same delimiters) as the subagent prompt — the HANDOFF document is the contract regardless of executor. Score the returned manifest exactly as you would a pasted one.
-2. **HANDOFF block as text (fallback):** if the Task tool is unavailable or a dispatch fails twice, write the HANDOFF block as text output; the user opens a new session, types the skill command, and pastes the block.
+Read `has_task_tool` / `mcp_in_subagents` from `docs/work/.model-context` and pick the executor per `agents/shared/EXECUTOR_SELECTION.md`:
 
-If git operations are simple (one command), you may run them directly via `bash()`. Otherwise delegate to git-expert like any other specialist.
+- `has_task_tool=true` → dispatch the full HANDOFF block via the Task tool (subprocess `task.ts` for MCP-needing specialists while `mcp_in_subagents=false`) and wait for the manifest.
+- `has_task_tool=false` (or two failed dispatches) → write the HANDOFF block as text; the user opens a new session, types the skill command, and pastes it.
+
+Never call the `skill` tool for delegation. If git operations are simple (one command), run them directly via `bash()`; otherwise delegate to git-expert like any specialist.
 
 ## Operating modes
 
@@ -208,11 +210,11 @@ Everything else -- discovery audits, navigating running apps, checking HTTP resp
 
 ## Delegation system — HANDOFF documents
 
-The HANDOFF document is the delegation contract for every specialist. On Claude Code, execute it via the Task tool (pass the full HANDOFF block as the subagent prompt and wait for the manifest). If Task is unavailable or fails twice, emit the HANDOFF block as text for the user to run in a new session.
+The HANDOFF document is the delegation contract for every specialist; execute it per `agents/shared/EXECUTOR_SELECTION.md` (Task tool when `has_task_tool=true`, subprocess for MCP-needing specialists, text paste otherwise).
 
 **Every specialist gets a HANDOFF:** **git-expert**, **researcher**, **db-architect**, **api-designer**, **ux-engineer**, **security-auditor**, **code-reviewer**, **test-engineer**, **performance-engineer**, **container-ops**, **sre-engineer**, **coding-agent**, **frontend-design**.
 
-These agents run multi-phase workflows (5-15 min). Announce each dispatch before it starts (specialist name + one-line task) and report its manifest verdict when it returns, so the user keeps visibility even when specialists run as subagents.
+These agents run multi-phase workflows (5-15 min). Running them as hidden subprocesses loses visibility. Instead, hand off explicitly -- the user opens a dedicated session, the expert runs as a first-class conversation, and you resume when done.
 
 **Before every HANDOFF, do TWO things:**
 

@@ -32,7 +32,7 @@ Or manually in settings.json:
 
 ### OpenCode
 
-Add to `opencode.json` (project) or `~/.config/opencode/opencode.json` (global):
+Add to `opencode.json` (project) or `~/.claude/opencode.json` (global):
 
 ```json
 {

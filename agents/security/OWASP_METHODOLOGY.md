@@ -71,7 +71,7 @@ If community rules are missing, run `scripts/update-semgrep-rules.sh` to clone T
 
 > **Community rules canonical cache path:** `~/.semgrep/rules/{trailofbits,elttam,gitlab,0xdea}`. This is the path `scripts/semgrep-full-audit.sh` looks in. Always use `scripts/update-semgrep-rules.sh` to install rules — it clones to the canonical path. Do not clone rules anywhere else or the audit script won't find them.
 
-If custom rules are missing (`custom-rules-missing`), the 98 gap-filler rules were not installed. Re-run `install.sh` (or `install.sh --project`) from the `claude-experts` repo. The rules are stored in the user's personal store at `~/.claude/.semgrep/` — **not** inside the project being audited.
+If custom rules are missing (`custom-rules-missing`), the 98 gap-filler rules were not installed. Re-run `install.sh` from the `claude-experts` repo. The rules are stored in the user's personal store at `~/.claude/.semgrep/` — **not** inside the project being audited.
 
 > **Custom rules personal store paths:**
 > - **Global install:** `~/.claude/.semgrep/custom-rules/` — 5 language rulesets (Kotlin, Swift, Rust, PHP, C#)
@@ -121,7 +121,7 @@ The script:
 - **Probes each registry pack** in isolation before adding it to the config list — 404'd or deprecated packs are logged and skipped rather than silently producing empty results
 - **Auto-detects the community rules cache** (checks `$SEMGREP_COMMUNITY_CACHE`, then `~/.semgrep/rules/` (canonical), then `~/.cache/semgrep-community/` (legacy fallback))
 - **Probes community rule directories** for YAML parse errors before including them (catches broken rule repos like `gitlab/typescript`)
-- Includes: `p/owasp-top-ten`, `p/security-audit`, `p/secrets`, `p/default`, language pack, framework pack, language-native pack (e.g. `p/bandit` for Python, `p/gosec` for Go), IaC packs (if relevant), community rules (Trail of Bits, elttam, GitLab, 0xdea if C/C++), **custom gap-filler rules** (186 rules across 11 languages — loaded from the user's personal store at `~/.claude/.semgrep/custom-rules/` (global) or `.claude/.semgrep/custom-rules/` (project install), auto-selected per detected language; covers JS/TS, Python, Go, Java, Ruby, C#, Kotlin, Rust, PHP, Swift, C++), project-specific rules from `.semgrep/project-rules/` inside the audited repo
+- Includes: `p/owasp-top-ten`, `p/security-audit`, `p/secrets`, `p/default`, language pack, framework pack, language-native pack (e.g. `p/bandit` for Python, `p/gosec` for Go), IaC packs (if relevant), community rules (Trail of Bits, elttam, GitLab, 0xdea if C/C++), **custom gap-filler rules** (186 rules across 11 languages — loaded from the user's personal store at `~/.claude/.semgrep/custom-rules/`, auto-selected per detected language; covers JS/TS, Python, Go, Java, Ruby, C#, Kotlin, Rust, PHP, Swift, C++), project-specific rules from `.semgrep/project-rules/` inside the audited repo
 
 Outputs:
 - `docs/security/semgrep-results.json` — JSON findings

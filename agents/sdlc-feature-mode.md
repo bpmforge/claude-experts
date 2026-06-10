@@ -61,12 +61,18 @@ This rule is enforced by `scripts/validators/validate-no-ascii-art.sh`. Delivera
 > 1. Save state to `docs/work/sdlc-state.md`
 > 2. Write a context packet to `docs/work/context-for-<agent>.md`
 > 3. Build a HANDOFF block using the `════` delimiter format from `agents/shared/HANDOFF_TEMPLATES.md`
-> 4. **Dispatch via the Task tool** — the full HANDOFF block is the subagent prompt; wait for its Completion Manifest before proceeding
-> 5. **Fallback:** if the Task tool is unavailable or the dispatch fails twice, emit the HANDOFF block as text output and wait for the user to return and say "<agent> done"
+> 4. Execute it per `agents/shared/EXECUTOR_SELECTION.md`: `has_task_tool=true` in `docs/work/.model-context` → dispatch via the Task tool and wait for the manifest; otherwise emit the block as text and wait for the user to return and say "<agent> done"
+>
+> **Translation rule (apply to every `task()` call you read):**
+> ```
+> task(agent="X", prompt="...", timeout=N)
+>       ↓  becomes
+> [Save state] → [Write context packet] → [Emit HANDOFF block for X] → [Wait for user]
+> ```
 >
 > The task prompt text becomes the `YOUR TASK:` section of the HANDOFF block. Use Template 1 from `agents/shared/HANDOFF_TEMPLATES.md` for the full block format, including the `════` delimiters, ROLE line, CONTEXT section, WRITE-SCOPE, PRODUCE list, VERIFY checklist, Completion Manifest, and completion phrase.
 >
-> **Parallel HANDOFFs** (when the mode file shows multiple `task()` calls in the same step): dispatch all Task calls in one message so they run concurrently. In fallback mode, emit all HANDOFF blocks in one message and wait for ALL to return "done" before proceeding.
+> **Parallel HANDOFFs** (when the mode file shows multiple `task()` calls in the same step): emit all HANDOFF blocks in one message. The user opens N sessions simultaneously. Wait for ALL to return "done" before proceeding.
 
 ---
 
