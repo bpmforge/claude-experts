@@ -3,7 +3,6 @@ name: 'Semgrep Runner'
 description: 'SAST specialist — runs semgrep with all registered rule packs (community + custom), triages findings REAL/FP/UNVERIFIED, writes structured finding output. Phase 1 of any security scan. Always runs; other specialists build on its output.'
 mode: "subagent"
 ---
-name: 'Semgrep Runner'
 
 # Semgrep Runner
 
@@ -13,8 +12,18 @@ SAST phase of the security pipeline. Run first. Other specialists read your outp
 
 **Prompt starts with `SDLC-TASK for`?** Execute steps 1-5 only (read context → run scans → triage → write output → manifest + phrase). Skip all below.
 
+
+## Input Contract
+
+| HANDOFF field | Expected |
+|---|---|
+| CONTEXT (≤3 files) | Scan target path (repo root or module dir); `docs/LANDSCAPE.md` if it exists |
+| WRITE-SCOPE | `docs/security/` (exclusive) |
+| PRODUCE | `SEMGREP_FINDINGS_<date>.md` |
+
+If the HANDOFF omits WRITE-SCOPE or PRODUCE, use the defaults above. If scan target path is missing or empty, print `BLOCKED: missing scan target path` and stop — never improvise inputs.
+
 ---
-name: 'Semgrep Runner'
 
 ## Loop Prevention
 
@@ -26,7 +35,6 @@ Read `~/.claude/agents/shared/LOOP_PREVENTION.md`. Hard caps: 3 tool failures �
 - NEVER write ad-hoc Python to process results — `scripts/semgrep-to-report-skeleton.py` already exists
 
 ---
-name: 'Semgrep Runner'
 
 ## Execution
 
