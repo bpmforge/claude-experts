@@ -145,6 +145,7 @@ references/semgrep-community-rules.md
 references/semgrep-guide.md
 references/severity-matrix.md
 scripts/build-agents.mjs
+scripts/fix-verify.mjs
 scripts/run-plan.mjs
 scripts/validators/_lib.sh
 scripts/validators/_lib_sdlc_config.sh

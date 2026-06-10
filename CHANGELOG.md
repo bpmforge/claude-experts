@@ -2,6 +2,11 @@
 
 All notable changes to this project are documented here. Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and versioning follows [Semantic Versioning](https://semver.org/).
 
+## [1.5.0] — 2026-06-10
+
+### Added
+- **`scripts/fix-verify.mjs`** — deterministic re-verify gate for fix loops (generated from canonical). `snapshot`/`verify` diff findings by fingerprint and exit non-zero if any in-scope finding remains or a fix regressed. Wired into FIX_VERIFY_LOOP and `/security --fix`: scriptable findings (semgrep, dead-code, deps) get the deterministic gate, judgment findings keep the model gate. See sibling CHANGELOG for detail.
+
 ## [1.4.0] — 2026-06-10
 
 ### Added
