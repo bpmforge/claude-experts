@@ -4,15 +4,15 @@ This document describes what every agent, skill, reference document, validator, 
 
 ## Table of contents
 
-- [Agents (46)](#agents)
-  - [Primary agents (16)](#primary-agents)
+- [Agents (65)](#agents)
+  - [Primary agents (22)](#primary-agents)
   - [Security micro-agents (9)](#security-micro-agents)
-  - [Code-review micro-agents (7)](#code-review-micro-agents)
+  - [Code-review micro-agents (8)](#code-review-micro-agents)
   - [Performance micro-agents (6)](#performance-micro-agents)
   - [SDLC onboard specialists (4)](#sdlc-onboard-specialists)
   - [SDLC mode agents](#sdlc-mode-agents)
-- [Skills (20)](#skills)
-- [Shared protocols (16)](#shared-protocols)
+- [Skills (26)](#skills)
+- [Shared protocols (17)](#shared-protocols)
 - [Memory & code-search MCPs](#memory--code-search-mcps)
 - [Validators](#validators)
 - [Depth modes](#depth-modes-v0150)
@@ -262,7 +262,8 @@ Live in `agents/code-review/`. Dispatched by `code-reviewer` (coordinator) in pa
 | `type-safety-checker` | Any-cast abuse, non-null assertions, unsafe type coercions |
 | `pattern-consistency-checker` | Naming, import style, module structure — deviation from project conventions |
 | `anti-slop-auditor` | 20-rule AI slop catalog (R-01..R-20): bloat, dead code, speculative abstractions, generated filler |
-| `code-health-synthesizer` | Coordinator synthesizer — reads all six micro-agent outputs, produces `HEALTH_ASSESSMENT.md` with prioritized backlog |
+| `dead-code-detector` | Unimplemented stubs, never-called functions, unused exports, orphan files, disconnected pipelines (tool-first: knip/ts-prune/vulture/staticcheck + grep) |
+| `code-health-synthesizer` | Coordinator synthesizer — reads all seven micro-agent outputs, produces `HEALTH_ASSESSMENT.md` with prioritized backlog |
 
 Methodology: `agents/code-review/METHODOLOGY.md` — per-dimension grading rubrics, severity escalation rules, FIX_BACKLOG format.
 
@@ -346,7 +347,7 @@ Skills are thin triggers that live in `skills/<name>/SKILL.md`. Each skill maps 
 | `/onboard-gap-fill` | `sdlc-lead` | Ralph Wiggum D4 — emit focused HANDOFFs for uncovered rows only |
 | `/ui-verify` | `ui-verifier` | Live browser verification — screenshot flows, check accessibility snapshots, verify use cases |
 
-**25 skills total** (16 agent-backed + 9 utility/sub-skills).
+**26 skills total** (includes `/guide` — the concierge front door).
 
 ---
 
@@ -446,7 +447,7 @@ Install: `claude mcp add playwright -- npx -y @playwright/mcp@latest`
 
 ## Validators
 
-Thirty-six bash validators + gate runners in `scripts/validators/`. Each returns exit 0 (clean) / 1 (gaps) / 2 (validator error) and emits a JSON gap envelope to stdout. Bash 3.2 compatible (macOS default).
+Forty-one bash validators + gate runners in `scripts/validators/`. Each returns exit 0 (clean) / 1 (gaps) / 2 (validator error) and emits a JSON gap envelope to stdout. Bash 3.2 compatible (macOS default).
 
 | Script | Checks |
 |--------|--------|

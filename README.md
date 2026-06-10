@@ -1,8 +1,10 @@
 # claude-experts
 
-Expert agent system for [Claude Code](https://claude.ai/code) — 33 primary expert agents + 30 cluster specialists (security, code-review, performance, onboarding, game dev), 21 skills, a 4-mode SDLC workflow, full git lifecycle management, and 40 automated validators that enforce quality gates at every phase.
+Expert agent system for [Claude Code](https://claude.ai/code) — 34 primary expert agents + 31 cluster specialists (security, code-review, performance, onboarding, game dev), 26 skills, a 4-mode SDLC workflow, full git lifecycle management, and 41 automated validators that enforce quality gates at every phase.
 
-Sibling project: [`bpm-opencode-experts`](https://github.com/bpmforge/bpm-opencode-experts) — same experts for OpenCode (any LLM).
+**Not sure which command to run? Just describe your goal:** `/guide` is the front door — it routes any plain-English goal ("securely check all my source and help fix the issues", "this codebase is unfamiliar", "harden before launch") to the right expert and drives the workflow, always offering the next step.
+
+Sibling project: [`bpm-opencode-experts`](https://github.com/bpmforge/bpm-opencode-experts) — same experts for OpenCode (any LLM). This repo's agents, references, and validators are generated from it.
 
 ## Install
 
@@ -12,56 +14,66 @@ cd claude-experts
 ./install.sh
 ```
 
-`install.sh` clones and builds all MCPs automatically (bpm-memory-mcp, bpm-code-search-mcp, playwright-search) and registers them with Claude Code. Pass `--no-playwright-search` or `--no-playwright-mcp` to skip individual MCPs. Requires macOS, Linux, or WSL2.
+Symlinks agents, skills, hooks, references, and scripts into `~/.claude/` and registers the MCP servers. Useful flags: `--yes` (non-interactive), `--compact` (compact agent variants for 32k local models), `--tools` (install the optional code-analysis tools — semgrep, knip, vulture, mmdc, …), `--no-memory`, `--no-code-search`, `--no-playwright-search`. Requires macOS, Linux, or WSL2.
 
 **Verify the install:**
 
 ```bash
-~/.claude/scripts/doctor.sh
+~/.claude/scripts/doctor.sh         # structure, symlinks, deps, MCP registration → Status: HEALTHY
+~/.claude/scripts/check-tools.sh    # which optional analysis tools are present (add: --install)
 ```
 
-Checks structure, symlink integrity, runtime deps, and MCP registration — `Status: HEALTHY` means everything works.
-
-**Update:** `git pull && ./install.sh --yes` (idempotent — agents are symlinks, so most updates apply instantly; re-run install for new files), then `doctor.sh` again.
+**Update:** `git pull && ./install.sh --yes` (idempotent — agents are symlinks, most updates apply instantly), then `doctor.sh` again.
 
 ## First command
 
 ```
-/sdlc init my-project "short description"
+/guide                                       # describe any goal in plain English
+/sdlc init my-project "short description"     # or go straight to a workflow
 ```
-
-Or plain English — the SDLC lead detects intent and routes automatically:
 
 | You say | Runs |
 |---------|------|
+| "I don't know where to start / what can this do?" | `/guide` |
 | "build a new app" | `/sdlc init` |
+| "build a game" | `/sdlc init --game` |
 | "understand this codebase" | `/sdlc onboard` |
 | "add X feature" | `/sdlc feature` |
 | "review / audit / find gaps / make it better" | `/sdlc improve` |
+| "securely check my source and help fix it" | `/security --fix` |
+| "is there code nothing uses?" | `/review-code` (dead-code dimension) |
 | "verify the UI at localhost:3000" | `/ui-verify` |
 
 ## What's included
 
 | Category | Count |
 |----------|-------|
-| Primary agents | 16 |
+| Primary agents | 34 |
 | Security micro-agents | 9 |
-| Code-review micro-agents | 7 |
+| Code-review micro-agents | 8 |
 | Performance micro-agents | 6 |
 | SDLC onboard specialists | 4 |
-| SDLC mode agents | 8 |
-| **Total agents** | **47** |
-| Skills | 25 |
+| Game-dev cluster | 4 |
+| **Total agents** | **65** |
+| Skills | 26 |
 | Shared protocols | 17 |
-| Validators | 38 |
+| Validators | 41 |
 | MCPs (auto-installed) | 4 |
+
+## Highlights
+
+- **`/guide` concierge** — front door that routes any goal to the right expert.
+- **Security find-and-fix** — `/security --fix` drives a verified loop (fix → re-scan to confirm closed via `scripts/fix-verify.mjs`).
+- **8-dimension code health** including a dead-code/stub/unused-export detector.
+- **Deterministic scaffolding** — `run-plan.mjs` (DAG runner), `fix-verify.mjs` (re-verify gate), `mermaid-fix.mjs` + render-validated diagrams.
+- **Any LLM** — tier detection, compact agent variants (install with `--compact`), capability-probed delegation.
 
 ## Docs
 
 - [docs/SETUP.md](docs/SETUP.md) — **start here**: prerequisites, embedding models, env vars, troubleshooting
 - [docs/USERGUIDE.md](docs/USERGUIDE.md) — how to invoke each expert
 - [docs/FEATURES.md](docs/FEATURES.md) — full agent, skill, validator, and protocol catalog
-- [docs/MCP_GUIDE.md](docs/MCP_GUIDE.md) — MCP configuration and usage
+- [docs/MCP_GUIDE.md](docs/MCP_GUIDE.md) — MCP configuration (`claude mcp add` / `.mcp.json`)
 - [docs/SDLC_GUIDE.md](docs/SDLC_GUIDE.md) — SDLC workflow, phases, git model
 - [CHANGELOG.md](CHANGELOG.md) — release notes
 
