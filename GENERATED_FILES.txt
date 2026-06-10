@@ -11,6 +11,7 @@ agents/code-review/METHODOLOGY.md
 agents/code-review/anti-slop-auditor.md
 agents/code-review/code-health-synthesizer.md
 agents/code-review/complexity-analyzer.md
+agents/code-review/dead-code-detector.md
 agents/code-review/duplication-detector.md
 agents/code-review/error-handling-auditor.md
 agents/code-review/pattern-consistency-checker.md
@@ -155,6 +156,7 @@ scripts/validators/validate-build.sh
 scripts/validators/validate-c3-coverage.sh
 scripts/validators/validate-code-health.sh
 scripts/validators/validate-completion-manifest.sh
+scripts/validators/validate-dead-code.sh
 scripts/validators/validate-deps.sh
 scripts/validators/validate-design-system.sh
 scripts/validators/validate-e2e-setup.sh
