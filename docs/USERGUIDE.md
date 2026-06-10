@@ -196,6 +196,12 @@ Full protocols at `~/.claude/agents/shared/MEMORY_PRIMER.md` and `docs/MCP_GUIDE
 
 ## Typical workflows
 
+### Not sure which command? Start at the front door
+```
+/guide
+```
+Describe your goal in plain English ("securely check all my source and help fix the issues", "this codebase is unfamiliar — where do I start?", "harden before launch"). `guide` picks the expert, explains the route, drives the workflow, and always offers the next step — including "want me to fix what I found?".
+
 ### New project from scratch
 ```
 /sdlc init my-app "Short description of what it is"
