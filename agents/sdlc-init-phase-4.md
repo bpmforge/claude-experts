@@ -6,7 +6,7 @@ mode: "subagent"
 # Mode 1 — Phase 4 & 5: Implementation + Release
 
 > Load only when sdlc-init-mode.md directs you here for Phase 4 or Phase 5.
-> Mandatory rules (loop prevention, document hygiene, OpenCode delegation) live in sdlc-init-mode.md.
+> Mandatory rules (loop prevention, document hygiene, delegation) live in sdlc-init-mode.md.
 > **task() → HANDOFF reminder:** Any `task(agent="X", ...)` = emit a HANDOFF block, save state, wait for user.
 
 ## Phase 4: Implementation — BUILD it
@@ -100,7 +100,7 @@ If FAIL → fix module → re-run. RUNTIME PASS is required before moving to the
 When the user selects parallel mode `[P]` for a wave, load the full protocol:
 
 ```
-read(filePath="~/.config/opencode/agents/sdlc/PARALLEL_WAVE_PROTOCOL.md")
+read(filePath="~/.claude/agents/sdlc/PARALLEL_WAVE_PROTOCOL.md")
 ```
 
 The protocol defines: Round 1 (N parallel code HANDOFFs), Round 2 (N parallel review HANDOFFs + Fix-Verify Loop per module), Round 3 (N parallel runtime-validation HANDOFFs), wave gate, and when to refuse parallel and force sequential.
@@ -122,7 +122,7 @@ Next after resume: run handoff gates (validate-design-system), then test strateg
 ")
 ```
 
-Use **Template 10** from `~/.config/opencode/agents/shared/HANDOFF_TEMPLATES.md` for this HANDOFF.
+Use **Template 10** from `~/.claude/agents/shared/HANDOFF_TEMPLATES.md` for this HANDOFF.
 
 → After "frontend done": run `./scripts/validators/run-handoff-gates.sh --scope src/components --scope src/styles --scope src/theme --manifest <manifest> --coverage validate-design-system.sh` → mark DONE
 
@@ -145,7 +145,7 @@ Next after resume: db-architect migrations handoff
 ---
   HANDOFF → test-engineer
 ---
-Open a new OpenCode conversation and paste this EXACT prompt to /test-expert:
+Delegate this EXACT prompt (Task tool preferred; fallback: paste in a new conversation) to /test-expert:
 
 SDLC-TASK for test-engineer:
 
@@ -282,7 +282,7 @@ Next after resume: discovery audit, then expert reviews
 ---
   HANDOFF → test-engineer
 ---
-Open a new OpenCode conversation and paste this EXACT prompt to /test-expert:
+Delegate this EXACT prompt (Task tool preferred; fallback: paste in a new conversation) to /test-expert:
 
 SDLC-TASK for test-engineer:
 
@@ -362,7 +362,7 @@ Next after resume: DB migrations, then expert reviews
 ---
   HANDOFF → test-engineer   [or /ux if UI-bearing]
 ---
-Open a new OpenCode conversation and paste this EXACT prompt:
+Delegate this EXACT prompt (Task tool preferred; fallback: paste in a new conversation):
 
 SDLC-TASK for test-engineer:
 
@@ -411,7 +411,7 @@ Next after resume: api-designer contract verification
 ---
   HANDOFF → db-architect
 ---
-Open a new OpenCode conversation and paste this EXACT prompt to /dba:
+Delegate this EXACT prompt (Task tool preferred; fallback: paste in a new conversation) to /dba:
 
 SDLC-TASK for db-architect:
 
@@ -441,7 +441,7 @@ Then stop. Do not ask for follow-up. Do not run additional phases.
 ---
   HANDOFF → api-designer
 ---
-Open a new OpenCode conversation and paste this EXACT prompt to /api-design:
+Delegate this EXACT prompt (Task tool preferred; fallback: paste in a new conversation) to /api-design:
 
 SDLC-TASK for api-designer:
 
@@ -471,7 +471,7 @@ Then stop. Do not ask for follow-up. Do not run additional phases.
 ---
   HANDOFF → container-ops
 ---
-Open a new OpenCode conversation and paste this EXACT prompt to /containers:
+Delegate this EXACT prompt (Task tool preferred; fallback: paste in a new conversation) to /containers:
 
 SDLC-TASK for container-ops:
 
@@ -527,7 +527,7 @@ Next after resume: CI/CD pipeline
 ---
   HANDOFF → sre-engineer
 ---
-Open a new OpenCode conversation and paste this EXACT prompt to /devops:
+Delegate this EXACT prompt (Task tool preferred; fallback: paste in a new conversation) to /devops:
 
 SDLC-TASK for sre-engineer:
 
@@ -571,7 +571,7 @@ Then stop. Do not ask for follow-up. Do not run additional phases.
 ---
   HANDOFF → sre-engineer
 ---
-Open a new OpenCode conversation and paste this EXACT prompt to /devops:
+Delegate this EXACT prompt (Task tool preferred; fallback: paste in a new conversation) to /devops:
 
 SDLC-TASK for sre-engineer:
 
@@ -602,7 +602,7 @@ Then stop. Do not ask for follow-up. Do not run additional phases.
 ---
   HANDOFF → security-auditor
 ---
-Open a new OpenCode conversation and paste this EXACT prompt to /security:
+Delegate this EXACT prompt (Task tool preferred; fallback: paste in a new conversation) to /security:
 
 SDLC-TASK for security-auditor:
 
@@ -639,7 +639,7 @@ Then stop. Do not ask for follow-up. Do not run additional phases.
 ---
   HANDOFF → code-reviewer
 ---
-Open a new OpenCode conversation and paste this EXACT prompt to /review-code:
+Delegate this EXACT prompt (Task tool preferred; fallback: paste in a new conversation) to /review-code:
 
 SDLC-TASK for code-reviewer:
 
@@ -687,7 +687,7 @@ task(agent="git-expert", prompt="--feature mode (merge phase): verify docs/revie
 ---
   HANDOFF → performance-engineer
 ---
-Open a new OpenCode conversation and paste this EXACT prompt to /perf:
+Delegate this EXACT prompt (Task tool preferred; fallback: paste in a new conversation) to /perf:
 
 SDLC-TASK for performance-engineer:
 

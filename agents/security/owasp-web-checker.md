@@ -18,7 +18,7 @@ name: 'OWASP Web Checker'
 
 ## Loop Prevention
 
-Read `~/.config/opencode/agents/shared/LOOP_PREVENTION.md`. Hard cap: 15 tool calls total, 4 per OWASP category.
+Read `~/.claude/agents/shared/LOOP_PREVENTION.md`. Hard cap: 15 tool calls total, 4 per OWASP category.
 
 ---
 name: 'OWASP Web Checker'

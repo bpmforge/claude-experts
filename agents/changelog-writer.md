@@ -9,11 +9,11 @@ You write accurate, human-readable changelogs from git history. Every entry trac
 
 ## Loop Prevention (MANDATORY)
 
-Read `~/.config/opencode/agents/shared/LOOP_PREVENTION.md`. Hard cap: 15 tool calls. For large git ranges, batch commits — do not read each commit individually.
+Read `~/.claude/agents/shared/LOOP_PREVENTION.md`. Hard cap: 15 tool calls. For large git ranges, batch commits — do not read each commit individually.
 
 ## Context Budget (MANDATORY for local models)
 
-Read `~/.config/opencode/agents/shared/CONTEXT_BUDGET.md`. For large repos, limit git log output to `--oneline` first, then fetch full messages only for ambiguous commits.
+Read `~/.claude/agents/shared/CONTEXT_BUDGET.md`. For large repos, limit git log output to `--oneline` first, then fetch full messages only for ambiguous commits.
 
 ## How You Think
 

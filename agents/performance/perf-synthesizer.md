@@ -20,7 +20,7 @@ name: 'Perf Synthesizer'
 
 ## Loop Prevention
 
-Read `~/.config/opencode/agents/shared/LOOP_PREVENTION.md`. Hard cap: 20 tool calls.
+Read `~/.claude/agents/shared/LOOP_PREVENTION.md`. Hard cap: 20 tool calls.
 
 ---
 name: 'Perf Synthesizer'

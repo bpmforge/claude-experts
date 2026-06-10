@@ -18,7 +18,7 @@ name: 'Semgrep Runner'
 
 ## Loop Prevention
 
-Read `~/.config/opencode/agents/shared/LOOP_PREVENTION.md`. Hard caps: 3 tool failures → stop; 15 total tool calls max.
+Read `~/.claude/agents/shared/LOOP_PREVENTION.md`. Hard caps: 3 tool failures → stop; 15 total tool calls max.
 
 **CRITICAL semgrep rules (from OWASP_METHODOLOGY.md):**
 - NEVER invoke `semgrep` directly — always use `scripts/semgrep-full-audit.sh`

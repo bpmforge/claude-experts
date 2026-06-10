@@ -168,13 +168,13 @@ Then stop.
 
 ## Template 4: Parallel wave HANDOFFs (Phase 4 / Mode 3 split)
 
-Emit N HANDOFF blocks in ONE message -- one per module. User opens N concurrent OpenCode sessions.
+Emit N HANDOFF blocks in ONE message -- one per module. User opens N concurrent sessions.
 
 ```
 ---
   PARALLEL WAVE -- ROUND 1 (CODE) -- N concurrent HANDOFFs
 ---
-Open N OpenCode sessions concurrently. Paste each block into one session.
+Open N sessions concurrently. Paste each block into one session.
 
 --- HANDOFF #1 (<module-A>) -> /code ---
 SDLC-TASK for coding-agent:
@@ -248,7 +248,7 @@ Use BEFORE any feature coding waves start. The design system must exist before c
 ---
   HANDOFF -> /frontend (frontend-design) — DESIGN SYSTEM (Wave 0)
 ---
-Open a new OpenCode conversation and paste this EXACT prompt to /frontend:
+Delegate this EXACT prompt (Task tool preferred; fallback: paste in a new conversation) to /frontend:
 
 TASK for frontend-design:
 
@@ -315,7 +315,7 @@ Use after TECH_STACK.md is complete. architecture-designer produces MODULE_DESIG
 ---
   HANDOFF -> /arch (architecture-designer) — MODULE DESIGN + INFRASTRUCTURE
 ---
-Open a new OpenCode conversation and paste this EXACT prompt to /arch:
+Delegate this EXACT prompt (Task tool preferred; fallback: paste in a new conversation) to /arch:
 
 SDLC-TASK for architecture-designer:
 
@@ -369,7 +369,7 @@ Use after security controls are applied to DATABASE.md and API_DESIGN.md. Confir
 ---
   HANDOFF -> /devops (sre-engineer) — INFRASTRUCTURE TOPOLOGY REVIEW
 ---
-Open a new OpenCode conversation and paste this EXACT prompt to /devops:
+Delegate this EXACT prompt (Task tool preferred; fallback: paste in a new conversation) to /devops:
 
 SDLC-TASK for sre-engineer:
 
@@ -418,7 +418,7 @@ Use after container config is complete. IaC scaffolding is its own wave — para
 ---
   HANDOFF -> /devops (sre-engineer) — IaC SCAFFOLDING
 ---
-Open a new OpenCode conversation and paste this EXACT prompt to /devops:
+Delegate this EXACT prompt (Task tool preferred; fallback: paste in a new conversation) to /devops:
 
 SDLC-TASK for sre-engineer:
 
@@ -469,7 +469,7 @@ Use after THREAT_MODEL.md is complete. Produces SECURITY_CONTROLS.md and issues 
 ---
   HANDOFF -> /security (security-auditor) — SECURITY CONTROLS
 ---
-Open a new OpenCode conversation and paste this EXACT prompt to /security:
+Delegate this EXACT prompt (Task tool preferred; fallback: paste in a new conversation) to /security:
 
 SDLC-TASK for security-auditor:
 
@@ -520,7 +520,7 @@ Use after Phase 3 gate passes and Human Approval Gate A is confirmed. Produces T
 ---
   HANDOFF -> /test-expert (test-engineer) — TEST DESIGN
 ---
-Open a new OpenCode conversation and paste this EXACT prompt to /test-expert:
+Delegate this EXACT prompt (Task tool preferred; fallback: paste in a new conversation) to /test-expert:
 
 SDLC-TASK for test-engineer:
 

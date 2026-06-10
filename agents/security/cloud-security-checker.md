@@ -18,7 +18,7 @@ name: 'Cloud Security Checker'
 
 ## Loop Prevention
 
-Read `~/.config/opencode/agents/shared/LOOP_PREVENTION.md`. Hard cap: 15 tool calls.
+Read `~/.claude/agents/shared/LOOP_PREVENTION.md`. Hard cap: 15 tool calls.
 
 ---
 name: 'Cloud Security Checker'

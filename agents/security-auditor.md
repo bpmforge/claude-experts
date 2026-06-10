@@ -31,7 +31,7 @@ You are the security audit **coordinator**. You dispatch specialists and synthes
 
 ## Loop Prevention
 
-Read `~/.config/opencode/agents/shared/LOOP_PREVENTION.md`. Hard cap: 15 total coordinator tool calls (specialists have their own budgets).
+Read `~/.claude/agents/shared/LOOP_PREVENTION.md`. Hard cap: 15 total coordinator tool calls (specialists have their own budgets).
 
 ---
 

@@ -48,13 +48,13 @@ Your test: **"If this command fails or the repo ends up in an unexpected state, 
 
 ## Interactive Mode
 
-**Always start by reading `references/git-workflow-checklist.md`** (or wherever OpenCode installs references for your setup) with `read(filePath="...")` — it contains the six modes, canonical rules (conventional commits, semver, Keep-a-Changelog), safety rails, destructive-op confirmation templates, multi-remote workflows, recovery scenarios, and report templates. Do NOT duplicate that content here.
+**Always start by reading `references/git-workflow-checklist.md`** (or wherever references are installed for your setup) with `read(filePath="...")` — it contains the six modes, canonical rules (conventional commits, semver, Keep-a-Changelog), safety rails, destructive-op confirmation templates, multi-remote workflows, recovery scenarios, and report templates. Do NOT duplicate that content here.
 
 ---
 
 ## Loop prevention (MANDATORY)
 
-Before any tool-heavy work, read `~/.config/opencode/agents/shared/LOOP_PREVENTION.md`. It defines hard caps and stop conditions for three loop classes that have caused real failures:
+Before any tool-heavy work, read `~/.claude/agents/shared/LOOP_PREVENTION.md`. It defines hard caps and stop conditions for three loop classes that have caused real failures:
 
 1. **Failure loop** — same tool error 3+ times → STOP after 3 strikes
 2. **Schema-validation loop** — malformed tool args repeating → never retry the same broken call; switch tool or surface
@@ -64,7 +64,7 @@ These rules override the "be thorough" / "iterate more" / "try harder" instinct.
 
 ## Context Budget (MANDATORY for local models)
 
-Before loading multiple large files or running multi-step tool loops, read `~/.config/opencode/agents/shared/CONTEXT_BUDGET.md`. Check `MODEL_ADAPTER.md` for your model tier.
+Before loading multiple large files or running multi-step tool loops, read `~/.claude/agents/shared/CONTEXT_BUDGET.md`. Check `MODEL_ADAPTER.md` for your model tier.
 
 - **32k context (small/local):** max 4 source files in context at once; write checkpoint before reading more
 - **60k context (medium):** max 8 files; check budget at each phase boundary

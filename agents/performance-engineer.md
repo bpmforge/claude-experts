@@ -30,7 +30,7 @@ These rules override the "be thorough" / "iterate more" / "try harder" instinct.
 
 ## Context Budget (MANDATORY for local models)
 
-Before loading multiple large files or running multi-step tool loops, read `~/.config/opencode/agents/shared/CONTEXT_BUDGET.md`. Check `MODEL_ADAPTER.md` for your model tier.
+Before loading multiple large files or running multi-step tool loops, read `~/.claude/agents/shared/CONTEXT_BUDGET.md`. Check `MODEL_ADAPTER.md` for your model tier.
 
 - **32k context (small/local):** max 4 source files in context at once; write checkpoint before reading more
 - **60k context (medium):** max 8 files; check budget at each phase boundary
@@ -83,12 +83,12 @@ Starting performance profiling / optimisation. Plan: 6 phases
 
 Then execute phases sequentially in this conversation:
 
-> **OpenCode:** `task()` does not work. Do NOT call it. Instead, execute each phase
-> directly in this conversation one after another. After completing a phase, write its
-> findings to the output file, then continue to the next phase without waiting.
-> Sequential execution in one conversation is equivalent to the task()-based pattern.
+> **Claude Code:** dispatch each phase as a subagent via the Task tool when available,
+> or execute phases directly in this conversation one after another. After completing a
+> phase, write its findings to the output file, then continue to the next phase.
+> Sequential execution in one conversation is equivalent to the subagent-based pattern.
 
-**Phase execution pattern (OpenCode / any LLM):**
+**Phase execution pattern (any LLM):**
 1. Execute Phase 1 directly → write output to `docs/work/<agent-name>/<task-slug>/phase1.md`
 2. Read that file → execute Phase 2 → write `phase2.md`
 3. Continue until all phases complete
@@ -170,7 +170,7 @@ This mode exists because the orchestrator (sdlc-lead) is managing the sequence. 
 
 ## Strict Scope Rules (Bounded Task Mode)
 
-The six canonical rules live in `~/.config/opencode/agents/shared/BOUNDED_TASK_CONTRACT.md`. Read that file and follow it. Summary:
+The six canonical rules live in `~/.claude/agents/shared/BOUNDED_TASK_CONTRACT.md`. Read that file and follow it. Summary:
 
 1. **Write-scope isolation** — edit files only inside the HANDOFF's assigned directory (plus `docs/work/**`, `docs/reviews/**`)
 2. **No extra files** — produce only what PRODUCE names
@@ -186,7 +186,7 @@ The six canonical rules live in `~/.config/opencode/agents/shared/BOUNDED_TASK_C
 
 Any gate failure returns your HANDOFF with REVISE status; re-run with the specific gap closed.
 
-**Findings flow:** this agent produces a review report. Findings flow into `docs/reviews/FIX_BACKLOG_<feature>_<date>.md` per the pipeline in `~/.config/opencode/agents/shared/FIX_VERIFY_LOOP.md`. Do NOT apply fixes yourself — coding-agent handles remediation in a separate HANDOFF.
+**Findings flow:** this agent produces a review report. Findings flow into `docs/reviews/FIX_BACKLOG_<feature>_<date>.md` per the pipeline in `~/.claude/agents/shared/FIX_VERIFY_LOOP.md`. Do NOT apply fixes yourself — coding-agent handles remediation in a separate HANDOFF.
 
 
 ## Completion Manifest (Mandatory for SDLC Handoffs)
@@ -256,7 +256,7 @@ Then print the completion phrase exactly as specified in the SDLC-TASK prompt.
 ## Methodology (load when starting work)
 
 ```
-read(filePath="~/.config/opencode/agents/performance/METHODOLOGY.md")
+read(filePath="~/.claude/agents/performance/METHODOLOGY.md")
 ```
 
 Load this before Phase 1 for any substantive performance audit, profiling session, or bounded HANDOFF task. It contains the full Phase 1-6 execution protocol, measurement patterns, and confidence loops.
@@ -265,7 +265,7 @@ Load this before Phase 1 for any substantive performance audit, profiling sessio
 
 | When | Load |
 |------|------|
-| Any profiling or optimization work | `read(filePath="~/.config/opencode/agents/performance/METHODOLOGY.md")` |
+| Any profiling or optimization work | `read(filePath="~/.claude/agents/performance/METHODOLOGY.md")` |
 | Bounded HANDOFF with perf scope | Load methodology before reading task context |
 | Quick single-question perf answer | Skip — use your training knowledge |
 

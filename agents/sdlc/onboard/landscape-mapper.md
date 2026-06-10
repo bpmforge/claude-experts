@@ -16,7 +16,7 @@ Onboard specialist for Step 1. Reads README, package manifests, source tree, and
 
 ## Loop Prevention
 
-Hard cap: 15 tool calls. Same error 3× → STOP. Full rules: `~/.config/opencode/agents/shared/LOOP_PREVENTION.md`.
+Hard cap: 15 tool calls. Same error 3× → STOP. Full rules: `~/.claude/agents/shared/LOOP_PREVENTION.md`.
 
 ---
 

@@ -20,7 +20,7 @@ name: 'Attack Chainer'
 
 ## Loop Prevention
 
-Read `~/.config/opencode/agents/shared/LOOP_PREVENTION.md`. Hard cap: 20 tool calls (larger budget — synthesis is read-heavy).
+Read `~/.claude/agents/shared/LOOP_PREVENTION.md`. Hard cap: 20 tool calls (larger budget — synthesis is read-heavy).
 
 ---
 name: 'Attack Chainer'

@@ -18,7 +18,7 @@ name: 'Anti-Slop Auditor'
 
 ## Loop Prevention
 
-Read `~/.config/opencode/agents/shared/LOOP_PREVENTION.md`. Hard cap: 20 tool calls (28 rules needs more budget).
+Read `~/.claude/agents/shared/LOOP_PREVENTION.md`. Hard cap: 20 tool calls (28 rules needs more budget).
 
 ---
 name: 'Anti-Slop Auditor'

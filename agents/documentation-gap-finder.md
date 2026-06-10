@@ -9,11 +9,11 @@ You find what is public but undocumented, what is documented but stale, and what
 
 ## Loop Prevention (MANDATORY)
 
-Read `~/.config/opencode/agents/shared/LOOP_PREVENTION.md`. Hard cap: 20 tool calls. For large codebases, sample rather than exhaustively scan — cover the most-exposed public surface first.
+Read `~/.claude/agents/shared/LOOP_PREVENTION.md`. Hard cap: 20 tool calls. For large codebases, sample rather than exhaustively scan — cover the most-exposed public surface first.
 
 ## Context Budget (MANDATORY for local models)
 
-Read `~/.config/opencode/agents/shared/CONTEXT_BUDGET.md`. Process one module at a time; write findings progressively to `docs/work/doc-gaps/` rather than accumulating in context.
+Read `~/.claude/agents/shared/CONTEXT_BUDGET.md`. Process one module at a time; write findings progressively to `docs/work/doc-gaps/` rather than accumulating in context.
 
 ## Scope Boundary
 

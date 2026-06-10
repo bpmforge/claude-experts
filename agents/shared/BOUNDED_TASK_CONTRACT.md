@@ -78,7 +78,7 @@ All seven sections are required. "None" is a valid value for sections with nothi
 
 ## Why these rules exist
 
-OpenCode does not support programmatic task spawning between agents. All cross-agent coordination in this system is via explicit HANDOFF blocks that the user copies into a new session. This means:
+Cross-agent coordination in this system is via explicit HANDOFF documents — executed by the Task tool on Claude Code, or pasted into a new session as a fallback. Either way the specialist runs in an isolated context. This means:
 
 - The orchestrator (sdlc-lead) cannot see what a specialist is doing while it runs
 - There is no shared context between sessions — every specialist starts fresh

@@ -18,7 +18,7 @@ name: 'OWASP LLM Checker'
 
 ## Loop Prevention
 
-Read `~/.config/opencode/agents/shared/LOOP_PREVENTION.md`. Hard cap: 15 tool calls, 4 per LLM category.
+Read `~/.claude/agents/shared/LOOP_PREVENTION.md`. Hard cap: 15 tool calls, 4 per LLM category.
 
 ---
 name: 'OWASP LLM Checker'

@@ -11,11 +11,11 @@ This file is the Mode 2 coordinator. It dispatches specialist sub-agents and kee
 
 ## Loop Prevention (MANDATORY)
 
-Read `~/.config/opencode/agents/shared/LOOP_PREVENTION.md`. Hard cap: 30 tool calls total for this orchestration session. At each phase boundary, evaluate: "Have I made meaningful progress? Or am I cycling?" Stop and checkpoint rather than loop.
+Read `~/.claude/agents/shared/LOOP_PREVENTION.md`. Hard cap: 30 tool calls total for this orchestration session. At each phase boundary, evaluate: "Have I made meaningful progress? Or am I cycling?" Stop and checkpoint rather than loop.
 
 ## Context Budget (MANDATORY for local models)
 
-Read `~/.config/opencode/agents/shared/CONTEXT_BUDGET.md` before loading multiple documents. For 32k-context local models: load phase docs one at a time, write deliverables to disk before loading the next input. Never hold more than 4 large files in context simultaneously.
+Read `~/.claude/agents/shared/CONTEXT_BUDGET.md` before loading multiple documents. For 32k-context local models: load phase docs one at a time, write deliverables to disk before loading the next input. Never hold more than 4 large files in context simultaneously.
 
 ---
 
@@ -41,9 +41,9 @@ ALL diagrams MUST use Mermaid syntax. NEVER ASCII art. Any deliverable over 300 
 
 ---
 
-## OpenCode Delegation Rule (MANDATORY)
+## Delegation Rule (MANDATORY)
 
-`task()` does not work in OpenCode. Every `task(agent="X", ...)` in this file = emit a HANDOFF block using `════` delimiter format from `agents/shared/HANDOFF_TEMPLATES.md`. Save state → write context packet → emit HANDOFF → wait for user.
+Every `task(agent="X", ...)` in this file = build a HANDOFF block using the `════` delimiter format from `agents/shared/HANDOFF_TEMPLATES.md`, then execute it: save state → write context packet → **dispatch via the Task tool with the HANDOFF block as the subagent prompt and wait for its manifest**. If the Task tool is unavailable or fails twice, emit the HANDOFF block as text and wait for the user.
 
 ---
 
@@ -367,7 +367,7 @@ Exit 0 → done. Exit 1 → emit gap-fill HANDOFFs (one per uncovered row), re-r
 
 ## Ralph Wiggum Deep Mode (`/sdlc onboard --deep`)
 
-Canonical protocol: `~/.config/opencode/agents/shared/RALPH_WIGGUM_LOOP.md`.
+Canonical protocol: `~/.claude/agents/shared/RALPH_WIGGUM_LOOP.md`.
 
 **When to recommend:** contract bids, due-diligence reviews, onboarding systems you'll own > 6 months, security-sensitive systems, or when the quick pass produced low-confidence ARCHITECTURE.md.
 

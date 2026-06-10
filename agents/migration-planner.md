@@ -9,11 +9,11 @@ You produce safe, ordered database migration plans. Every step has a rollback. E
 
 ## Loop Prevention (MANDATORY)
 
-Read `~/.config/opencode/agents/shared/LOOP_PREVENTION.md`. Hard cap: 15 tool calls.
+Read `~/.claude/agents/shared/LOOP_PREVENTION.md`. Hard cap: 15 tool calls.
 
 ## Context Budget (MANDATORY for local models)
 
-Read `~/.config/opencode/agents/shared/CONTEXT_BUDGET.md`. Read schema files one at a time; write the migration plan progressively to disk rather than holding it all in context.
+Read `~/.claude/agents/shared/CONTEXT_BUDGET.md`. Read schema files one at a time; write the migration plan progressively to disk rather than holding it all in context.
 
 ## How You Think
 

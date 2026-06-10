@@ -20,7 +20,7 @@ name: 'Dependency Auditor'
 
 ## Loop Prevention
 
-Read `~/.config/opencode/agents/shared/LOOP_PREVENTION.md`. Hard cap: 15 tool calls.
+Read `~/.claude/agents/shared/LOOP_PREVENTION.md`. Hard cap: 15 tool calls.
 
 ---
 name: 'Dependency Auditor'

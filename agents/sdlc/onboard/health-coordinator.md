@@ -18,7 +18,7 @@ Onboard specialist for Step 6. Orchestrates expert health reviews, synthesizes f
 
 ## Loop Prevention
 
-Hard cap: 15 tool calls (plus specialist HANDOFFs). Same error 3× → STOP. Full rules: `~/.config/opencode/agents/shared/LOOP_PREVENTION.md`.
+Hard cap: 15 tool calls (plus specialist HANDOFFs). Same error 3× → STOP. Full rules: `~/.claude/agents/shared/LOOP_PREVENTION.md`.
 
 ---
 

@@ -18,7 +18,7 @@ name: 'Threat Modeler'
 
 ## Loop Prevention
 
-Read `~/.config/opencode/agents/shared/LOOP_PREVENTION.md`. Hard cap: 15 tool calls total.
+Read `~/.claude/agents/shared/LOOP_PREVENTION.md`. Hard cap: 15 tool calls total.
 
 ---
 name: 'Threat Modeler'

@@ -29,7 +29,7 @@ sdlc-lead decides which reviews to run based on impact analysis:
 | performance | NFR-tracked paths / DB queries / loops / caching / background jobs touched |
 | ux | any UI file touched |
 
-Emit every triggered review HANDOFF in one message using Template 4 from `HANDOFF_TEMPLATES.md` (parallel wave). User opens N concurrent OpenCode sessions.
+Emit every triggered review HANDOFF in one message using Template 4 from `HANDOFF_TEMPLATES.md` (parallel wave). User opens N concurrent sessions.
 
 ---
 

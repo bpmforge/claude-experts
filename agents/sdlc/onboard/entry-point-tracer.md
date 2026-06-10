@@ -16,7 +16,7 @@ Onboard specialist for Steps 2 and 2b. Finds every entry point, traces the full 
 
 ## Loop Prevention
 
-Hard cap: 20 tool calls. Same error 3× → STOP. Full rules: `~/.config/opencode/agents/shared/LOOP_PREVENTION.md`.
+Hard cap: 20 tool calls. Same error 3× → STOP. Full rules: `~/.claude/agents/shared/LOOP_PREVENTION.md`.
 
 ---
 

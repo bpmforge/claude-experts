@@ -2,11 +2,11 @@
 
 # Research tools — available to every agent
 
-Two MCP servers handle all web research in this system. The opencode built-ins (`webfetch`, `websearch`) are **disabled** in `examples/opencode.json` so the LLM cannot drift back to them. Every agent — researcher and specialists alike — uses the tools below.
+Two MCP servers handle all web research in this system. Prefer them over built-in webfetch/websearch tools — they extract cleaner content and dedupe across engines. Every agent — researcher and specialists alike — uses the tools below.
 
 ## The hard rule
 
-> If you need to read a URL or search the web, you call `playwright-search_*` or `pullmd_*`. **You do not call `webfetch` or `websearch`.** Those tools are disabled in `examples/opencode.json` (`"tools": { "webfetch": false, "websearch": false }`), which means opencode does not expose them to the LLM at all — they are simply not in your tool list. If you don't see `playwright-search_*` tools either, the MCP isn't running; surface that to the user, don't silently retry against built-ins that aren't there.
+> If you need to read a URL or search the web, call `playwright-search_*` or `pullmd_*` first. If you don't see those tools, the MCP isn't running — fall back to built-in WebFetch/WebSearch if your runtime provides them, and surface the missing MCP to the user.
 
 ## Two MCPs, different roles
 
@@ -64,7 +64,7 @@ Two MCP servers handle all web research in this system. The opencode built-ins (
 
 ## How to call them
 
-Tool names are namespaced by the MCP server (opencode auto-prefixes the server name with an underscore separator):
+Tool names are namespaced by the MCP server (the runtime auto-prefixes the server name — `mcp__<server>__` in Claude Code, `<server>_` in OpenCode):
 
 ```
 playwright-search_web_search_pullmd({"query": "...", "limit": 10})          ← tier 1
@@ -104,7 +104,7 @@ If `web_research` returns 0 results and `pullmd_read_url` also fails on a URL:
 
 - **Polite by default** — per-domain rate limit (1.2–2.5s), robots.txt respected, 24h disk cache. Safe to run repeatedly.
 - **No API keys, no paid tiers** — runs entirely on your machine.
-- **LLM-agnostic** — works with LM Studio, Ollama, Anthropic, OpenAI, any provider behind opencode.
+- **LLM-agnostic** — works with LM Studio, Ollama, Anthropic, OpenAI, any provider.
 - **Captcha-aware** — when an engine serves a captcha or POW challenge, that engine fails clean and the others continue. The pipeline never hangs on a single failed engine.
 - **pullmd extraction layers** — Reddit native API → Cloudflare's native markdown header → Mozilla Readability + Trafilatura → headless Chromium fallback. Each layer is tried in order; first one to extract clean content wins.
 
