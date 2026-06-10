@@ -1,6 +1,6 @@
 # claude-experts
 
-Expert agent system for [Claude Code](https://claude.ai/code) — 47 agents, 25 skills, a 4-mode SDLC workflow, full git lifecycle management, and 38 automated validators that enforce quality gates at every phase.
+Expert agent system for [Claude Code](https://claude.ai/code) — 33 primary expert agents + 30 cluster specialists (security, code-review, performance, onboarding, game dev), 21 skills, a 4-mode SDLC workflow, full git lifecycle management, and 40 automated validators that enforce quality gates at every phase.
 
 Sibling project: [`bpm-opencode-experts`](https://github.com/bpmforge/bpm-opencode-experts) — same experts for OpenCode (any LLM).
 
@@ -13,6 +13,16 @@ cd claude-experts
 ```
 
 `install.sh` clones and builds all MCPs automatically (bpm-memory-mcp, bpm-code-search-mcp, playwright-search) and registers them with Claude Code. Pass `--no-playwright-search` or `--no-playwright-mcp` to skip individual MCPs. Requires macOS, Linux, or WSL2.
+
+**Verify the install:**
+
+```bash
+~/.claude/scripts/doctor.sh
+```
+
+Checks structure, symlink integrity, runtime deps, and MCP registration — `Status: HEALTHY` means everything works.
+
+**Update:** `git pull && ./install.sh --yes` (idempotent — agents are symlinks, so most updates apply instantly; re-run install for new files), then `doctor.sh` again.
 
 ## First command
 

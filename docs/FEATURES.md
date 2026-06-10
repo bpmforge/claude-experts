@@ -1,6 +1,6 @@
 # Features
 
-This document describes what every agent, skill, reference document, and tool in this repo is for. Use it as a catalog — if you want to know *how* to use them, see [USERGUIDE.md](USERGUIDE.md) instead.
+This document describes what every agent, skill, reference document, validator, and hook in this repo is for. Use it as a catalog — if you want to know *how* to use them, see [USERGUIDE.md](USERGUIDE.md) instead.
 
 ## Table of contents
 
@@ -14,8 +14,11 @@ This document describes what every agent, skill, reference document, and tool in
 - [Skills (20)](#skills)
 - [Shared protocols (16)](#shared-protocols)
 - [Memory & code-search MCPs](#memory--code-search-mcps)
-- [Custom tools (18)](#custom-tools)
-- [Commands (4)](#commands)
+- [Validators](#validators)
+- [Depth modes](#depth-modes-v0150)
+- [Platform support](#platform-support)
+- [Reference documents](#reference-documents)
+- [Commands](#commands)
 - [Hooks](#hooks)
 
 ---
@@ -27,7 +30,7 @@ Every agent lives in `agents/<name>.md` or a subdirectory (`agents/security/`, `
 **Micro-agent pattern:** coordinator dispatches → each specialist writes its own output file → coordinator synthesizes. One agent = one job = one context window. Parallel waves use `PARALLEL_WAVE_PROTOCOL.md` (Round 1: code HANDOFFs, Round 2: review HANDOFFs, Round 3: runtime HANDOFFs).
 
 **Execution modes (all long-running agents):**
-- **Orchestrator mode (default)** — announces phase plan, spawns one `task(agent=self, prompt="--phase: N name ...")` per phase. Each sub-task writes findings to `docs/work/<agent>/<slug>/phaseN.md` and returns in under 90 s.
+- **Orchestrator mode (default)** — announces phase plan, spawns one `Task` sub-agent per phase (same agent, `--phase: N name` in the prompt). Each sub-task writes findings to `docs/work/<agent>/<slug>/phaseN.md` and returns in under 90 s.
 - **`--phase: N name` mode** — runs exactly one named phase, reads the previous phase output, writes its own. No sub-spawning. Used for parallelism.
 
 ---
@@ -113,7 +116,7 @@ Three execution modes:
 OWASP Top 10, threat modeling, Semgrep scans, dependency audits. Runs as 5-phase orchestrator: understand → automated scan → OWASP + STRIDE manual → verify → **attack chain analysis** → report.
 
 - **Phase 5b: Attack Chain Analysis** — After all individual findings are verified, runs a second-order pass that builds a pre-condition/post-condition inventory of every real finding, then tests pairs and triples for exploitable multi-step chains. Each discovered chain (e.g., "Info Disclosure → Credential Reuse → Admin Takeover") gets a `C-N` finding entry in the final report with step-by-step attack narrative, a severity bump rule (often higher than any individual link), and a single "break the chain" remediation priority. Tests 9 classic chain patterns: recon→targeted attack, auth bypass→privilege escalation, XSS→session hijack, SSRF→internal pivot, path traversal→credential theft, misconfiguration→enumeration, weak crypto→forgery, race condition+business logic, CVE+reachability.
-- **Custom gap-filler rules** (98 rules, 6 languages) installed to user's personal store at `~/.config/opencode/.semgrep/` — C#, Kotlin, Swift, Rust, PHP, and C++ bridge rules loaded automatically per detected language.
+- **Custom gap-filler rules** (186 rules, 11 languages) symlinked to the user's personal store at `~/.claude/.semgrep/` — per-language security rules plus C++ bridge rules, loaded automatically per detected language.
 - **Offline scanning** — `--offline` flag uses cached registry packs at `~/.semgrep/registry-cache/`. Pre-populate with `scripts/cache-registry-packs.sh`.
 - **Community rules** cached at `~/.semgrep/rules/{trailofbits,elttam,gitlab,0xdea}`. Install with `scripts/update-semgrep-rules.sh`.
 
@@ -349,7 +352,7 @@ Skills are thin triggers that live in `skills/<name>/SKILL.md`. Each skill maps 
 
 ## Shared protocols
 
-Canonical reference files in `agents/shared/`. Single source of truth — update once, propagates to all 3 locations (claude-experts, bpm-opencode-experts, live `~/.config/opencode/agents/shared/`).
+Canonical reference files in `agents/shared/`. Single source of truth — `install.sh` symlinks them into `~/.claude/agents/shared/`, so an edit here applies to every Claude Code session immediately. (Keep the sibling [bpm-opencode-experts](https://github.com/bpmforge/bpm-opencode-experts) repo in sync when these change.)
 
 | File | Purpose |
 |------|---------|
@@ -380,7 +383,7 @@ Four MCP servers extend agent capability beyond the session context window. For 
 
 Persistent memory store backed by SQLite + vector embeddings (LM Studio nomic-embed-text). Provides hybrid search (vector 35% + BM25 35% + link traversal 30%).
 
-Registered via `install.sh` step 8 (`claude mcp add memory node <path>`). For OpenCode, entry in `opencode.json` under `"mcp"`.
+Registered by `install.sh` via `claude mcp add memory node <path>` (user scope) — it clones and builds `~/Code/bpm-memory-mcp` as needed.
 
 **Tools used by agents:**
 
@@ -401,7 +404,7 @@ Types: `decision`, `fact`, `pattern`, `error`, `preference`. Scope: `project` (d
 
 MCP server providing semantic search over code chunks (embedding-based) and a structural symbol index. Built on SQLite + FTS5 + cosine similarity. Provider-sticky: the embedding provider used at index time is locked in; queries from a different provider fall back to FTS5 BM25.
 
-Source: `~/Code/bpm-code-search-mcp/`. Registered in `opencode.json` and `~/.claude/settings.json` (PostToolUse hook auto-reindexes edited files).
+Source: `~/Code/bpm-code-search-mcp/`. Registered by `install.sh` via `claude mcp add code-search node <path>` (user scope); a PostToolUse hook in `~/.claude/settings.json` auto-reindexes edited files.
 
 **Tools:**
 
@@ -420,9 +423,9 @@ Symbol extraction covers 10 languages: TypeScript/JS, Python, Go, Rust, Java, C#
 
 ### `playwright-mcp` — Browser automation & screenshots
 
-LLM-agnostic browser automation via Microsoft's official Playwright MCP. No vision model required — uses the accessibility tree by default with screenshots on demand. Works identically in Claude Code and OpenCode (including local LLMs).
+LLM-agnostic browser automation via Microsoft's official Playwright MCP. No vision model required — uses the accessibility tree by default with screenshots on demand. Works headless and in CI.
 
-**Why it exists:** Replaces the Claude Code browser extension (`claude-in-chrome`) for all automated/CI use cases. The extension only works in Claude Code with cloud models; playwright-mcp works everywhere.
+**Why it exists:** Replaces the Claude Code browser extension (`claude-in-chrome`) for automated/CI use cases — the extension requires an interactive Chrome session, while playwright-mcp runs headless anywhere.
 
 | Tool | Purpose |
 |------|---------|
@@ -537,59 +540,33 @@ Canonical checklists and templates agents read at runtime. Each is plain markdow
 
 ---
 
-## Custom tools
-
-Custom TypeScript tools in `tools/`. OpenCode loads these at startup.
-
-| Tool | Purpose |
-|---|---|
-| `bash.ts` | Bounded bash execution with timeout + output capture |
-| `grep-mcp.ts` | ripgrep wrapper with structured results |
-| `write.ts` / `append.ts` / `update.ts` | File write primitives |
-| `file-info.ts` | Stat + size + mime detection |
-| `task.ts` | Spawn sub-agent tasks |
-| `test-runner.ts` | Language-aware test runner dispatch |
-| `playwright-test.ts` / `playwright-web.ts` | Playwright harnesses |
-| `semgrep-scan.ts` / `semgrep-rule.ts` | Semgrep scanning + custom rule authoring |
-| `simplify-file.ts` | Simplification-focused rewrite |
-| `pomodoro.ts` | Work-timer helper |
-| `run.ts` | Generic script runner |
-| `log-parser.ts` | Structured log parsing |
-| `loop-detector.ts` | Detects infinite-loop patterns in agent output |
-| `deploy.ts` | Deploy helper |
-
-See `tools/CUSTOM_TOOLS_GUIDE.md` for authoring a new tool.
-
----
-
 ## Commands
 
-Slash command definitions in `commands/` — subcommands of `/sdlc`:
+There is no separate `commands/` directory in this repo — `/sdlc` subcommands are arguments parsed by the `/sdlc` skill (`skills/sdlc/SKILL.md`) and routed by `sdlc-lead` to the matching SDLC mode agent:
 
-| Command | Purpose |
+| Subcommand | Routed to |
 |---|---|
-| `sdlc-init.md` | `/sdlc init <name> "<desc>"` — start a new project |
-| `sdlc-onboard.md` | `/sdlc onboard [--quick \| --deep]` — understand an existing codebase |
-| `sdlc-feature.md` | `/sdlc feature "<description>"` — add a feature to existing project |
-| `sdlc-improve.md` | `/sdlc improve ["<focus>"]` — audit-driven improvement; runs UX / code-quality / perf / security / DB audits, synthesizes a sized backlog, routes execution through `coding-agent` or Mode 3 sub-workflows |
-| `sdlc-gate.md` | `/sdlc gate` — SDLC-aware gate check; auto-detects current phase from `docs/work/sdlc-state.md` and runs the matching validators |
-| `sdlc-status.md` | `/sdlc status` — show current phase + gate state |
-
----
-
-## Plugins
-
-`plugins/expert-hooks.ts` — single opencode plugin auto-loaded from `~/.config/opencode/plugins/`. Hooks into the two main lifecycle events:
-
-| Event | What runs |
-|-------|-----------|
-| `tool.execute.before` | **Block dangerous bash** (`rm -rf /`, `git push --force`, `DROP TABLE`, `curl\|bash`, etc.). **Block writes to credential files** (`.env*`, `*.key`, `*.pem`, `id_rsa`, `credentials.json`). Throws to abort the call. |
-| `tool.execute.after` (write/edit only) | **format → lint → type-check → secret-scan**, all in parallel: prettier / black+isort / gofmt / rustfmt; eslint / ruff; `tsc --noEmit`; regex scan for hardcoded API keys, AWS creds, PEM keys, DB connection strings. Findings surface via `console.warn` — informational, never block. Missing formatters silently skipped. |
-
-Ports the high-value subset of the claude-experts hook catalog. **Not** ported (different abstractions): `commit-validator.sh` (use a project-level git pre-commit hook), `test-on-stop.sh` (no clean opencode session-idle semantic), `session-start.sh` (opencode lacks a UserPromptSubmit equivalent).
+| `/sdlc init <name> "<desc>"` | `sdlc-init-mode` (loads `sdlc-init-phases-0-2`, `-phase-3`, `-phase-4`, `-phase-5` as needed) |
+| `/sdlc onboard [--quick \| --deep]` | `sdlc-onboard-mode` — thin dispatcher to the onboard specialists |
+| `/sdlc feature "<description>"` | `sdlc-feature-mode` |
+| `/sdlc improve ["<focus>"]` | `sdlc-improve-mode` — runs UX / code-quality / perf / security / DB audits, synthesizes a sized backlog, routes execution through `coding-agent` or Mode 3 sub-workflows |
+| `/sdlc gate` | gate check via `scripts/validators/validate-phase-gate.sh` (also available standalone as the `/gate` skill) |
+| `/sdlc status` | current phase + gate state report |
 
 ---
 
 ## Hooks
 
-Currently empty. The original `hooks/pre-operation.sh` was an orphan superseded by `tools/loop-detector.ts` and the schema guards in `tools/{append,bash,run,write}.ts`. Loop prevention now lives in those tools + the inlined LOOP_PREVENTION cheat-sheet at the top of every SDLC mode file. Quality + safety automation lives in the plugin above.
+Nine hook scripts in `hooks/`, copied (not symlinked) into `~/.claude/hooks/` by `install.sh` and wired up through hook entries in `~/.claude/settings.json`. PreToolUse hooks can block a tool call (exit 2); PostToolUse, UserPromptSubmit, and Stop hooks feed their output back to Claude as context.
+
+| Hook | Type | What it does |
+|------|------|--------------|
+| `block-dangerous.py` | PreToolUse (Bash) | Blocks commands on the dangerous-commands blocklist (`rm -rf /` and other hard-to-undo destructive operations) |
+| `block-env-write.sh` | PreToolUse (Write) | Blocks writes to `.env*` files and files matching secret patterns |
+| `commit-validator.sh` | PreToolUse (Bash, `git commit`) | Enforces Conventional Commits format (`type(scope): description`) on every commit message |
+| `format-on-edit.sh` | PostToolUse | Auto-formats edited files by type — prettier / black + isort / gofmt / rustfmt |
+| `lint-on-edit.sh` | PostToolUse | ESLint on JS/TS, ruff (or flake8) on Python; output returned to Claude so it can fix issues in the same turn |
+| `type-check-on-edit.sh` | PostToolUse | `tsc --noEmit` after `.ts`/`.tsx` edits, truncated to 30 lines — informational, never blocks |
+| `security-scanner.py` | PostToolUse | Scans edited files for hardcoded secrets, API keys, passwords; warnings surface as feedback |
+| `session-start.sh` | UserPromptSubmit | When the project has SDLC docs, injects project name, current phase, and open blockers as `additionalContext` |
+| `test-on-stop.sh` | Stop | Auto-detects the test runner and runs the suite when Claude finishes; failing tests tell Claude to keep going and fix them |
