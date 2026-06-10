@@ -2,6 +2,12 @@
 
 All notable changes to this project are documented here. Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and versioning follows [Semantic Versioning](https://semver.org/).
 
+## [1.3.0] — 2026-06-10
+
+### Added
+- **Dead/unutilized code detection** (8th code-review dimension) — `dead-code-detector` specialist + `validate-dead-code.sh` gate: unimplemented stubs, never-called functions, unused exports, orphan files, disconnected pipelines, unreachable branches. Wired into phase-4/5 gates; review-code skill now 8 dimensions.
+- **Security reachability gate** — attack-chainer down-ranks vulns in dead code (two severity levels) and excludes them as chain entry points. Generated from canonical bpm-opencode-experts.
+
 ## [1.2.0] — 2026-06-10
 
 ### Changed

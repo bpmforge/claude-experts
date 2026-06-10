@@ -159,7 +159,7 @@ done
 # ─── Interactive prompts (when run with no flags from a terminal) ───
 if [ $# -eq 0 ] && [ -t 0 ]; then
   echo ""
-  echo "claude-experts v1.2.0 — Installation"
+  echo "claude-experts v1.3.0 — Installation"
   echo "====================================="
   echo ""
   echo "Core install (always): agents, skills, shared protocols, hooks, scripts, semgrep rules"
