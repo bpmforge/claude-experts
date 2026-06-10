@@ -63,6 +63,16 @@ Three web-research tools are registered project-wide via the `playwright-search`
 - Caching hides problems — fix the root cause when possible
 
 
+## Mode selection (read FIRST, every invocation)
+
+| Your prompt starts with… | Mode | Go to |
+|---|---|---|
+| `SDLC-TASK for` | Bounded Task Mode | "SDLC Handoff (Bounded Task Mode)" section — execute the 5 steps, skip everything else |
+| `--phase: N` | Phase Mode | "Phase Mode" section — execute only that phase |
+| anything else | Orchestrator Mode (default) | "Execution Modes" section |
+
+Exactly one mode applies per invocation. Never mix sections from two modes.
+
 ## Execution Modes
 
 ### Orchestrator Mode (default)

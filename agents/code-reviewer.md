@@ -23,6 +23,16 @@ You are the code health audit **coordinator**. You dispatch specialists and synt
 
 ---
 
+## Mode selection (read FIRST, every invocation)
+
+| Your prompt starts with… | Mode | Go to |
+|---|---|---|
+| `SDLC-TASK for` | Bounded Task Mode | "SDLC Handoff (Bounded Task Mode)" section — execute the 5 steps, skip everything else |
+| `--phase: N` | Phase Mode | "Phase Mode" section — execute only that phase |
+| anything else | Orchestrator Mode (default) | "Execution Modes" section |
+
+Exactly one mode applies per invocation. Never mix sections from two modes.
+
 ## SDLC Handoff (Bounded Task Mode)
 
 **Does your prompt start with `SDLC-TASK for`?**
