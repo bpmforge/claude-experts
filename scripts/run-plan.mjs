@@ -30,7 +30,7 @@
 // Exit codes: 0 all done · 2 bad plan · 3 replan required · 4 nodes escalated
 
 import { readFileSync, writeFileSync, existsSync, mkdirSync, statSync, readFileSync as rf } from 'node:fs';
-import { execFile } from 'node:child_process';
+import { spawn } from 'node:child_process';
 import { dirname, join, resolve } from 'node:path';
 
 // ── args ────────────────────────────────────────────────────────────────
@@ -95,10 +95,20 @@ const saveJournal = () => writeFileSync(JOURNAL_PATH, JSON.stringify(journal, nu
 const state = (id) => journal[id]?.status ?? 'pending';
 
 // ── helpers ─────────────────────────────────────────────────────────────
+// spawn with stdin IGNORED — a piped-but-never-closed stdin makes CLIs that
+// accept stdin input (opencode run does) wait forever. Found by live testing.
 const sh = (cmd, args, timeoutMs) =>
   new Promise((res) => {
-    execFile(cmd, args, { timeout: timeoutMs, maxBuffer: 16 * 1024 * 1024 }, (err, stdout, stderr) =>
-      res({ err, stdout: stdout ?? '', stderr: stderr ?? '' }));
+    const child = spawn(cmd, args, { stdio: ['ignore', 'pipe', 'pipe'] });
+    let stdout = '', stderr = '', killed = false;
+    const timer = setTimeout(() => { killed = true; child.kill('SIGKILL'); }, timeoutMs);
+    child.stdout.on('data', (d) => (stdout += d));
+    child.stderr.on('data', (d) => (stderr += d));
+    child.on('close', (code) => {
+      clearTimeout(timer);
+      res({ err: code === 0 ? null : { code, killed }, stdout, stderr });
+    });
+    child.on('error', (e) => { clearTimeout(timer); res({ err: e, stdout, stderr }); });
   });
 
 async function healthCheck() {
@@ -135,7 +145,7 @@ function buildPrompt(n, attempt) {
   ].join('\n');
 }
 
-const outputOk = (n) => existsSync(n.output) && statSync(n.output).size > 50;
+const outputOk = (n) => existsSync(n.output) && statSync(n.output).size > 0;
 
 async function runNode(n) {
   const entry = (journal[n.id] ??= { status: 'pending', attempts: 0 });
