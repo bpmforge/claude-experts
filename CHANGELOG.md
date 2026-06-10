@@ -2,6 +2,23 @@
 
 All notable changes to this project are documented here. Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and versioning follows [Semantic Versioning](https://semver.org/).
 
+## [1.1.0] — 2026-06-10
+
+Mirrors bpm-opencode-experts v1.1.0 (expert hardening R1–R11 + distribution hardening), adapted for the Claude Code runtime. See the sibling repo's CHANGELOG for the full R1–R11 detail.
+
+### Added
+- 8 new experts: task-decomposer, end-user-simulator, llm-integration-engineer, release-manager, and the `agents/game/` cluster (game-designer, gameplay-engineer, game-balance-designer, playtest-evaluator) + `--game` SDLC flavor.
+- `agents/shared/EXECUTOR_SELECTION.md` (Claude Code note: Task tool native, flags always true), FINDINGS_SCHEMA for code-review + performance clusters, Input Contracts on all 26 micro-agents, scoped coverage loops for feature/improve, onboard Challenger gate.
+- Single-source boilerplate blocks + `scripts/build-agents.mjs`; compact tier=small variants in `dist/compact-agents/`, installable via `./install.sh --compact`.
+- `scripts/doctor.sh` — post-install self-check (structure, symlink integrity, runtime deps, MCP registration).
+
+### Fixed
+- **CRITICAL (D1):** 133 references across 56 agent files pointed at `~/.config/opencode/` — broken on any Claude-only machine; all rewritten to `~/.claude/`. Delegation prose rewritten Task-tool-first ("task() does not work" was wrong on Claude Code).
+- install.sh: `game` cluster added to the symlink list; stale `agents/compact/` removed from old installs (registered 23 duplicate agents); 35 reference docs now carry `disable: true` frontmatter.
+- docs/USERGUIDE, MCP_GUIDE, FEATURES rewritten for the Claude Code runtime (were OpenCode copies describing nonexistent tools/plugins and wrong install flags); semgrep counts corrected (186 rules / 11 languages).
+- README counts corrected (33+30 agents, 21 skills, 40 validators).
+- Prompt contradictions, stray name: lines, entry-point-tracer manifest (see sibling CHANGELOG).
+
 ## [1.0.3] — 2026-06-02
 
 ### Fixed

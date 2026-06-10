@@ -138,6 +138,7 @@ for arg in "$@"; do
     --no-playwright-search) INSTALL_PWS=false ;;
     --no-playwright-mcp)    INSTALL_PLAYWRIGHT_MCP=false ;;
     --no-memory)            INSTALL_MEMORY=false ;;
+    --compact)               COMPACT_AGENTS=true ;;
     --no-code-search)       INSTALL_CODE_SEARCH=false ;;
     --yes|-y)               INTERACTIVE=false ;;  # accept all defaults non-interactively
     --help|-h)
@@ -158,7 +159,7 @@ done
 # ─── Interactive prompts (when run with no flags from a terminal) ───
 if [ $# -eq 0 ] && [ -t 0 ]; then
   echo ""
-  echo "claude-experts v1.0.0 — Installation"
+  echo "claude-experts v1.1.0 — Installation"
   echo "====================================="
   echo ""
   echo "Core install (always): agents, skills, shared protocols, hooks, scripts, semgrep rules"
@@ -206,7 +207,7 @@ for agent in "$SCRIPT_DIR/agents/"*.md; do
 done
 
 # Symlink micro-agent subdirectories (security/, code-review/, performance/, sdlc/, test/)
-for subdir in security code-review performance sdlc test; do
+for subdir in security code-review performance sdlc test game; do
   if [ -d "$SCRIPT_DIR/agents/$subdir" ]; then
     mkdir -p "$CLAUDE_HOME/agents/$subdir"
     for f in "$SCRIPT_DIR/agents/$subdir/"*.md; do
@@ -228,6 +229,28 @@ for subdir in security code-review performance sdlc test; do
   fi
 done
 echo "  $count agents installed (including micro-agent clusters)"
+
+# Compact agent overlay (tier=small environments) — copies, not symlinks,
+# so the overlay survives even though full agents are symlinked.
+if [ "${COMPACT_AGENTS:-false}" = "true" ]; then
+  if [ -d "$SCRIPT_DIR/dist/compact-agents" ]; then
+    overlaid=0
+    for f in "$SCRIPT_DIR"/dist/compact-agents/*.md; do
+      rm -f "$CLAUDE_HOME/agents/$(basename "$f")"
+      cp "$f" "$CLAUDE_HOME/agents/$(basename "$f")"
+      overlaid=$((overlaid + 1))
+    done
+    echo "  Overlaid $overlaid compact agent variants (tier=small)"
+  else
+    echo "  WARNING: --compact requested but dist/compact-agents/ missing — run: node scripts/build-agents.mjs --compact"
+  fi
+fi
+
+# Remove stale compact dir from older installs (it registered 23 duplicate agents)
+if [ -d "$CLAUDE_HOME/agents/compact" ]; then
+  rm -rf "$CLAUDE_HOME/agents/compact"
+  echo "  Removed stale agents/compact/ (old layout — duplicate registrations)"
+fi
 
 # ─── 2. Symlink skills ───
 echo "Installing skills..."
