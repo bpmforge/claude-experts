@@ -28,6 +28,7 @@ agents/game/game-designer.md
 agents/game/gameplay-engineer.md
 agents/game/playtest-evaluator.md
 agents/git-expert.md
+agents/guide.md
 agents/llm-integration-engineer.md
 agents/migration-planner.md
 agents/performance-engineer.md
@@ -115,6 +116,7 @@ dist/compact-agents/documentation-gap-finder.md
 dist/compact-agents/end-user-simulator.md
 dist/compact-agents/frontend-design.md
 dist/compact-agents/git-expert.md
+dist/compact-agents/guide.md
 dist/compact-agents/llm-integration-engineer.md
 dist/compact-agents/migration-planner.md
 dist/compact-agents/performance-engineer.md

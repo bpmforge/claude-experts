@@ -138,6 +138,7 @@ for arg in "$@"; do
     --no-playwright-search) INSTALL_PWS=false ;;
     --no-playwright-mcp)    INSTALL_PLAYWRIGHT_MCP=false ;;
     --no-memory)            INSTALL_MEMORY=false ;;
+    --tools)                INSTALL_TOOLS=true ;;
     --compact)               COMPACT_AGENTS=true ;;
     --no-code-search)       INSTALL_CODE_SEARCH=false ;;
     --yes|-y)               INTERACTIVE=false ;;  # accept all defaults non-interactively
@@ -159,7 +160,7 @@ done
 # ─── Interactive prompts (when run with no flags from a terminal) ───
 if [ $# -eq 0 ] && [ -t 0 ]; then
   echo ""
-  echo "claude-experts v1.3.0 — Installation"
+  echo "claude-experts v1.4.0 — Installation"
   echo "====================================="
   echo ""
   echo "Core install (always): agents, skills, shared protocols, hooks, scripts, semgrep rules"
@@ -621,3 +622,10 @@ echo "  $SCRIPT_DIR/scripts/semgrep-full-audit.sh --autofix      OPT-IN autofix 
 echo "  Custom gap-filler rules: ~/.claude/.semgrep/ (186 rules, 11 languages)"
 echo "  Community rules cache:   ~/.semgrep/rules/"
 echo ""
+
+echo ""
+if [ "${INSTALL_TOOLS:-false}" = true ]; then
+  bash "$SCRIPT_DIR/scripts/check-tools.sh" --install
+else
+  bash "$SCRIPT_DIR/scripts/check-tools.sh"
+fi

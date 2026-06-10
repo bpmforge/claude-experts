@@ -14,6 +14,9 @@ arguments:
   - name: --deep
     description: Ralph Wiggum loop. Every OWASP category iterated to confidence >= 7, every custom semgrep rule file walked, iterative attack-chain until stable. Blocks until scripts/validators/validate-phase-gate.sh security-deep exits clean. ~45-90 min.
     required: false
+  - name: --fix
+    description: After auditing, drive a verified fix loop — build a fix backlog (CRITICAL+HIGH default), dispatch coding-agent to remediate, then re-scan to confirm each finding is actually closed (FIX_VERIFY_LOOP). Skips dead-code findings; flags auth/crypto/input fixes for human review. Combine with --deep.
+    required: false
   - name: --owasp
     description: Run OWASP Top 10 check against the codebase
     required: false
@@ -39,6 +42,7 @@ and industry-standard penetration testing frameworks.
 - Dependency audit (CVE checks, outdated packages)
 - STRIDE threat modeling with risk ratings
 - Auth/authz flow analysis
+- `--fix`: verified remediation loop (audit → fix backlog → coding-agent → re-scan to confirm closed)
 
 **Output:** Structured findings report with severity levels
 (CRITICAL / HIGH / MEDIUM / LOW / INFO), file:line locations,

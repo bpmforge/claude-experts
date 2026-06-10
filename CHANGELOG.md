@@ -2,6 +2,13 @@
 
 All notable changes to this project are documented here. Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and versioning follows [Semantic Versioning](https://semver.org/).
 
+## [1.4.0] — 2026-06-10
+
+### Added
+- **`guide` — expert-system concierge / front door** (`/guide`): describe any goal in plain English; it routes to the right expert, drives the workflow, and always offers the fix path. Generated from canonical.
+- **`/security --fix`** — verified remediation loop (audit → fix backlog → coding-agent → re-scan to confirm closed); skips dead-code findings; flags auth/crypto fixes for human review.
+- **`scripts/check-tools.sh`** — detects/installs the analysis tools (semgrep/knip/ts-prune/jscpd/vulture/radon/lizard/staticcheck/trufflehog); wired into install.sh (`--tools`) and doctor.sh.
+
 ## [1.3.0] — 2026-06-10
 
 ### Added
