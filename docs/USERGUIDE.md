@@ -1,6 +1,6 @@
 # User Guide
 
-How to use the BPM OpenCode Experts. For *what* each expert is, see [FEATURES.md](FEATURES.md).
+How to use the Claude Code expert system. For *what* each expert is, see [FEATURES.md](FEATURES.md). OpenCode users: see the sibling repo [bpm-opencode-experts](https://github.com/bpmforge/bpm-opencode-experts).
 
 ## Table of contents
 
@@ -32,20 +32,24 @@ How to use the BPM OpenCode Experts. For *what* each expert is, see [FEATURES.md
 ## Install
 
 ```bash
-git clone https://github.com/bpmforge/bpm-opencode-experts.git
-cd bpm-opencode-experts
-./install.sh                  # copies agents, skills, tools into ~/.config/opencode/
-./install.sh --link           # symlink instead of copy (for development — edits apply immediately)
-./install.sh --semgrep        # also auto-install Semgrep + community rule repos
-./install.sh --project        # install into .opencode/ in current directory instead of global
+git clone https://github.com/bpmforge/claude-experts.git
+cd claude-experts
+./install.sh                          # interactive — prompts for optional MCPs
+./install.sh --yes                    # accept all defaults (non-interactive)
+./install.sh --no-memory             # skip bpm-memory-mcp
+./install.sh --no-code-search        # skip bpm-code-search-mcp
+./install.sh --no-playwright-mcp     # skip playwright-mcp
+./install.sh --no-playwright-search  # skip playwright-search
 ```
 
 The installer:
-- Copies (or symlinks) `agents/`, `skills/`, `references/`, `commands/`, `hooks/`, `scripts/` into `~/.config/opencode/`
-- Installs the custom TypeScript tools in `tools/` and runs `npm install` for dependencies
-- Safely merges Context7 MCP config into your existing `opencode.json`
-- Checks for Semgrep (and optionally installs it) for `security-auditor`
-- Prompts to clone 4 community Semgrep rule repos (~10-50 MB each)
+- Checks for Node 20–24 (LTS) and offers to install it via NVM if missing
+- Symlinks `agents/` (including micro-agent clusters and `agents/shared/`), `skills/*/SKILL.md`, `references/`, `scripts/`, and `.semgrep/` into `~/.claude/` — symlinks mean edits to this repo apply to every Claude Code session immediately
+- Copies `hooks/` into `~/.claude/hooks/` and marks them executable (copies, not symlinks)
+- Registers the optional MCP servers with `claude mcp add` (user scope): `memory`, `code-search`, `playwright`, `playwright-search` — cloning and building each as needed
+- Appends an Expert System section to `~/.claude/CLAUDE.md`
+
+Community Semgrep rule repos for deep security audits are installed separately with `scripts/update-semgrep-rules.sh`.
 
 Uninstall with `./uninstall.sh`.
 
@@ -53,19 +57,19 @@ Uninstall with `./uninstall.sh`.
 
 ## Core concepts
 
-### Agents vs skills vs commands
+### Agents vs skills
 
-- **Agents** are the actual workers — they have system prompts, tools, and behavior.
-- **Skills** are thin triggers — a `SKILL.md` with frontmatter that maps a `/name` to an agent plus default arguments.
-- **Commands** are slash-command variants used by `/sdlc` subcommands (`/sdlc init`, `/sdlc onboard`, `/sdlc feature`, `/sdlc status`).
+- **Agents** are the actual workers — Claude Code subagents (markdown with YAML frontmatter, installed at `~/.claude/agents/`) with system prompts, tools, and behavior. Claude invokes them via the `Task` tool.
+- **Skills** are thin triggers — a `SKILL.md` with frontmatter that maps a `/name` slash command to an agent plus default arguments, installed at `~/.claude/skills/<name>/SKILL.md`.
+- **`/sdlc` subcommands** (`/sdlc init`, `/sdlc onboard`, `/sdlc feature`, `/sdlc status`) are arguments to the `/sdlc` skill — `sdlc-lead` routes each one to the matching SDLC mode agent.
 
-When you type `/review-code --debt` into OpenCode, the skill dispatcher looks up `skills/review-code/SKILL.md`, reads the `agent: code-reviewer` field, and invokes the `code-reviewer` agent with `--debt` as an argument.
+When you type `/review-code --debt` into a Claude Code session, the skill dispatcher matches the trigger in `skills/code-review/SKILL.md`, reads the `agent: code-reviewer` field, and invokes the `code-reviewer` subagent via the `Task` tool with `--debt` as an argument.
 
 ### Multi-agent execution model
 
 Long-running agents (all 10 specialists + `sdlc-lead`) use a two-mode execution pattern to prevent timeouts and silent hangs:
 
-**Orchestrator mode (default)** — the agent announces its phase plan upfront, then spawns one sub-task per phase using the `task` tool. Each sub-task runs in under 90 seconds, writes its findings to `docs/work/<agent>/<slug>/phaseN.md`, and returns. The orchestrator prints `✓ Phase N: [finding]` after each completes. You see work as a sequence of fast completions, never a silent 5-minute block.
+**Orchestrator mode (default)** — the agent announces its phase plan upfront, then spawns one sub-task per phase using the `Task` tool. Each sub-task runs in under 90 seconds, writes its findings to `docs/work/<agent>/<slug>/phaseN.md`, and returns. The orchestrator prints `✓ Phase N: [finding]` after each completes. You see work as a sequence of fast completions, never a silent 5-minute block.
 
 ```
 ▶ Phase 1: Understanding codebase...
@@ -78,7 +82,7 @@ Long-running agents (all 10 specialists + `sdlc-lead`) use a two-mode execution 
 
 **`--phase: N name` mode** — runs exactly one named phase, reads the previous phase's output file, writes its own, and returns a one-line summary. This is how the orchestrator parallelizes sequential work — you don't invoke this directly.
 
-**Progress in the UI** — the `task` tool updates its label in real time:
+**Progress in the UI** — the `Task` tool updates its label in real time:
 ```
 task: db-architect — 45s — ✓ Phase 2 complete: PostgreSQL best practices identified
 ```
@@ -376,7 +380,7 @@ Runs as a 5-phase orchestrator: understand → automated scan (Semgrep + deps) �
 **Attack chain analysis (Phase 5b):** After all individual findings are verified, the agent builds a pre/post-condition inventory and tests finding pairs and triples for multi-step exploit paths. Chains get their own `C-N` finding entries with combined severity (often higher than any single link) and a "break the chain" remediation priority. Nine chain patterns are tested explicitly: recon→targeted attack, XSS→session hijack, SSRF→pivot, path traversal→credential theft, auth bypass→privilege escalation, and more.
 
 **Semgrep setup:**
-- Custom gap-filler rules (98 rules across C#, Kotlin, Swift, Rust, PHP, C++) installed to `~/.config/opencode/.semgrep/` — loaded automatically per detected language
+- Custom gap-filler rules (186 rules across 11 languages) symlinked to `~/.claude/.semgrep/` — loaded automatically per detected language
 - Community rules: `scripts/update-semgrep-rules.sh` clones Trail of Bits, elttam, GitLab, 0xdea to `~/.semgrep/rules/`
 - Offline scanning: `scripts/cache-registry-packs.sh` then `semgrep-full-audit.sh --offline`
 
@@ -596,6 +600,6 @@ Project intelligence lifecycle. CLAUDE.md and AGENTS.md drift from the actual co
 - **Confidence gates exist to protect you.** A failed gate means the report isn't trustworthy yet. Read the specific gap the expert surfaces and resolve it before using the report.
 - **Expert output dirs are gitignored** — they are per-project generated reports, not shared source. Commit them yourself only if you want to.
 - **For destructive git operations, read the whole confirmation prompt.** `git-expert` prints the recovery command before every destructive op — save that command before confirming.
-- **If a task looks frozen, check the label.** The `task` tool updates its title in real time — `task: db-architect — 45s — ▶ Phase 3...` means it's alive and working. True hangs show no elapsed time increase.
+- **If a task looks frozen, check the label.** The `Task` tool updates its title in real time — `task: db-architect — 45s — ▶ Phase 3...` means it's alive and working. True hangs show no elapsed time increase.
 - **`sdlc-lead` delegates everything.** It never writes code itself — it orchestrates. When it says "delegating to `test-engineer`", expect a `task:` label to appear and resolve in under 2 minutes per phase.
 - **Phase files accumulate in `docs/work/`.** Each `--phase: N` sub-task writes its findings to `docs/work/<agent>/<slug>/phaseN.md`. If an agent stops early, the phase files show you exactly where it got to.

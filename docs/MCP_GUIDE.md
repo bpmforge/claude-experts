@@ -1,27 +1,49 @@
 # MCP Configuration Guide
 
-How to install, configure, and use each MCP server in the expert system. For the full catalog of what each MCP provides, see [FEATURES.md](FEATURES.md).
+How to install, configure, and use each MCP server in the expert system. For the full catalog of what each MCP provides, see [FEATURES.md](FEATURES.md). OpenCode users: see the sibling repo [bpm-opencode-experts](https://github.com/bpmforge/bpm-opencode-experts).
 
 ---
 
 ## Overview — all registered MCPs
 
-| MCP | Purpose | Claude Code | OpenCode |
-|-----|---------|-------------|---------|
-| `playwright-mcp` | Browser automation, screenshots, E2E testing | ✅ | ✅ |
-| `playwright-search` | Multi-engine web research + page extraction | ✅ | ✅ |
-| `pullmd` | Clean markdown extraction from JS-heavy pages | ✅ | ✅ |
-| `context7` | Live library API docs lookup | ✅ | ✅ |
-| `memory` | Cross-session project memory (decisions, facts, patterns) | ✅ | ✅ |
-| `code-search` | Semantic code search + symbol index | ✅ | ✅ |
+| MCP | Purpose | Registered by `install.sh` |
+|-----|---------|----------------------------|
+| `playwright-mcp` | Browser automation, screenshots, E2E testing | ✅ |
+| `playwright-search` | Multi-engine web research + page extraction | ✅ |
+| `pullmd` | Clean markdown extraction from JS-heavy pages | manual |
+| `context7` | Live library API docs lookup | manual |
+| `memory` | Cross-session project memory (decisions, facts, patterns) | ✅ |
+| `code-search` | Semantic code search + symbol index | ✅ |
 
-`install.sh` sets up all of these. You can skip individual MCPs with `--no-<name>` flags.
+`install.sh` registers four of these automatically; `pullmd` and `context7` are registered manually with the commands below. Skip individual MCPs with `--no-<name>` install flags.
+
+---
+
+## How registration works
+
+Claude Code MCP servers are registered in one of two scopes:
+
+```bash
+# User scope — available in every project (this is what install.sh uses)
+claude mcp add <name> -- <command> [args...]
+```
+
+```json
+// Project scope — a .mcp.json file in the repo root, shared with the team
+{
+  "mcpServers": {
+    "<name>": { "command": "node", "args": ["/path/to/server.js"] }
+  }
+}
+```
+
+Verify what's registered with `claude mcp list`; inspect one server with `claude mcp get <name>`.
 
 ---
 
 ## playwright-mcp — Browser automation & screenshots
 
-**What it does:** Gives agents a real browser (Chromium via Playwright). LLM-agnostic — no vision model required; uses the accessibility tree by default, with screenshots on demand. Works identically in Claude Code and OpenCode.
+**What it does:** Gives agents a real browser (Chromium via Playwright). LLM-agnostic — no vision model required; uses the accessibility tree by default, with screenshots on demand. Works headless and in CI.
 
 **When to use it:**
 - Visual verification of a deployed UI feature
@@ -31,23 +53,16 @@ How to install, configure, and use each MCP server in the expert system. For the
 
 **Install (handled by `install.sh`):**
 ```bash
-# Claude Code — registers once per user
+# User scope — registers once per user
 claude mcp add playwright -- npx -y @playwright/mcp@latest
-
-# OpenCode — in opencode.json (auto-written by install.sh)
-"playwright-mcp": {
-  "type": "local",
-  "command": ["npx", "-y", "@playwright/mcp@latest"],
-  "enabled": true
-}
 ```
 
-**Manual install without install.sh:**
-```bash
-# Claude Code
-claude mcp add playwright -- npx -y @playwright/mcp@latest
-
-# OpenCode — edit ~/.config/opencode/opencode.json and add the block above
+**Project-scoped alternative — in `.mcp.json`:**
+```json
+"playwright": {
+  "command": "npx",
+  "args": ["-y", "@playwright/mcp@latest"]
+}
 ```
 
 **Key tools:**
@@ -103,14 +118,15 @@ PLAYWRIGHT_MCP_HEADED=true claude
 git clone https://github.com/bpmforge/playwright-search.git ~/.local/share/playwright-search
 cd ~/.local/share/playwright-search && npm install && npm run build
 
-# Claude Code — register
+# Register (user scope)
 claude mcp add playwright-search node ~/.local/share/playwright-search/dist/mcp.js
+```
 
-# OpenCode — in opencode.json
+**Project-scoped alternative — in `.mcp.json`:**
+```json
 "playwright-search": {
-  "type": "local",
-  "command": ["node", "~/.local/share/playwright-search/dist/mcp.js"],
-  "enabled": true
+  "command": "node",
+  "args": ["~/.local/share/playwright-search/dist/mcp.js"]
 }
 ```
 
@@ -133,19 +149,20 @@ playwright-search_web_fetch("https://github.com/microsoft/playwright-mcp")
 
 **What it does:** Pulls clean markdown from URLs that `playwright-search_web_fetch` struggles with: JavaScript-rendered SPAs, Cloudflare-protected pages, Reddit threads. 4-stage pipeline: Reddit handler → Cloudflare native MD → Readability + Trafilatura → headless Playwright.
 
-**Install:**
+**Install (manual — not registered by `install.sh`):**
 ```bash
 # pullmd runs as a local HTTP server — start it once
 # Check if running: curl http://localhost:33000/health
 
-# Claude Code — register as remote MCP
+# Register as a remote MCP (user scope)
 claude mcp add pullmd --transport sse http://localhost:33000/mcp
+```
 
-# OpenCode — in opencode.json
+**Project-scoped alternative — in `.mcp.json`:**
+```json
 "pullmd": {
-  "type": "remote",
-  "url": "http://localhost:33000/mcp",
-  "enabled": true
+  "type": "sse",
+  "url": "http://localhost:33000/mcp"
 }
 ```
 
@@ -162,16 +179,17 @@ Use as the **last resort** in the research chain: playwright-search → pullmd �
 
 **What it does:** Fetches up-to-date library documentation from the Context7 index. Prevents agents from using stale training-data APIs that may have changed. Used by `coding-agent` before using any external library.
 
-**Install:** Runs via npx — no local clone needed.
+**Install (manual — not registered by `install.sh`):** Runs via npx — no local clone needed.
 ```bash
-# Claude Code
+# User scope
 claude mcp add context7 -- npx -y @upstash/context7-mcp@latest
+```
 
-# OpenCode — in opencode.json
+**Project-scoped alternative — in `.mcp.json`:**
+```json
 "context7": {
-  "type": "local",
-  "command": ["npx", "-y", "@upstash/context7-mcp@latest"],
-  "enabled": true
+  "command": "npx",
+  "args": ["-y", "@upstash/context7-mcp@latest"]
 }
 ```
 
@@ -195,16 +213,17 @@ git clone https://github.com/bpmforge/bpm-memory-mcp.git ~/Code/bpm-memory-mcp
 cd ~/Code/bpm-memory-mcp && npm install && npm run build
 ```
 
-**Install (handled by `install.sh` step 8):**
+**Install (handled by `install.sh` — clones, builds, and registers automatically):**
 ```bash
-# Claude Code
+# User scope
 claude mcp add memory node ~/Code/bpm-memory-mcp/mcp/memory-server/dist/index.js
+```
 
-# OpenCode — in opencode.json
+**Project-scoped alternative — in `.mcp.json`:**
+```json
 "memory": {
-  "type": "local",
-  "command": ["node", "~/Code/bpm-memory-mcp/mcp/memory-server/dist/index.js"],
-  "enabled": true
+  "command": "node",
+  "args": ["~/Code/bpm-memory-mcp/mcp/memory-server/dist/index.js"]
 }
 ```
 
@@ -230,16 +249,21 @@ claude mcp add memory node ~/Code/bpm-memory-mcp/mcp/memory-server/dist/index.js
 
 **Source:** `~/Code/bpm-code-search-mcp/`
 
-**Install (auto-registered in Claude Code settings and OpenCode):**
+**Install (handled by `install.sh` — clones, builds, and registers automatically):**
 ```bash
-# Claude Code — in ~/.claude/settings.json PostToolUse hook (auto-reindexes on edit)
-# OpenCode — in opencode.json
+# User scope
+claude mcp add code-search node ~/Code/bpm-code-search-mcp/dist/index.js
+```
+
+**Project-scoped alternative — in `.mcp.json`:**
+```json
 "code-search": {
-  "type": "local",
-  "command": ["node", "~/Code/bpm-code-search-mcp/dist/index.js"],
-  "enabled": true
+  "command": "node",
+  "args": ["~/Code/bpm-code-search-mcp/dist/index.js"]
 }
 ```
+
+A PostToolUse hook in `~/.claude/settings.json` auto-reindexes files as you edit them (see "Reindex on edit" below).
 
 **First-time setup for a project:**
 ```
@@ -280,9 +304,9 @@ code_index_status()       ← verify: files, chunks, symbols, provider
 ## Checking what's registered
 
 ```bash
-# Claude Code
-claude mcp list
-
-# OpenCode
-cat ~/.config/opencode/opencode.json | jq '.mcp | keys'
+claude mcp list                  # all registered servers + connection status
+claude mcp get <name>            # details for one server
+claude mcp remove <name>         # unregister a server
 ```
+
+Project-scoped servers from `.mcp.json` require a one-time approval prompt the first time Claude Code starts in that project.
