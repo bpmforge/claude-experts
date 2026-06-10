@@ -293,7 +293,7 @@ echo "  $shared_count shared docs installed (LOOP_PREVENTION, BOUNDED_TASK_CONTR
 echo "Installing scripts..."
 mkdir -p "$CLAUDE_HOME/scripts"
 count=0
-for script in "$SCRIPT_DIR/scripts/"*.sh; do
+for script in "$SCRIPT_DIR/scripts/"*.sh "$SCRIPT_DIR/scripts/"*.mjs; do
   [ -f "$script" ] || continue
   ln -sf "$script" "$CLAUDE_HOME/scripts/$(basename "$script")"
   chmod +x "$script"
