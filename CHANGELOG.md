@@ -2,6 +2,13 @@
 
 All notable changes to this project are documented here. Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and versioning follows [Semantic Versioning](https://semver.org/).
 
+## [1.12.0] — 2026-06-11
+
+### Added (generated from bpm-opencode-experts v1.12.0 — backlog at ZERO)
+- 5 new specialist experts: cost-engineer (/cost), analytics-architect (/analytics), a11y-compliance (/a11y), data-steward (/data-governance), reliability-engineer (/reliability) — agents + references generated; the 5 skill triggers are hand-added per-target. 3 new validators (wcag-coverage, data-governance, resilience-patterns) wired into phase gates.
+- /steward distill — per-release distillation loop (telemetry + evals → evidence-cited prompt/rubric/exemplar updates).
+- frontend-design governance/component/token-sync sections; researcher Fact Bank wiring.
+
 ## [1.11.0] — 2026-06-11
 
 ### Added (generated from bpm-opencode-experts v1.11.0)
