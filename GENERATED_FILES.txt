@@ -130,6 +130,13 @@ dist/compact-agents/task-decomposer.md
 dist/compact-agents/test-engineer.md
 dist/compact-agents/ui-verifier.md
 dist/compact-agents/ux-engineer.md
+exemplars/README.md
+exemplars/adr.md
+exemplars/completion-manifest.md
+exemplars/erd.md
+exemplars/gap-report.md
+exemplars/security-finding.md
+exemplars/sequence-diagram.md
 references/anti-slop-audit.md
 references/code-health-checklist.md
 references/context7-mcp.md

@@ -2,6 +2,15 @@
 
 All notable changes to this project are documented here. Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and versioning follows [Semantic Versioning](https://semver.org/).
 
+## [1.7.0] — 2026-06-11
+
+### Added — exemplar library (generated from bpm-opencode-experts v1.7.0)
+- `exemplars/` — one gold-standard instance per artifact type (ERD, sequence diagram, security finding, completion manifest, ADR, gap report), cross-domain so models copy structure, not content. `install.sh` symlinks them to `~/.claude/exemplars/`.
+- HANDOFF Context Packet template: `Exemplar` pointer line + `Memory slice` section + tier=small packet layout budget (≤1,200 tokens injected).
+
+### Changed — memory protocol rewrite (M1–M5)
+- `MEMORY_PRIMER.md`: session start is now budgeted, relevance-ranked `memory_context_assemble` (600/1500/3000 tokens by tier) with `session_restore()` as fallback; pointer-facts for docs; error memory (root causes + failed approaches); recall-once-distribute via HANDOFF slices; `checkpoint_task` as the long-task state carrier. `sdlc-lead` Step 2b and SESSION_PRIMER Rule 7 updated to match.
+
 ## [1.6.0] — 2026-06-10
 
 ### Added — Mermaid hardening
