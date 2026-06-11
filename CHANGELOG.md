@@ -2,6 +2,11 @@
 
 All notable changes to this project are documented here. Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and versioning follows [Semantic Versioning](https://semver.org/).
 
+## [1.9.0] — 2026-06-11
+
+### Added (generated from bpm-opencode-experts v1.9.0)
+- Telemetry rows from validators (`_lib.sh` — 42 of 45 emit one verdict row per run) and `run-plan.mjs` (per-node actuals) into the audited project's `docs/work/telemetry.jsonl`; `scripts/telemetry-report.mjs` analyzes distributions. `EXPERTS_TELEMETRY=0` disables. (The real-token plugin hook is OpenCode-only — Claude Code's hook surface doesn't expose token usage.)
+
 ## [1.8.0] — 2026-06-11
 
 ### Changed (generated from bpm-opencode-experts v1.8.0)
