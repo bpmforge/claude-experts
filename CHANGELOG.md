@@ -2,6 +2,11 @@
 
 All notable changes to this project are documented here. Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and versioning follows [Semantic Versioning](https://semver.org/).
 
+## [1.11.0] — 2026-06-11
+
+### Added (generated from bpm-opencode-experts v1.11.0)
+- `validate-api-consistency.sh` (openapi vs implemented routes, phase-4/5 gates) + phantom-UC hard gap in `validate-tests-mapping.sh`.
+
 ## [1.10.0] — 2026-06-11
 
 ### Added (generated from bpm-opencode-experts v1.10.0)
