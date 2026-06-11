@@ -312,6 +312,17 @@ for script in "$SCRIPT_DIR/scripts/"*.sh "$SCRIPT_DIR/scripts/"*.mjs; do
 done
 echo "  $count scripts installed"
 
+# ─── 4a. Symlink scripts/validators/ — doctor.sh and phase gates expect these ───
+mkdir -p "$CLAUDE_HOME/scripts/validators"
+val_count=0
+for v in "$SCRIPT_DIR/scripts/validators/"*.sh; do
+  [ -f "$v" ] || continue
+  ln -sf "$v" "$CLAUDE_HOME/scripts/validators/$(basename "$v")"
+  chmod +x "$v"
+  val_count=$((val_count + 1))
+done
+echo "  $val_count validators installed"
+
 # ─── 4b. Install Semgrep custom rules ───
 echo "Installing Semgrep custom rules..."
 if [ -d "$SCRIPT_DIR/.semgrep" ]; then
