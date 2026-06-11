@@ -2,6 +2,12 @@
 
 All notable changes to this project are documented here. Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and versioning follows [Semantic Versioning](https://semver.org/).
 
+## [1.8.0] — 2026-06-11
+
+### Changed (generated from bpm-opencode-experts v1.8.0)
+- `release-manager` checklist step 2b: when `evals/` exists, the deterministic eval suite gates the tag. (The eval suite itself — fixtures + runner — lives in the canonical opencode repo; it tests the shared agent corpus.)
+- Validator scripts marked executable by install.sh.
+
 ## [1.7.0] — 2026-06-11
 
 ### Added — exemplar library (generated from bpm-opencode-experts v1.7.0)
