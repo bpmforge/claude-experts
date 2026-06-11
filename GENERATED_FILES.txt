@@ -156,6 +156,7 @@ scripts/build-agents.mjs
 scripts/fix-verify.mjs
 scripts/mermaid-fix.mjs
 scripts/run-plan.mjs
+scripts/telemetry-report.mjs
 scripts/validators/_lib.sh
 scripts/validators/_lib_sdlc_config.sh
 scripts/validators/run-coverage-loop.sh
