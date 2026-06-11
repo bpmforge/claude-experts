@@ -289,6 +289,17 @@ for shared in "$SCRIPT_DIR/agents/shared/"*.md; do
 done
 echo "  $shared_count shared docs installed (LOOP_PREVENTION, BOUNDED_TASK_CONTRACT, etc.)"
 
+# ─── 3c. Symlink exemplars/ — gold-standard artifact formats for HANDOFFs ───
+echo "Installing exemplars..."
+mkdir -p "$CLAUDE_HOME/exemplars"
+ex_count=0
+for ex in "$SCRIPT_DIR/exemplars/"*.md; do
+  [ -f "$ex" ] || continue
+  ln -sf "$ex" "$CLAUDE_HOME/exemplars/$(basename "$ex")"
+  ex_count=$((ex_count + 1))
+done
+echo "  $ex_count exemplars installed (ERD, sequence diagram, finding, manifest, ADR, gap report)"
+
 # ─── 4. Symlink scripts ───
 echo "Installing scripts..."
 mkdir -p "$CLAUDE_HOME/scripts"
