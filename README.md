@@ -1,6 +1,6 @@
 # claude-experts
 
-Expert agent system for [Claude Code](https://claude.ai/code) — 34 primary expert agents + 31 cluster specialists (security, code-review, performance, onboarding, game dev), 26 skills, a 4-mode SDLC workflow, full git lifecycle management, and 41 automated validators that enforce quality gates at every phase.
+Expert agent system for [Claude Code](https://claude.ai/code) — 39 primary expert agents + 31 cluster specialists (security, code-review, performance, onboarding, game dev), 27 skills, a 4-mode SDLC workflow, full git lifecycle management, and 48 automated validators that enforce quality gates at every phase.
 
 **Not sure which command to run? Just describe your goal:** `/guide` is the front door — it routes any plain-English goal ("securely check all my source and help fix the issues", "this codebase is unfamiliar", "harden before launch") to the right expert and drives the workflow, always offering the next step.
 
