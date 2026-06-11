@@ -166,6 +166,7 @@ scripts/validators/_lib_sdlc_config.sh
 scripts/validators/run-coverage-loop.sh
 scripts/validators/run-handoff-gates.sh
 scripts/validators/validate-adrs.sh
+scripts/validators/validate-api-consistency.sh
 scripts/validators/validate-api-coverage.sh
 scripts/validators/validate-architecture.sh
 scripts/validators/validate-book-structure.sh
