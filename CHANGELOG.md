@@ -2,6 +2,11 @@
 
 All notable changes to this project are documented here. Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and versioning follows [Semantic Versioning](https://semver.org/).
 
+## [1.10.0] — 2026-06-11
+
+### Added (generated from bpm-opencode-experts v1.10.0)
+- 3 new Phase-3 validators (circular-deps, transitive boundaries, observability) wired into the phase-3 gate; BOUNDED_TASK_CONTRACT Rule 8 (failure & recovery); 4 reference guides (SRE cloud patterns, design-system trade-offs, phase completion checklists, validator performance); telemetry rows from the 2 standalone validators.
+
 ## [1.9.0] — 2026-06-11
 
 ### Added (generated from bpm-opencode-experts v1.9.0)
