@@ -2,6 +2,8 @@
 # Edit the canonical source in bpm-opencode-experts, then run: npm run build:claude
 # Per-target files (skills/, hooks/, docs/, install.sh, doctor.sh, README, CHANGELOG) are owned by this repo.
 
+agents/a11y-compliance.md
+agents/analytics-architect.md
 agents/api-designer.md
 agents/architecture-designer.md
 agents/challenger.md
@@ -19,6 +21,8 @@ agents/code-review/type-safety-checker.md
 agents/code-reviewer.md
 agents/coding-agent.md
 agents/container-ops.md
+agents/cost-engineer.md
+agents/data-steward.md
 agents/db-architect.md
 agents/documentation-gap-finder.md
 agents/end-user-simulator.md
@@ -41,6 +45,7 @@ agents/performance/perf-synthesizer.md
 agents/performance/profiler-agent.md
 agents/performance/static-perf-analyzer.md
 agents/release-manager.md
+agents/reliability-engineer.md
 agents/researcher.md
 agents/sdlc-feature-mode.md
 agents/sdlc-improve-mode.md
@@ -138,14 +143,18 @@ exemplars/gap-report.md
 exemplars/security-finding.md
 exemplars/sequence-diagram.md
 references/anti-slop-audit.md
+references/cloud-cost-checklist.md
 references/code-health-checklist.md
 references/context7-mcp.md
+references/data-classification-checklist.md
 references/design-review-checklist.md
 references/design-system-tradeoffs.md
 references/engineering-artifacts.md
 references/git-workflow-checklist.md
 references/llm-routing-principles.md
+references/load-test-checklist.md
 references/mermaid-safe-syntax.md
+references/observability-checklist.md
 references/owasp-checklist.md
 references/phase-completion-checklist.md
 references/playwright-config.md
@@ -156,6 +165,7 @@ references/semgrep-guide.md
 references/severity-matrix.md
 references/sre-cloud-patterns.md
 references/validator-performance.md
+references/wcag-audit-checklist.md
 scripts/build-agents.mjs
 scripts/fix-verify.mjs
 scripts/mermaid-fix.mjs
@@ -175,6 +185,7 @@ scripts/validators/validate-c3-coverage.sh
 scripts/validators/validate-circular-deps.sh
 scripts/validators/validate-code-health.sh
 scripts/validators/validate-completion-manifest.sh
+scripts/validators/validate-data-governance.sh
 scripts/validators/validate-dead-code.sh
 scripts/validators/validate-deps.sh
 scripts/validators/validate-design-system.sh
@@ -199,6 +210,7 @@ scripts/validators/validate-owasp.sh
 scripts/validators/validate-phase-gate.sh
 scripts/validators/validate-release-readiness.sh
 scripts/validators/validate-requirements-matrix.sh
+scripts/validators/validate-resilience-patterns.sh
 scripts/validators/validate-scope.sh
 scripts/validators/validate-security-controls.sh
 scripts/validators/validate-sequence-coverage.sh
@@ -210,3 +222,4 @@ scripts/validators/validate-tests.sh
 scripts/validators/validate-use-cases.sh
 scripts/validators/validate-user-stories.sh
 scripts/validators/validate-ux-spec.sh
+scripts/validators/validate-wcag-coverage.sh
