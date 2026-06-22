@@ -75,8 +75,10 @@ if (args.claude) {
   const line = `- **${esc(rule)}** — _${esc(symptom)}; cause: ${esc(cause)}_ (${esc(source)}, ${ts.slice(0, 10)})`;
   if (existsSync(claudePath)) {
     const body = readFileSync(claudePath, 'utf8');
-    if (body.includes(heading)) {
-      writeFileSync(claudePath, body.replace(heading, `${heading}\n${line}`));
+    // Anchor to the heading at start-of-line so a mention in prose can't match.
+    const headingRe = /^## Learned lessons \(auto\)$/m;
+    if (headingRe.test(body)) {
+      writeFileSync(claudePath, body.replace(headingRe, `${heading}\n${line}`));
     } else {
       appendFileSync(claudePath, `\n\n${heading}\n\n${line}\n`);
     }

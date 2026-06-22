@@ -91,6 +91,7 @@ agents/shared/HANDOFF_TEMPLATES.md
 agents/shared/LOCAL_LLM_PRIMER.md
 agents/shared/LOOP_PREVENTION.md
 agents/shared/MEMORY_PRIMER.md
+agents/shared/MICRO_LOOP.md
 agents/shared/MODEL_ADAPTER.md
 agents/shared/PHASE_ROUTING_PROTOCOL.md
 agents/shared/RALPH_WIGGUM_LOOP.md

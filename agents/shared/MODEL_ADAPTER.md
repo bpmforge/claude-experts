@@ -87,9 +87,12 @@ Context is not a constraint. Focus on quality.
 `docs/work/.model-context` carries two extra flags (written by `scripts/detect-model-context.sh`):
 
 ```
-maker_model=<id>        # the tier that produces artifacts (per-agent task hint)
-verifier_model=<id>     # MUST differ from maker_model; prefer the classification/eval tier
+maker_model=<id>          # the model that produces artifacts
+verifier_model=<id>       # a different, faster instance for scoring/re-verify
+verifier_independent=true|false   # false ⇒ only one model available; use the fallback below
 ```
+
+The detect script picks a verifier per provider (anthropic→haiku, google→flash-lite, openai→4o-mini, local→the classification tier e.g. nemotron-nano); override with `VERIFIER_MODEL` / `VERIFIER_MODEL_LOCAL`. When `verifier_independent=false`, apply Rule 4.
 
 | Role | Who runs it | Model |
 |------|-------------|-------|
