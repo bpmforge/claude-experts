@@ -168,6 +168,7 @@ references/validator-performance.md
 references/wcag-audit-checklist.md
 scripts/build-agents.mjs
 scripts/fix-verify.mjs
+scripts/loop-learn.mjs
 scripts/mermaid-fix.mjs
 scripts/run-plan.mjs
 scripts/telemetry-report.mjs

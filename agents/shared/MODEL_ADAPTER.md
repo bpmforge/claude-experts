@@ -80,6 +80,33 @@ Context is not a constraint. Focus on quality.
 
 ---
 
+## Maker / Verifier split — independent verification
+
+**Loop-engineering principle (Boris Cherny):** *"a model that wrote the code and is asked whether the code is correct consistently over-reports success."* The model that **verifies** an artifact must be a **different instance** from the model that **made** it — ideally a faster/cheaper tier so verification is cheap enough to always run. (Claude Code's `/goal` uses a separate small evaluator for exactly this reason.)
+
+`docs/work/.model-context` carries two extra flags (written by `scripts/detect-model-context.sh`):
+
+```
+maker_model=<id>        # the tier that produces artifacts (per-agent task hint)
+verifier_model=<id>     # MUST differ from maker_model; prefer the classification/eval tier
+```
+
+| Role | Who runs it | Model |
+|------|-------------|-------|
+| **MAKER** | the specialist / coding-agent that produces the artifact | task tier (per agent hint) |
+| **VERIFIER** | the scorer / re-verifier that judges "is it actually done?" | a **different** instance — prefer the fast classification tier |
+
+**Rules:**
+
+1. **Deterministic first.** Bash validators and `fix-verify.mjs` are model-agnostic and always preferred. The verifier model only judges rows no script can check (see `FIX_VERIFY_LOOP.md` Step 4).
+2. **Confidence scoring** (`GATE_SCORING_PROTOCOL.md` Step 3) runs on `verifier_model`, **never the maker session**.
+3. **Model re-verify** (`FIX_VERIFY_LOOP.md` Step 4) runs on `verifier_model` in a **fresh session** — never the coding-agent that wrote the fix.
+4. **Single-model fallback.** If no second model is available locally, run verification in a **separate session with cleared context** (the maker's chain-of-thought must not be in scope) and record `maker==verifier` in `DELEGATION_LOG.md` so the weaker guarantee is auditable.
+
+The maker → verifier handoff mirrors Cherny's "one Claude drafts, a second Claude reviews it as a staff engineer."
+
+---
+
 ## Applying the adapter in sdlc-lead
 
 After reading `.model-context`, announce the tier to the user and adjust:
