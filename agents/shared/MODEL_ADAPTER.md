@@ -84,7 +84,7 @@ Context is not a constraint. Focus on quality.
 
 **Loop-engineering principle (Boris Cherny):** *"a model that wrote the code and is asked whether the code is correct consistently over-reports success."* The model that **verifies** an artifact must be a **different instance** from the model that **made** it — ideally a faster/cheaper tier so verification is cheap enough to always run. (Claude Code's `/goal` uses a separate small evaluator for exactly this reason.)
 
-`docs/work/.model-context` carries two extra flags (written by `scripts/detect-model-context.sh`):
+How the verifier is selected depends on runtime: **opencode** writes the flags below into `docs/work/.model-context` via `scripts/detect-model-context.sh`; **Claude Code** has no `.model-context` probe — instead dispatch the verify step as a Task subagent with a different (faster) `model`. Either way the rule is the same: the verifier is a different instance from the maker.
 
 ```
 maker_model=<id>          # the model that produces artifacts
