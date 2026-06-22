@@ -201,6 +201,7 @@ scripts/validators/validate-improve-coverage.sh
 scripts/validators/validate-infrastructure.sh
 scripts/validators/validate-inventory.sh
 scripts/validators/validate-lint.sh
+scripts/validators/validate-loop-readiness.sh
 scripts/validators/validate-mermaid.sh
 scripts/validators/validate-migrations.sh
 scripts/validators/validate-module-boundaries-transitive.sh

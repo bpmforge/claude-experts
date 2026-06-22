@@ -94,6 +94,8 @@ The inventory is produced by one focused HANDOFF. The agent discovers the units 
 
 The validator catalog below is the menu of checkable criteria; a row that maps to none of them, and to no project test, is a refuse-to-loop row.
 
+**Enforced, not advisory:** run `scripts/validators/validate-loop-readiness.sh [project-root]` on the inventory **before DISCOVER**. It parses the Artifact column and exits 1 with a gap list for every row whose artifact is not objectively checkable ("improve the UX", "make it nicer"). Fix those rows (give them a validator/test/measurable target) or mark them `BLOCKED: no checkable success` and route to a human — do not enter the loop with them.
+
 ---
 
 ## Step 2 — DISCOVER
