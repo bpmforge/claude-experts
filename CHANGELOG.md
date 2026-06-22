@@ -2,6 +2,17 @@
 
 All notable changes to this project are documented here. Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and versioning follows [Semantic Versioning](https://semver.org/).
 
+## [1.13.0] — 2026-06-22
+
+### Added — loop engineering (regenerated from canonical bpm-opencode-experts v1.13.0)
+- **`agents/shared/MICRO_LOOP.md`** + a load-bearing micro-loop instruction in all **27 micro-agents** (security ×9, code-review ×8, performance ×6, onboard ×4): each runs a bounded `criterion → produce → self-verify → revise (≤2) → return` loop before its completion phrase, inside the macro coverage/fix loops.
+- **G1 independent verifier:** `MODEL_ADAPTER.md` § Maker/Verifier split (verifier ≠ maker; on Claude Code, dispatch the verify step as a Task subagent with a different/faster model). Referenced by GATE_SCORING Step 3 + FIX_VERIFY Step 4.
+- **G2 no-progress kill:** `run-coverage-loop.sh` gap-checksum stall detection → exit 3.
+- **G3 auto-correction:** `scripts/loop-learn.mjs` (write-the-lesson-down) wired into the escalation blocks.
+- **G7 refuse-to-loop, script-enforced:** `scripts/validators/validate-loop-readiness.sh` fails inventory rows with no checkable criterion.
+
+Generated content rebuilt via `npm run build:claude`; see canonical CHANGELOG for full detail. Hand-maintained files (skills/docs/install) unchanged.
+
 ## [1.12.0] — 2026-06-11
 
 ### Added (generated from bpm-opencode-experts v1.12.0 — backlog at ZERO)
