@@ -2,6 +2,11 @@
 
 All notable changes to this project are documented here. Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and versioning follows [Semantic Versioning](https://semver.org/).
 
+## [1.18.0] — 2026-06-23
+
+### Added — frontier-gap experts fixes (regenerated from canonical v1.18.0)
+- MICRO_LOOP B3 (tool-offloaded verification hard rule) + B4 (re-ground on revision). MODEL_ADAPTER small tier B6 (reason-in-NL-then-format) + B2 (prune own error turns). Evidence-cited; carry weak/local models closer to frontier on bounded tasks.
+
 ## [1.17.0] — 2026-06-23
 
 ### Added — anti-drift gates auto-wired into the merge gate (regenerated from canonical v1.17.0)
