@@ -2,6 +2,12 @@
 
 All notable changes to this project are documented here. Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and versioning follows [Semantic Versioning](https://semver.org/).
 
+## [1.15.0] — 2026-06-22
+
+### Added — anti-drift Wave 3: G-D tracking-as-gate (regenerated from canonical v1.15.0)
+- **`validate-tracker-fresh.sh`** — git-based gate: work files changed but no tracker updated → FAIL (unfakeable).
+- **`MICRO_LOOP.md` TRACK step** + **mandatory manifest `Tracker updated:` line** (`validate-completion-manifest.sh` hard-requires it; template + exemplar follow it).
+
 ## [1.14.0] — 2026-06-22
 
 ### Added — anti-drift hardening (regenerated from canonical bpm-opencode-experts v1.14.0)

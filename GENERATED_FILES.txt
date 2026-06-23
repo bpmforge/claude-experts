@@ -225,6 +225,7 @@ scripts/validators/validate-tech-stack.sh
 scripts/validators/validate-test-design.sh
 scripts/validators/validate-tests-mapping.sh
 scripts/validators/validate-tests.sh
+scripts/validators/validate-tracker-fresh.sh
 scripts/validators/validate-use-cases.sh
 scripts/validators/validate-user-stories.sh
 scripts/validators/validate-ux-spec.sh
