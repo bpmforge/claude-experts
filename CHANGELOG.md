@@ -2,6 +2,12 @@
 
 All notable changes to this project are documented here. Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and versioning follows [Semantic Versioning](https://semver.org/).
 
+## [1.16.0] — 2026-06-23
+
+### Added — anti-drift Wave 4: G-E + G-F (set complete; regenerated from canonical v1.16.0)
+- **G-E verify-or-block** (`coding-agent.md`): unverifiable library API ⇒ mark BLOCKED, never write from training data.
+- **G-F versioning-as-gate** (`validate-release-readiness.sh`): version ↔ CHANGELOG entry (hard) + matching tag (warn). Targets release-state drift.
+
 ## [1.15.0] — 2026-06-22
 
 ### Added — anti-drift Wave 3: G-D tracking-as-gate (regenerated from canonical v1.15.0)
