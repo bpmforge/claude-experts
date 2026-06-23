@@ -2,6 +2,11 @@
 
 All notable changes to this project are documented here. Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and versioning follows [Semantic Versioning](https://semver.org/).
 
+## [1.17.0] — 2026-06-23
+
+### Added — anti-drift gates auto-wired into the merge gate (regenerated from canonical v1.17.0)
+- `validate-no-reinvent.sh` + `validate-tracker-fresh.sh` gain a `--base <ref>` merge-gate mode; wired into git-expert merge gate condition 5 (both must exit 0 before any merge to main / parent). G-B + G-D now run automatically at merge.
+
 ## [1.16.0] — 2026-06-23
 
 ### Added — anti-drift Wave 4: G-E + G-F (set complete; regenerated from canonical v1.16.0)
