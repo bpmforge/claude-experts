@@ -2,6 +2,15 @@
 
 All notable changes to this project are documented here. Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and versioning follows [Semantic Versioning](https://semver.org/).
 
+## [1.23.0] — 2026-06-23
+
+### Added — scaffold levers B5/B7/B8 (regenerated from canonical v1.23.0)
+- **B5 planner/executor split:** `MODEL_ADAPTER.md` PLANNER role + Rule 5 (plan strong / execute cheap, cap granularity); `task-decomposer.md` over-decomposition cap.
+- **B7 checkpoint/revert:** new `agents/shared/CHECKPOINT_REVERT.md` + `BOUNDED_TASK_CONTRACT.md` Rule 10 + `git-workflow-checklist.md` `--checkpoint` rows.
+- **B8 local playbook:** new `references/local-agentic-models.md` (model picks + runtime gotchas) wired into `MODEL_ADAPTER.md` / `LOCAL_LLM_PRIMER.md`.
+
+(Canonical releases v1.19–v1.22 were eval-harness scripts only — not part of the generated Claude target — so this is the first regen since v1.18.0.)
+
 ## [1.18.0] — 2026-06-23
 
 ### Added — frontier-gap experts fixes (regenerated from canonical v1.18.0)

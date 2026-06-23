@@ -82,6 +82,7 @@ agents/shared/BOOK_PROTOCOL.md
 agents/shared/BOUNDED_TASK_CONTRACT.md
 agents/shared/BROWSER_TESTING.md
 agents/shared/CHALLENGER_PROTOCOL.md
+agents/shared/CHECKPOINT_REVERT.md
 agents/shared/CODE_BOOK_PROTOCOL.md
 agents/shared/CONTEXT_BUDGET.md
 agents/shared/EXECUTOR_SELECTION.md
@@ -155,6 +156,7 @@ references/engineering-artifacts.md
 references/git-workflow-checklist.md
 references/llm-routing-principles.md
 references/load-test-checklist.md
+references/local-agentic-models.md
 references/mermaid-safe-syntax.md
 references/observability-checklist.md
 references/owasp-checklist.md
