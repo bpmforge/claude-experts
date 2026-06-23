@@ -2,6 +2,14 @@
 
 All notable changes to this project are documented here. Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and versioning follows [Semantic Versioning](https://semver.org/).
 
+## [1.14.0] — 2026-06-22
+
+### Added — anti-drift hardening (regenerated from canonical bpm-opencode-experts v1.14.0)
+- **G-A book-style code sizing:** `validate-file-size.sh` (configurable cap, language-aware, `.filesizeignore`) + `agents/shared/CODE_BOOK_PROTOCOL.md` (a file over cap becomes a directory: index/barrel + chapters) + PLAN-SHAPE in `MICRO_LOOP.md`. The old hardcoded H-02 (250) is consolidated into the single configurable gate.
+- **G-B no-reinvent guard:** `validate-no-reinvent.sh` (hard-fail edits to `GENERATED_FILES.txt`; warn on wholesale rewrites) + `BOUNDED_TASK_CONTRACT.md` Rule 9 (LOCATE before create — confirm an audit's "missing/wrong" claim with `ls`/`diff` first). Targets the Mode-4 overwrite class.
+
+See the canonical CHANGELOG for the full drift taxonomy + design doc.
+
 ## [1.13.0] — 2026-06-22
 
 ### Added — loop engineering (regenerated from canonical bpm-opencode-experts v1.13.0)

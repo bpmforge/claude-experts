@@ -210,6 +210,7 @@ scripts/validators/validate-module-boundaries-transitive.sh
 scripts/validators/validate-module-boundaries.sh
 scripts/validators/validate-module-design.sh
 scripts/validators/validate-no-ascii-art.sh
+scripts/validators/validate-no-reinvent.sh
 scripts/validators/validate-observability.sh
 scripts/validators/validate-owasp.sh
 scripts/validators/validate-phase-gate.sh
