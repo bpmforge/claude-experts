@@ -82,6 +82,7 @@ agents/shared/BOOK_PROTOCOL.md
 agents/shared/BOUNDED_TASK_CONTRACT.md
 agents/shared/BROWSER_TESTING.md
 agents/shared/CHALLENGER_PROTOCOL.md
+agents/shared/CODE_BOOK_PROTOCOL.md
 agents/shared/CONTEXT_BUDGET.md
 agents/shared/EXECUTOR_SELECTION.md
 agents/shared/FIX_VERIFY_LOOP.md
@@ -195,6 +196,7 @@ scripts/validators/validate-e2e-setup.sh
 scripts/validators/validate-entry-points.sh
 scripts/validators/validate-erd-coverage.sh
 scripts/validators/validate-feature-coverage.sh
+scripts/validators/validate-file-size.sh
 scripts/validators/validate-fix-backlog-closed.sh
 scripts/validators/validate-iac.sh
 scripts/validators/validate-improve-coverage.sh
