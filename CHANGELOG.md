@@ -2,6 +2,11 @@
 
 All notable changes to this project are documented here. Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and versioning follows [Semantic Versioning](https://semver.org/).
 
+## [1.26.0] — 2026-06-24
+
+### Added — catalog-completeness validator (regenerated from canonical v1.26.0)
+- `validate-doc-catalog.sh`: FEATURES.md must list every validator + shared protocol that ships. Found 15 undocumented validators in the hand-maintained catalog, now backfilled; validator count →55. Wired into the git-expert merge gate.
+
 ## [1.25.0] — 2026-06-24
 
 ### Added — doc-count validator (regenerated from canonical v1.25.0)
