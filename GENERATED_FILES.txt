@@ -200,6 +200,7 @@ scripts/validators/validate-erd-coverage.sh
 scripts/validators/validate-feature-coverage.sh
 scripts/validators/validate-file-size.sh
 scripts/validators/validate-fix-backlog-closed.sh
+scripts/validators/validate-handoff-discipline.sh
 scripts/validators/validate-iac.sh
 scripts/validators/validate-improve-coverage.sh
 scripts/validators/validate-infrastructure.sh

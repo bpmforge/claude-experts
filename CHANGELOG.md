@@ -2,6 +2,11 @@
 
 All notable changes to this project are documented here. Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and versioning follows [Semantic Versioning](https://semver.org/).
 
+## [1.24.0] — 2026-06-23
+
+### Added — HANDOFF-discipline validator (regenerated from canonical v1.24.0)
+- `scripts/validators/validate-handoff-discipline.sh`: fails any agent using `task()` shorthand without a HANDOFF translation + no-spawn fallback; flags raw spawns. Wired into the git-expert merge gate (when a branch changes `agents/**.md`).
+
 ## [1.23.0] — 2026-06-23
 
 ### Added — scaffold levers B5/B7/B8 (regenerated from canonical v1.23.0)
