@@ -2,6 +2,11 @@
 
 All notable changes to this project are documented here. Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and versioning follows [Semantic Versioning](https://semver.org/).
 
+## [1.25.0] — 2026-06-24
+
+### Added — doc-count validator (regenerated from canonical v1.25.0)
+- `scripts/validators/validate-doc-counts.sh`: re-derives N validators/skills/references claims from the filesystem, wired into the git-expert merge gate. Reconciled stale hand-maintained docs: validators →54, Skills (26)→(27), Shared protocols (17)→(24) with 8 undocumented protocols backfilled (the generated shared/ catalog had drifted from FEATURES).
+
 ## [1.24.0] — 2026-06-23
 
 ### Added — HANDOFF-discipline validator (regenerated from canonical v1.24.0)

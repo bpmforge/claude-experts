@@ -194,6 +194,7 @@ scripts/validators/validate-data-governance.sh
 scripts/validators/validate-dead-code.sh
 scripts/validators/validate-deps.sh
 scripts/validators/validate-design-system.sh
+scripts/validators/validate-doc-counts.sh
 scripts/validators/validate-e2e-setup.sh
 scripts/validators/validate-entry-points.sh
 scripts/validators/validate-erd-coverage.sh
