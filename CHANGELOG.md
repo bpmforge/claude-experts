@@ -2,6 +2,11 @@
 
 All notable changes to this project are documented here. Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and versioning follows [Semantic Versioning](https://semver.org/).
 
+## [1.26.2] — 2026-07-01
+
+### Fixed — guide routing rows point at real entry points (regenerated from canonical v1.26.2)
+- `guide.md`: the "dispatch \`X\`" rows for `llm-integration-engineer`, `end-user-simulator`, and `release-manager` now point at real slashes (the wrapper skills are opencode-only; in Claude Code these agents are reached via the Task tool). Release row → `/git --release` (mechanics) or `/release` (coordinator).
+
 ## [1.26.1] — 2026-07-01
 
 ### Fixed — broken HANDOFF slash target (regenerated from canonical v1.26.1)
