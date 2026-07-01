@@ -83,6 +83,7 @@ agents/shared/BOUNDED_TASK_CONTRACT.md
 agents/shared/BROWSER_TESTING.md
 agents/shared/CHALLENGER_PROTOCOL.md
 agents/shared/CHECKPOINT_REVERT.md
+agents/shared/CHECKPOINT_STATE.md
 agents/shared/CODE_BOOK_PROTOCOL.md
 agents/shared/CONTEXT_BUDGET.md
 agents/shared/EXECUTOR_SELECTION.md
@@ -230,6 +231,7 @@ scripts/validators/validate-tech-stack.sh
 scripts/validators/validate-test-design.sh
 scripts/validators/validate-tests-mapping.sh
 scripts/validators/validate-tests.sh
+scripts/validators/validate-tickets.sh
 scripts/validators/validate-tracker-fresh.sh
 scripts/validators/validate-use-cases.sh
 scripts/validators/validate-user-stories.sh
