@@ -2,6 +2,11 @@
 
 All notable changes to this project are documented here. Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and versioning follows [Semantic Versioning](https://semver.org/).
 
+## [1.26.1] — 2026-07-01
+
+### Fixed — broken HANDOFF slash target (regenerated from canonical v1.26.1)
+- `/arch` → `/architect` in `HANDOFF_TEMPLATES.md` (the architecture handoff pointed at a slash that does not resolve; the skill/command is named `architect`). The companion wrapper-skill fixes (migration-planner, documentation-gap-finder, frontend) are opencode-only — in Claude Code these agents are reached via the Task tool.
+
 ## [1.26.0] — 2026-06-24
 
 ### Added — catalog-completeness validator (regenerated from canonical v1.26.0)
