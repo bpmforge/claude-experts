@@ -2,6 +2,11 @@
 
 All notable changes to this project are documented here. Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and versioning follows [Semantic Versioning](https://semver.org/).
 
+## [1.26.3] — 2026-07-01
+
+### Fixed — slash-wiring audit (regenerated from canonical v1.26.3)
+- `guide.md` / `sdlc-lead.md`: `/arch` → `/architect` and `/git` → `/git-expert` (a skill's slash is its `name:` field; `arch`/`git` did not resolve). The ui-verify `name` fix and the new `/challenge` wrapper skill are opencode-only (Claude Code reaches those agents via the Task tool).
+
 ## [1.26.2] — 2026-07-01
 
 ### Fixed — guide routing rows point at real entry points (regenerated from canonical v1.26.2)
