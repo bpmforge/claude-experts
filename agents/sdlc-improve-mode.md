@@ -187,7 +187,7 @@ Next after resume: Step 2 — scoped specialist audits
 ---
   HANDOFF → test-engineer   [or /ux if UI-scoped]
 ---
-Delegate this EXACT prompt (Task tool preferred; fallback: paste in a new conversation):
+Delegate this EXACT prompt (Task tool preferred; fallback: paste in a new conversation) to /test-expert:
 
 SDLC-TASK for test-engineer:
 

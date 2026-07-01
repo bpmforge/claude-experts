@@ -362,7 +362,7 @@ Next after resume: DB migrations, then expert reviews
 ---
   HANDOFF → test-engineer   [or /ux if UI-bearing]
 ---
-Delegate this EXACT prompt (Task tool preferred; fallback: paste in a new conversation):
+Delegate this EXACT prompt (Task tool preferred; fallback: paste in a new conversation) to /test-expert:
 
 SDLC-TASK for test-engineer:
 
