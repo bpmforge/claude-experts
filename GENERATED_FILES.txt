@@ -78,6 +78,7 @@ agents/security/secrets-scanner.md
 agents/security/semgrep-runner.md
 agents/security/threat-modeler.md
 agents/shared/ANTI_SLOP_RULES.md
+agents/shared/AUTONOMY_PROTOCOL.md
 agents/shared/BOOK_PROTOCOL.md
 agents/shared/BOUNDED_TASK_CONTRACT.md
 agents/shared/BROWSER_TESTING.md
@@ -186,6 +187,7 @@ scripts/validators/validate-adrs.sh
 scripts/validators/validate-api-consistency.sh
 scripts/validators/validate-api-coverage.sh
 scripts/validators/validate-architecture.sh
+scripts/validators/validate-autonomy-wiring.sh
 scripts/validators/validate-book-structure.sh
 scripts/validators/validate-build.sh
 scripts/validators/validate-c3-coverage.sh
