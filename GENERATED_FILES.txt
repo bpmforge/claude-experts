@@ -96,6 +96,7 @@ agents/shared/LOOP_PREVENTION.md
 agents/shared/MEMORY_PRIMER.md
 agents/shared/MICRO_LOOP.md
 agents/shared/MODEL_ADAPTER.md
+agents/shared/PERSISTENCE.md
 agents/shared/PHASE_ROUTING_PROTOCOL.md
 agents/shared/RALPH_WIGGUM_LOOP.md
 agents/shared/RESEARCH_TOOLS.md
@@ -219,6 +220,7 @@ scripts/validators/validate-no-ascii-art.sh
 scripts/validators/validate-no-reinvent.sh
 scripts/validators/validate-observability.sh
 scripts/validators/validate-owasp.sh
+scripts/validators/validate-persistence-block.sh
 scripts/validators/validate-phase-gate.sh
 scripts/validators/validate-release-readiness.sh
 scripts/validators/validate-requirements-matrix.sh
