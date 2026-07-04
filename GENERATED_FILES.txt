@@ -194,6 +194,7 @@ scripts/validators/validate-c3-coverage.sh
 scripts/validators/validate-circular-deps.sh
 scripts/validators/validate-code-health.sh
 scripts/validators/validate-completion-manifest.sh
+scripts/validators/validate-contract-conformance.sh
 scripts/validators/validate-data-governance.sh
 scripts/validators/validate-dead-code.sh
 scripts/validators/validate-deps.sh
