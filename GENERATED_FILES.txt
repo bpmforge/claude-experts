@@ -21,9 +21,11 @@ agents/code-review/type-safety-checker.md
 agents/code-reviewer.md
 agents/coding-agent.md
 agents/container-ops.md
+agents/content-designer.md
 agents/cost-engineer.md
 agents/data-steward.md
 agents/db-architect.md
+agents/design-system-lead.md
 agents/documentation-gap-finder.md
 agents/end-user-simulator.md
 agents/frontend-design.md
@@ -117,6 +119,7 @@ agents/test-engineer.md
 agents/test/E2E_INFRASTRUCTURE.md
 agents/ui-verifier.md
 agents/ux-engineer.md
+agents/ux-researcher.md
 dist/compact-agents/api-designer.md
 dist/compact-agents/architecture-designer.md
 dist/compact-agents/changelog-writer.md
