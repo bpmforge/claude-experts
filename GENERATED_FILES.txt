@@ -109,6 +109,13 @@ agents/shared/blocks/loop-prevention.compact.md
 agents/shared/blocks/loop-prevention.md
 agents/shared/blocks/research-tools.compact.md
 agents/shared/blocks/research-tools.md
+agents/shared/includes/act-dont-overplan.md
+agents/shared/includes/anti-overengineering.md
+agents/shared/includes/autonomy-end-turn-check.md
+agents/shared/includes/boundaries.md
+agents/shared/includes/cli-tools-present.md
+agents/shared/includes/freshness-epistemic.md
+agents/shared/includes/progress-grounding.md
 agents/sre-engineer.md
 agents/task-decomposer.md
 agents/templates/ARCHITECTURE_template.md
