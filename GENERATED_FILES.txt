@@ -68,6 +68,7 @@ agents/security-auditor.md
 agents/security/CLOUD_METHODOLOGY.md
 agents/security/FINDING_SCHEMA.md
 agents/security/IaC_METHODOLOGY.md
+agents/security/MCP_METHODOLOGY.md
 agents/security/OWASP_LLM_METHODOLOGY.md
 agents/security/OWASP_METHODOLOGY.md
 agents/security/attack-chainer.md
