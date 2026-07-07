@@ -221,10 +221,15 @@ check_phase_prereq() {
   mode="$(printf '%s' "$receipt" | sed -nE 's/.*"mode":"([a-zA-Z]*)".*/\1/p')"
 
   if [[ "$mode" == "waiver" ]]; then
-    local signed_by
+    local signed_by signed_by_norm
     signed_by="$(printf '%s' "$receipt" | sed -nE 's/.*"signedBy":"([^"]*)".*/\1/p')"
-    case "$signed_by" in
-      "" | agent | Agent | claude | Claude | ai | AI | system | System | bot | Bot | llm | LLM)
+    # Same normalization as waive-gate.sh's own check — must match exactly,
+    # or a receipt written by one and read by the other could disagree.
+    # Independent review (2026-07-07): the original case-sensitive blocklist
+    # was trivially bypassed by casing/whitespace alone (confirmed live).
+    signed_by_norm="$(printf '%s' "$signed_by" | tr '[:upper:]' '[:lower:]' | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')"
+    case "$signed_by_norm" in
+      "" | agent | claude | ai | assistant | system | bot | llm | gpt | model | opencode)
         gap "phase-ordering" "${prior_phase} waiver receipt has no valid human signedBy (\"${signed_by}\") — waivers must be explicitly signed by a person, not an agent"
         ;;
       *)

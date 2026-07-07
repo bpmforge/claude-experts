@@ -174,10 +174,21 @@ find_files() {
 }
 
 # -- gate receipts (T27.1) ---------------------------------------------------
-# A receipt is tamper-evident content, not a flag: it records what actually
-# ran, not just that "something" ran. sha256_of_paths lets a gate detect when
-# the docs it verified have changed since — a receipt whose hash no longer
-# matches the current files is stale, not valid.
+# A receipt records what actually ran (validator names, exit codes, gap
+# counts, an input-tree hash), not just that "something" ran — it raises the
+# bar from a bare timestamp file to content that's checked against reality
+# (stale docs, a validator set that's grown since). It is NOT cryptographic
+# tamper-evidence: the hash algorithm is public and unsalted, so anyone with
+# filesystem write access (exactly who this gate polices — an agent running
+# in this repo) can hand-craft a "real"-mode receipt that passes every check,
+# same as they could always `touch` the old lock file. Independent review
+# (2026-07-07) confirmed this by forging one. That's an accepted tradeoff for
+# a single-operator local-tooling context (M27's own stated non-goal: "not
+# preventing a hostile agent, the threat model is a sloppy/eager agent
+# skipping steps") — this closes the SLOPPY-SKIP failure mode (an agent that
+# forgets to run the gate, or the gate silently minting a pass from file
+# existence), not a DETERMINED-FORGERY one. Cryptographic signing is real
+# future scope if the threat model ever changes, not implied here.
 
 # sha256_of_paths <root> <relpath> [relpath...]  -- stable combined hash of
 # the given files' contents. A missing file hashes as its own literal
