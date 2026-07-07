@@ -172,3 +172,31 @@ find_files() {
   local root="$1" pattern="$2"
   find "$root" -type f -name "$pattern" 2>/dev/null || true
 }
+
+# -- gate receipts (T27.1) ---------------------------------------------------
+# A receipt is tamper-evident content, not a flag: it records what actually
+# ran, not just that "something" ran. sha256_of_paths lets a gate detect when
+# the docs it verified have changed since — a receipt whose hash no longer
+# matches the current files is stale, not valid.
+
+# sha256_of_paths <root> <relpath> [relpath...]  -- stable combined hash of
+# the given files' contents. A missing file hashes as its own literal
+# "MISSING:<path>" marker so appearance/disappearance still changes the
+# combined hash (not silently ignored). Sorted so argument order doesn't
+# matter. Uses shasum (macOS/Linux built-in) — no external dependency.
+sha256_of_paths() {
+  local root="$1"
+  shift
+  local f full
+  {
+    for f in "$@"; do
+      full="$root/$f"
+      if [[ -f "$full" ]]; then
+        printf '%s:' "$f"
+        shasum -a 256 "$full" | awk '{print $1}'
+      else
+        printf '%s:MISSING\n' "$f"
+      fi
+    done
+  } | sort | shasum -a 256 | awk '{print $1}'
+}
