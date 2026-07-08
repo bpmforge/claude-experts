@@ -198,6 +198,7 @@ scripts/validators/validate-adrs.sh
 scripts/validators/validate-api-consistency.sh
 scripts/validators/validate-api-coverage.sh
 scripts/validators/validate-architecture.sh
+scripts/validators/validate-autonomy-ledger.sh
 scripts/validators/validate-autonomy-wiring.sh
 scripts/validators/validate-book-structure.sh
 scripts/validators/validate-build.sh
