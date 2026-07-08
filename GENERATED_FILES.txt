@@ -246,6 +246,7 @@ scripts/validators/validate-security-controls.sh
 scripts/validators/validate-sequence-coverage.sh
 scripts/validators/validate-smoke.sh
 scripts/validators/validate-spec-traceability.sh
+scripts/validators/validate-state-drift.sh
 scripts/validators/validate-tech-stack.sh
 scripts/validators/validate-test-design.sh
 scripts/validators/validate-tests-mapping.sh
