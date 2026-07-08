@@ -203,6 +203,7 @@ scripts/validators/validate-autonomy-wiring.sh
 scripts/validators/validate-book-structure.sh
 scripts/validators/validate-build.sh
 scripts/validators/validate-c3-coverage.sh
+scripts/validators/validate-challenger-gate.sh
 scripts/validators/validate-circular-deps.sh
 scripts/validators/validate-code-health.sh
 scripts/validators/validate-completion-manifest.sh
