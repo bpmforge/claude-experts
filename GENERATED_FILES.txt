@@ -206,6 +206,7 @@ scripts/validators/validate-build.sh
 scripts/validators/validate-c3-coverage.sh
 scripts/validators/validate-challenger-gate.sh
 scripts/validators/validate-circular-deps.sh
+scripts/validators/validate-close-receipt.sh
 scripts/validators/validate-code-health.sh
 scripts/validators/validate-completion-manifest.sh
 scripts/validators/validate-contract-conformance.sh
