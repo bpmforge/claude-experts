@@ -159,6 +159,7 @@ exemplars/erd.md
 exemplars/gap-report.md
 exemplars/security-finding.md
 exemplars/sequence-diagram.md
+references/adr-template.md
 references/anti-slop-audit.md
 references/cloud-cost-checklist.md
 references/code-health-checklist.md
