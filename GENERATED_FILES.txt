@@ -214,6 +214,7 @@ scripts/validators/validate-deps.sh
 scripts/validators/validate-design-system.sh
 scripts/validators/validate-doc-catalog.sh
 scripts/validators/validate-doc-counts.sh
+scripts/validators/validate-doc-render-health.sh
 scripts/validators/validate-e2e-setup.sh
 scripts/validators/validate-entry-points.sh
 scripts/validators/validate-erd-coverage.sh
