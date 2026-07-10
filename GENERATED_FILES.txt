@@ -29,6 +29,7 @@ agents/design-system-lead.md
 agents/documentation-gap-finder.md
 agents/end-user-simulator.md
 agents/frontend-design.md
+agents/game/game-asset-pipeline.md
 agents/game/game-balance-designer.md
 agents/game/game-designer.md
 agents/game/gameplay-engineer.md
