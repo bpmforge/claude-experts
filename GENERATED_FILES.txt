@@ -159,7 +159,6 @@ exemplars/erd.md
 exemplars/gap-report.md
 exemplars/security-finding.md
 exemplars/sequence-diagram.md
-references/adr-template.md
 references/anti-slop-audit.md
 references/cloud-cost-checklist.md
 references/code-health-checklist.md
@@ -206,7 +205,6 @@ scripts/validators/validate-build.sh
 scripts/validators/validate-c3-coverage.sh
 scripts/validators/validate-challenger-gate.sh
 scripts/validators/validate-circular-deps.sh
-scripts/validators/validate-close-receipt.sh
 scripts/validators/validate-code-health.sh
 scripts/validators/validate-completion-manifest.sh
 scripts/validators/validate-contract-conformance.sh
@@ -216,7 +214,6 @@ scripts/validators/validate-deps.sh
 scripts/validators/validate-design-system.sh
 scripts/validators/validate-doc-catalog.sh
 scripts/validators/validate-doc-counts.sh
-scripts/validators/validate-doc-render-health.sh
 scripts/validators/validate-e2e-setup.sh
 scripts/validators/validate-entry-points.sh
 scripts/validators/validate-erd-coverage.sh
