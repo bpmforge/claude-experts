@@ -117,6 +117,7 @@ agents/shared/includes/anti-overengineering.md
 agents/shared/includes/autonomy-end-turn-check.md
 agents/shared/includes/boundaries.md
 agents/shared/includes/cli-tools-present.md
+agents/shared/includes/denominator-discipline.md
 agents/shared/includes/freshness-epistemic.md
 agents/shared/includes/progress-grounding.md
 agents/sre-engineer.md
@@ -255,6 +256,7 @@ scripts/validators/validate-tech-stack.sh
 scripts/validators/validate-test-design.sh
 scripts/validators/validate-tests-mapping.sh
 scripts/validators/validate-tests.sh
+scripts/validators/validate-ticket-hygiene.sh
 scripts/validators/validate-tickets.sh
 scripts/validators/validate-tracker-fresh.sh
 scripts/validators/validate-use-cases.sh
