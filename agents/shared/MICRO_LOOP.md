@@ -38,11 +38,13 @@ Every agent that runs a micro-loop reads these seven short blocks from `agents/s
 
 ## The micro-loop contract (every specialist HANDOFF)
 
-A specialist does NOT return its first draft. It runs this internal loop before printing its completion phrase:
+A specialist does NOT return its first draft. It runs this internal loop before printing its completion phrase — a **numbered stage plan, each stage naming its expected output before that stage starts** (fable-mode discipline, source: `docs/research/FABLE5_FIELD_REPORTS.md` §6.1, in bpm-agent-amplifier — community-distilled Fable-style prompting that independently converged on this same shape):
 
 ```
-1. CRITERION  — restate the ONE checkable success criterion for this artifact.
-                If none exists, STOP — refuse to loop (see § Refuse-to-loop).
+1. CRITERION  — restate the ONE checkable success criterion for this artifact,
+                AND its expected output — the concrete thing step 5 must hand
+                back (a file at a path, a passing command, a written tracker
+                row). If none exists, STOP — refuse to loop (see § Refuse-to-loop).
                 For CODE, the criterion also includes: every file ≤ size cap,
                 every external API verified, anti-slop clean (validate-code-health
                 exit 0).
@@ -59,7 +61,10 @@ A specialist does NOT return its first draft. It runs this internal loop before 
                 against the ≤2 revise cap — looking is not revising. One-shot recall
                 loses to agentic exploration on weak models; this is the positive
                 "go look" rule that balances the negative guards below.
-3. SELF-VERIFY— run the criterion:
+3. SELF-VERIFY— run the criterion. **The check must be FAILABLE — capable of
+                 actually returning FAIL, not a mental "looks right" pass. If the
+                 stage failed, the check must catch it** (fable-mode: "the check
+                 must fail if the stage did"):
                  - **deterministic / tool-offloaded first (B3):** if a validator,
                    test, grep, build, or tool CAN decide the criterion, the model
                    MUST NOT judge it — route to the tool. A weak model's own
@@ -71,7 +76,11 @@ A specialist does NOT return its first draft. It runs this internal loop before 
                    proceed. On small tier, never batch edits across files before the
                    first check — per-edit feedback is a model-sized lever (SWE-agent).
                  - only if NO tool can decide it: judge on `verifier_model`, in a
-                   cleared sub-context, never grading your own reasoning in place.
+                   cleared sub-context, never grading your own reasoning in place —
+                   and be a SKEPTIC, not a rubber stamp: flag ONLY a confirmed
+                   problem you have an evidence action for. **Absence of evidence
+                   that something is wrong is NOT itself a finding** (fable-mode) —
+                   don't invent a gap just to look thorough.
 4. REVISE     — if the criterion fails: first **RE-GROUND (B4)** — restate the goal
                 and the one specific current-state-vs-goal gap in a single line —
                 THEN fix that cited gap and go to step 3. Re-grounding each revision
@@ -121,6 +130,15 @@ If the task's "done" is genuinely subjective (taste, wording, "make it nicer") w
 | **Micro** | **this contract** | **the specialist itself** | **2** | Is this one artifact correct before I return it? |
 
 A micro-loop never spawns sub-agents (one level of orchestration only — opencode #9280). A micro-loop never re-scans for new work — it verifies the ONE artifact it owns. Cross-artifact coverage is always the macro loop's job.
+
+**Refuse-to-select-next-work (T26.3).** The macro loop's own "what's next" step (`/reflow claim`,
+`run-until-done.sh` starting another session) is gated the same way a micro-loop's checkable
+criterion is: a red hygiene validator (`validate-tickets.sh`/`validate-state-drift.sh`) or an
+actor's still-open previous ticket (claimed/in_progress, no `close()` receipt yet) refuses
+selection outright — `scripts/lib/tickets.mjs claim`/`open-for` and `run-until-done.sh`'s
+`next_work_gate_ok()` enforce this in code, not just prose (see `PERSISTENCE.md`'s "Persistence ≠
+selecting new work over a red gate"). Treat that refusal like a failed checkable criterion: report
+it, don't work around it.
 
 ---
 
