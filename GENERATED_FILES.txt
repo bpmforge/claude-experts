@@ -29,6 +29,7 @@ agents/design-system-lead.md
 agents/documentation-gap-finder.md
 agents/end-user-simulator.md
 agents/frontend-design.md
+agents/game/game-asset-pipeline.md
 agents/game/game-balance-designer.md
 agents/game/game-designer.md
 agents/game/gameplay-engineer.md
@@ -256,7 +257,6 @@ scripts/validators/validate-tech-stack.sh
 scripts/validators/validate-test-design.sh
 scripts/validators/validate-tests-mapping.sh
 scripts/validators/validate-tests.sh
-scripts/validators/validate-ticket-hygiene.sh
 scripts/validators/validate-tickets.sh
 scripts/validators/validate-tracker-fresh.sh
 scripts/validators/validate-use-cases.sh
