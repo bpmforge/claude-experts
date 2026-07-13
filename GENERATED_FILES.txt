@@ -264,4 +264,5 @@ scripts/validators/validate-tracker-fresh.sh
 scripts/validators/validate-use-cases.sh
 scripts/validators/validate-user-stories.sh
 scripts/validators/validate-ux-spec.sh
+scripts/validators/validate-vendor-provenance.sh
 scripts/validators/validate-wcag-coverage.sh
