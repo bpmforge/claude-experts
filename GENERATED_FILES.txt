@@ -235,6 +235,7 @@ scripts/validators/validate-lint.sh
 scripts/validators/validate-loop-readiness.sh
 scripts/validators/validate-mermaid.sh
 scripts/validators/validate-migrations.sh
+scripts/validators/validate-model-pins.sh
 scripts/validators/validate-module-boundaries-transitive.sh
 scripts/validators/validate-module-boundaries.sh
 scripts/validators/validate-module-design.sh
