@@ -5,6 +5,7 @@
 agents/a11y-compliance.md
 agents/analytics-architect.md
 agents/api-designer.md
+agents/app-cartographer.md
 agents/architecture-designer.md
 agents/challenger.md
 agents/changelog-writer.md
@@ -35,8 +36,10 @@ agents/game/game-designer.md
 agents/game/gameplay-engineer.md
 agents/game/playtest-evaluator.md
 agents/git-expert.md
+agents/guide-scribe.md
 agents/guide.md
 agents/llm-integration-engineer.md
+agents/manual-writer.md
 agents/migration-planner.md
 agents/performance-engineer.md
 agents/performance/FINDINGS_SCHEMA.md
@@ -94,6 +97,7 @@ agents/shared/CONTEXT_BUDGET.md
 agents/shared/EXECUTOR_SELECTION.md
 agents/shared/FIX_VERIFY_LOOP.md
 agents/shared/GATE_SCORING_PROTOCOL.md
+agents/shared/GUIDE_CAPTURE.md
 agents/shared/HANDOFF_QUICK_REF.md
 agents/shared/HANDOFF_TEMPLATES.md
 agents/shared/LOCAL_LLM_PRIMER.md
