@@ -251,6 +251,7 @@ scripts/validators/validate-owasp.sh
 scripts/validators/validate-persistence-block.sh
 scripts/validators/validate-phase-gate.sh
 scripts/validators/validate-release-readiness.sh
+scripts/validators/validate-requirement-closure.sh
 scripts/validators/validate-requirements-matrix.sh
 scripts/validators/validate-resilience-patterns.sh
 scripts/validators/validate-scope.sh
