@@ -191,6 +191,7 @@ references/semgrep-community-rules.md
 references/semgrep-guide.md
 references/severity-matrix.md
 references/sre-cloud-patterns.md
+references/tracker-data-model-template.md
 references/validator-performance.md
 references/wcag-audit-checklist.md
 scripts/build-agents.mjs
@@ -268,6 +269,7 @@ scripts/validators/validate-tests.sh
 scripts/validators/validate-ticket-hygiene.sh
 scripts/validators/validate-tickets.sh
 scripts/validators/validate-tracker-fresh.sh
+scripts/validators/validate-tracker-integrity.sh
 scripts/validators/validate-use-cases.sh
 scripts/validators/validate-user-stories.sh
 scripts/validators/validate-ux-spec.sh
