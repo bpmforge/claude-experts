@@ -176,6 +176,7 @@ references/design-review-checklist.md
 references/design-system-tradeoffs.md
 references/engineering-artifacts.md
 references/git-workflow-checklist.md
+references/jira-adapter.md
 references/llm-routing-principles.md
 references/load-test-checklist.md
 references/local-agentic-models.md
@@ -237,6 +238,7 @@ scripts/validators/validate-iac.sh
 scripts/validators/validate-improve-coverage.sh
 scripts/validators/validate-infrastructure.sh
 scripts/validators/validate-inventory.sh
+scripts/validators/validate-jira-hygiene.sh
 scripts/validators/validate-lint.sh
 scripts/validators/validate-loop-readiness.sh
 scripts/validators/validate-mermaid.sh
