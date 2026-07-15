@@ -120,6 +120,7 @@ agents/shared/QA_VNV_TESTING.md
 agents/shared/RALPH_WIGGUM_LOOP.md
 agents/shared/RESEARCH_TOOLS.md
 agents/shared/SCOPE_BOUNDARY.md
+agents/shared/SDLC_RESUME_PROTOCOL.md
 agents/shared/SESSION_PRIMER.md
 agents/shared/TOOL_PREFLIGHT.md
 agents/shared/TUI_SESSION_HYGIENE.md
