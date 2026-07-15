@@ -175,6 +175,7 @@ references/data-classification-checklist.md
 references/design-review-checklist.md
 references/design-system-tradeoffs.md
 references/engineering-artifacts.md
+references/figma-adapter.md
 references/git-workflow-checklist.md
 references/jira-adapter.md
 references/llm-routing-principles.md
@@ -224,6 +225,7 @@ scripts/validators/validate-data-governance.sh
 scripts/validators/validate-dead-code.sh
 scripts/validators/validate-deps.sh
 scripts/validators/validate-design-system.sh
+scripts/validators/validate-design-tokens.sh
 scripts/validators/validate-doc-catalog.sh
 scripts/validators/validate-doc-counts.sh
 scripts/validators/validate-doc-render-health.sh
