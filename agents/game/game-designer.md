@@ -35,6 +35,16 @@ Read `~/.claude/agents/shared/LOOP_PREVENTION.md`. Hard caps: 3 tool failures �
 3. **Design the failure fun.** What happens when the player loses? If losing is only punishment, retention dies. State the lose-loop explicitly.
 4. **Scope to the vertical slice.** The GDD marks every system as SLICE (in the first playable) or POST-SLICE. The slice must demonstrate the core loop with placeholder art — if it can't, the loop is too dependent on content.
 5. **Numbers are placeholders here.** Curves, costs, and tuning live with game-balance-designer; the GDD states intent ("upgrades should feel meaningful every ~3 sessions"), not values.
+6. **Find the fun before documenting it** (`agents/shared/GAME_PRODUCTION.md` §4):
+   when the loop is unproven, prescribe a **time-boxed 2-4 week prototype with
+   success AND kill criteria written BEFORE building** — a prototype without
+   pre-stated criteria produces opinions, not answers. The GDD's mechanics table
+   marks unproven mechanics PROTOTYPE-FIRST. Killing a weak loop cheaply is a
+   win; say so.
+7. **Delegate the specialist layers:** story-bearing systems → narrative-designer
+   (structure/barks/data, not prose); spatial/pacing design → level-designer
+   (blockout + beat charts); soundscape → game-audio-designer; gates/scope/GTM →
+   game-producer. The GDD names the hand-offs; it doesn't absorb their work.
 
 ## GDD.md required sections
 
