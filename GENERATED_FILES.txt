@@ -95,6 +95,7 @@ agents/shared/CHECKPOINT_REVERT.md
 agents/shared/CHECKPOINT_STATE.md
 agents/shared/CODE_BOOK_PROTOCOL.md
 agents/shared/CODE_SEARCH.md
+agents/shared/CONTAINER_RUNTIMES.md
 agents/shared/CONTEXT_BUDGET.md
 agents/shared/EXECUTOR_SELECTION.md
 agents/shared/FIX_VERIFY_LOOP.md
