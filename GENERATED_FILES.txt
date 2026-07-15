@@ -50,6 +50,7 @@ agents/performance/db-query-analyzer.md
 agents/performance/perf-synthesizer.md
 agents/performance/profiler-agent.md
 agents/performance/static-perf-analyzer.md
+agents/qa-vnv-engineer.md
 agents/release-manager.md
 agents/reliability-engineer.md
 agents/researcher.md
@@ -108,6 +109,7 @@ agents/shared/MICRO_LOOP.md
 agents/shared/MODEL_ADAPTER.md
 agents/shared/PERSISTENCE.md
 agents/shared/PHASE_ROUTING_PROTOCOL.md
+agents/shared/QA_VNV_TESTING.md
 agents/shared/RALPH_WIGGUM_LOOP.md
 agents/shared/RESEARCH_TOOLS.md
 agents/shared/SCOPE_BOUNDARY.md
@@ -259,6 +261,7 @@ scripts/validators/validate-observability.sh
 scripts/validators/validate-owasp.sh
 scripts/validators/validate-persistence-block.sh
 scripts/validators/validate-phase-gate.sh
+scripts/validators/validate-qa-evidence.sh
 scripts/validators/validate-release-readiness.sh
 scripts/validators/validate-requirement-closure.sh
 scripts/validators/validate-requirements-matrix.sh
